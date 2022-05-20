@@ -2,8 +2,10 @@ package server
 
 import (
 	"bufio"
+	"encoding/gob"
 	"fmt"
 	"net"
+	"os"
 	//"os"
 )
 
@@ -25,22 +27,36 @@ func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Con
 	connection.Write([]byte("OK"))
 	return true
 }
+
+func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) error {
+	decoder := gob.NewDecoder(connection)
+	var meta os.FileInfo
+	fmt.Printf("Waiting for meta data \n")
+	err := decoder.Decode(&meta)
+	if err != nil {
+		return fmt.Errorf("Error decoding file => %s\n", err.Error())
+	}
+	fmt.Printf("Got meta data => %d\n", meta.Size())
+	return nil
+}
+
 func HandleConnection(connection net.Conn) {
 	fmt.Println("Handling connection")
 	defer connection.Close()
-
-	connection.Write([]byte("OK"))
-
-	fmt.Println("SENT OK")
 
 	connectionScanner := bufio.NewScanner(connection)
 
 	authenticated := authenticateConnection(connectionScanner, connection)
 
+	fmt.Println("exited auth")
 	if !authenticated {
 		connection.Write([]byte("User Not Found"))
 		return
 	}
+
+	fmt.Println("About to accept meta data")
+
+	//acceptFileMetaData(connectionScanner, connection)
 
 	/*
 		file, err := os.OpenFile("examle.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)

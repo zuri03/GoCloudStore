@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func HandleCliSession() {
@@ -36,5 +37,36 @@ func HandleCliSession() {
 
 	connectionScanner := bufio.NewScanner(connection)
 	authenticateSession(connection, connectionScanner, username, password)
+	runSessionLoop(commandLineReader, connection)
 	fmt.Printf("Closing connection")
+}
+
+func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn) {
+	for {
+		fmt.Printf(">")
+		str, err := commandLineReader.ReadString('\n')
+		if err != nil {
+			fmt.Printf("Error reading input => %s\n", err.Error())
+			return
+		}
+
+		//Trim the two invisible characters at the end
+		str = str[:len(str)-2]
+		input := strings.Split(str, " ")
+
+		switch strings.ToLower(input[0]) {
+		case "help":
+			printHelpMessage()
+			fmt.Println("printed help")
+		case "send":
+			file, metaData, err := getFileFromMemory(input[1:])
+			if err != nil {
+				fmt.Printf("Error reading file => %s\n", err.Error())
+			}
+			sendFileToServer(file, metaData, connection)
+		case "get":
+		case "quit":
+		}
+
+	}
 }
