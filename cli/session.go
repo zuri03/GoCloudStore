@@ -36,7 +36,11 @@ func HandleCliSession() {
 	defer connection.Close()
 
 	connectionScanner := bufio.NewScanner(connection)
-	authenticateSession(connection, connectionScanner, username, password)
+	authenticated := authenticateSession(connection, connectionScanner, username, password)
+	if !authenticated {
+		fmt.Printf("Failed to authenticate user \n Exiting...")
+		return
+	}
 	runSessionLoop(commandLineReader, connection)
 	fmt.Printf("Closing connection")
 }
@@ -62,11 +66,13 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn) {
 			file, metaData, err := getFileFromMemory(input[1:])
 			if err != nil {
 				fmt.Printf("Error reading file => %s\n", err.Error())
+				break
 			}
 			sendFileToServer(file, metaData, connection)
 		case "get":
 		case "quit":
+			fmt.Println("Exiting...")
+			return
 		}
-
 	}
 }

@@ -2,8 +2,7 @@ package server
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/json"
+	"encoding/gob"
 	"fmt"
 	"net"
 )
@@ -27,44 +26,22 @@ func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Con
 	return true
 }
 
-type Test struct {
-	Val string `json:"value"`
+type FileMetaData struct {
+	Size int64
+	Name string
 }
 
 func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) error {
-	var meta Test
-	buffer := new(bytes.Buffer)
-	b := make([]byte, 100)
-	for {
-		fmt.Println("Waiting for data")
-		numOfBytes, err := connection.Read(b)
-		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			} else {
-				return err
-			}
-		}
-
-		if numOfBytes == 0 {
-			break
-		}
-
-		if bytes.Contains(b, []byte("\n")) {
-			break
-		}
-		buffer.Write(b)
+	gob.Register(new(FileMetaData))
+	meta := &FileMetaData{}
+	decoder := gob.NewDecoder(connection)
+	fmt.Println("WAITING FOR GOB")
+	err := decoder.Decode(meta)
+	if err != nil {
+		fmt.Printf("Error decoding gob => %s\n", err.Error())
+		return err
 	}
-	result := bytes.TrimFunc(buffer.Bytes(), func(r rune) bool {
-		fmt.Printf("%c => %t\n", r, r == 0)
-		if r == 0 {
-			return true
-		}
-		return false
-	})
-	json.Unmarshal(result, &meta)
-	fmt.Println("Got meta")
-	fmt.Printf("meta => %+v\n", meta)
+	fmt.Printf("Result => %+v\n", meta)
 	return nil
 }
 

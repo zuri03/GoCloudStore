@@ -2,7 +2,8 @@ package cli
 
 import (
 	"bufio"
-	"encoding/json"
+	//"encoding/json"
+	"encoding/gob"
 	"fmt"
 	"io/fs"
 	"net"
@@ -13,45 +14,49 @@ func authenticateSession(connection net.Conn, scanner *bufio.Scanner, username s
 	fmt.Println("Authenticating")
 	connection.Write([]byte(username))
 	connection.Write([]byte(password))
-
 	buf := make([]byte, 2)
 	connection.Read(buf)
-
-	fmt.Printf("Got message from read buf => %s\n", string(buf))
+	if string(buf) != "OK" {
+		return false
+	}
 	fmt.Println("SUCCESSFUL AUTHENTICATION")
-
-	return false
+	return true
 }
 
-type Test struct {
-	Val string `json:"value"`
+type FileMetaData struct {
+	Size int64
+	Name string
 }
 
+//Place types in a shared directory in the future
 func sendMetaDataToServer(meta fs.FileInfo, connection net.Conn) error {
 
 	fmt.Println("Generated gob")
-	test := Test{Val: "example"}
-	jsonBytes, err := json.Marshal(test)
-	if err != nil {
-		return err
-	}
-
-	connection.Write(jsonBytes)
-	connection.Write([]byte("\n"))
-
-	fmt.Println("Sent json")
-
 	/*
-		encoder := gob.NewEncoder(connection)
-		fmt.Println("Connected gob to buffer")
-		err := encoder.Encode(meta)
+		jsonBytes, err := json.Marshal(meta)
 		if err != nil {
-			fmt.Printf("Error in gob => %s\n", err.Error())
 			return err
 		}
-		fmt.Println("Encoded meta data")
-		fmt.Println("Encoded meta data")
+		connection.Write(jsonBytes)
+		connection.Write([]byte("\n"))
+
+		fmt.Println("Sent json")
 	*/
+
+	gob.Register(new(FileMetaData))
+	metaData := FileMetaData{
+		Size: meta.Size(),
+		Name: meta.Name(),
+	}
+	encoder := gob.NewEncoder(connection)
+	fmt.Println("Connected gob to buffer")
+	err := encoder.Encode(metaData)
+	if err != nil {
+		fmt.Printf("Error in gob => %s\n", err.Error())
+		return err
+	}
+	fmt.Println("Encoded meta data")
+	fmt.Println("Encoded meta data")
 	return nil
 }
 
