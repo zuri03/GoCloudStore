@@ -30,19 +30,7 @@ type FileMetaData struct {
 
 //Place types in a shared directory in the future
 func sendMetaDataToServer(meta fs.FileInfo, connection net.Conn) error {
-
 	fmt.Println("Generated gob")
-	/*
-		jsonBytes, err := json.Marshal(meta)
-		if err != nil {
-			return err
-		}
-		connection.Write(jsonBytes)
-		connection.Write([]byte("\n"))
-
-		fmt.Println("Sent json")
-	*/
-
 	gob.Register(new(FileMetaData))
 	metaData := FileMetaData{
 		Size: meta.Size(),
@@ -52,32 +40,14 @@ func sendMetaDataToServer(meta fs.FileInfo, connection net.Conn) error {
 	fmt.Println("Connected gob to buffer")
 	err := encoder.Encode(metaData)
 	if err != nil {
-		fmt.Printf("Error in gob => %s\n", err.Error())
 		return err
 	}
-	fmt.Println("Encoded meta data")
 	fmt.Println("Encoded meta data")
 	return nil
 }
 
-func sendDataToServer() {
-
-}
-
-func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
-
-	fmt.Println("Sending meta data to server")
-	err := sendMetaDataToServer(meta, connection)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-	/*
-
-		//Arbitrary buffer size
-		//Determine best buffer size later
+func sendFileDataToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
+	if meta.Size() >= 1024 {
 		buffer := make([]byte, 500)
 
 		for {
@@ -101,6 +71,21 @@ func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) erro
 
 			connection.Write(buffer)
 		}
-		return nil
-	*/
+	} else {
+		dataBuffer := make([]byte, meta.Size())
+		file.Read(dataBuffer)
+		connection.Write(dataBuffer)
+	}
+	return nil
+}
+
+func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
+
+	fmt.Println("Sending meta data to server")
+	err := sendMetaDataToServer(meta, connection)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
