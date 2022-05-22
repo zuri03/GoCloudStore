@@ -29,5 +29,6 @@ func getFileFromMemory(input []string) (*os.File, fs.FileInfo, error) {
 		return nil, nil, fmt.Errorf("File %s does not exist", fileName)
 	}
 
+	fmt.Printf("returing file of size = %d\n", fileMetaData.Size())
 	return file, fileMetaData, nil
 }
