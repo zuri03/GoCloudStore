@@ -47,8 +47,9 @@ func sendMetaDataToServer(meta fs.FileInfo, connection net.Conn) error {
 }
 
 func sendFileDataToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
+	fmt.Printf("FILE SIZE => %d\n", meta.Size())
 	if meta.Size() >= 1024 {
-		buffer := make([]byte, 500)
+		buffer := make([]byte, 1024)
 
 		for {
 			numOfBytes, err := file.Read(buffer)
@@ -72,9 +73,11 @@ func sendFileDataToServer(file *os.File, meta fs.FileInfo, connection net.Conn) 
 			connection.Write(buffer)
 		}
 	} else {
+		fmt.Println("SENDING FILE IN ONE CHUNK")
 		dataBuffer := make([]byte, meta.Size())
 		file.Read(dataBuffer)
 		connection.Write(dataBuffer)
+		fmt.Println("SENT FILE DATA")
 	}
 	return nil
 }
@@ -86,6 +89,7 @@ func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) erro
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("SENDING FILE DATA TO SERVER")
+	sendFileDataToServer(file, meta, connection)
 	return nil
 }

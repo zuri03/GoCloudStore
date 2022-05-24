@@ -2,11 +2,16 @@ package server
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"net"
 	"os"
 )
+
+func checkUserCredentials(username string, password string) {
+	//stub
+}
 
 func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Conn) bool {
 	fmt.Println("AUTHENTICATING CLIENT")
@@ -14,14 +19,12 @@ func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Con
 	fmt.Println("GOT TOKEN")
 
 	username := connectionScanner.Text()
-	fmt.Printf("Username => %s\n", username)
 	connectionScanner.Scan()
 
 	password := connectionScanner.Text()
-	fmt.Printf("Password => %s\n", password)
 
 	//From here pass username and password to some authenticaiton service
-	fmt.Println("SUCCESS ENDING SESSION")
+	checkUserCredentials(username, password)
 	connection.Write([]byte("OK"))
 	return true
 }
@@ -41,16 +44,15 @@ func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) (
 		fmt.Printf("Error decoding gob => %s\n", err.Error())
 		return nil, err
 	}
-	fmt.Printf("Result => %+v\n", meta)
 	return meta, nil
 }
 
 func createFile(metaData *FileMetaData) (*os.File, error) {
 	file, err := os.OpenFile(metaData.Name, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
-		fmt.Printf("Error occured while opening file => %s\n", err.Error())
 		return nil, err
 	}
+	fmt.Println("CREATED FILE")
 	return file, nil
 }
 
@@ -60,6 +62,14 @@ func acceptFileData(metaData *FileMetaData, file *os.File, connection net.Conn) 
 	} else {
 		dataBuffer := make([]byte, 1024)
 		connection.Read(dataBuffer)
+		fmt.Printf("Server got => %s\n", string(dataBuffer))
+		result := bytes.TrimFunc(dataBuffer, func(r rune) bool {
+			if r == 0 {
+				return true
+			}
+			return false
+		})
+		fmt.Printf("result => %s\n", result)
 		file.Write(dataBuffer)
 	}
 	return nil
@@ -93,5 +103,6 @@ func HandleConnection(connection net.Conn) {
 		return
 	}
 
+	fmt.Println("CREATED FILE")
 	err = acceptFileData(metaData, file, connection)
 }
