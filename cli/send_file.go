@@ -3,9 +3,21 @@ package cli
 import (
 	"fmt"
 	"io/fs"
+	"net"
 	"os"
 	"path/filepath"
 )
+
+func sendFileCommand(input []string, connection net.Conn) error {
+	file, metaData, err := getFileFromMemory(input[1:])
+	if err != nil {
+		return err
+	}
+	if err := sendFileToServer(file, metaData, connection); err != nil {
+		return err
+	}
+	return nil
+}
 
 func getFileFromMemory(input []string) (*os.File, fs.FileInfo, error) {
 	fileName := input[0]

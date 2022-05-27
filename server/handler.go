@@ -75,10 +75,32 @@ func acceptFileData(metaData *FileMetaData, file *os.File, connection net.Conn) 
 	return nil
 }
 
+func sendFileToClient(fileName string, connection net.Conn) error {
+	metaData, err := os.Stat(fileName)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("size => %d\n", metaData.Size())
+	file, err := os.Open(fileName)
+	if err != nil {
+		return err
+	}
+
+	if metaData.Size() >= 1024 {
+		buffer := make([]byte, metaData.Size())
+		file.Read(buffer)
+		connection.Write(buffer)
+		fmt.Println("SENT DATA TO CLIENT")
+	}
+
+	return nil
+}
+
 func HandleConnection(connection net.Conn) {
 	fmt.Println("Handling connection")
 	defer connection.Close()
 
+	//Remove connection scanner
 	connectionScanner := bufio.NewScanner(connection)
 
 	authenticated := authenticateConnection(connectionScanner, connection)
@@ -89,20 +111,27 @@ func HandleConnection(connection net.Conn) {
 		return
 	}
 
-	fmt.Println("About to accept meta data")
+	fmt.Println("WAITING FOR MESSAGE")
+	connectionScanner.Scan()
+	res := connectionScanner.Text()
+	fmt.Printf("res => %s\n", res)
+	fmt.Println("CLOSING CONNECTION")
+	/*
+		fmt.Println("About to accept meta data")
 
-	metaData, err := acceptFileMetaData(connectionScanner, connection)
-	if err != nil {
-		fmt.Printf("Error while accepting meta data => %s\n", err.Error())
-		return
-	}
+		metaData, err := acceptFileMetaData(connectionScanner, connection)
+		if err != nil {
+			fmt.Printf("Error while accepting meta data => %s\n", err.Error())
+			return
+		}
 
-	file, err := createFile(metaData)
-	if err != nil {
-		fmt.Printf("Error creating file => %s\n", err.Error())
-		return
-	}
+		file, err := createFile(metaData)
+		if err != nil {
+			fmt.Printf("Error creating file => %s\n", err.Error())
+			return
+		}
 
-	fmt.Println("CREATED FILE")
-	err = acceptFileData(metaData, file, connection)
+		fmt.Println("CREATED FILE")
+		err = acceptFileData(metaData, file, connection)
+	*/
 }

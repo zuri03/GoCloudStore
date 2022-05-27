@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	//"encoding/json"
 	"encoding/gob"
 	"fmt"
@@ -10,7 +9,7 @@ import (
 	"os"
 )
 
-func authenticateSession(connection net.Conn, scanner *bufio.Scanner, username string, password string) bool {
+func authenticateSession(connection net.Conn, username string, password string) bool {
 	fmt.Println("Authenticating")
 	connection.Write([]byte(username))
 	connection.Write([]byte(password))
