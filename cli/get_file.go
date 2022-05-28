@@ -35,7 +35,10 @@ func getFileDataFromServer(connection net.Conn) (*bytes.Buffer, error) {
 	fileDataBuffer := new(bytes.Buffer)
 	fmt.Println("READING FILE DATA FROM SERVER")
 	for {
-		connection.Read(fileDataReader)
+		_, err := connection.Read(fileDataReader)
+		if err != nil {
+			fmt.Println("CONNECTION HAS BEEN CLOSED")
+		}
 
 		//If the last byte is empty just assume we have recieved all of the file contents
 		if fileDataReader[len(fileDataReader)-1] == 0 {

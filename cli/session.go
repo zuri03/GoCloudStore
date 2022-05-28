@@ -61,7 +61,6 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn) {
 		switch strings.ToLower(input[0]) {
 		case "help":
 			printHelpMessage()
-			fmt.Println("printed help")
 		case "send":
 			err := sendFileCommand(input[1:], connection)
 			if err != nil {

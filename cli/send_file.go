@@ -9,10 +9,14 @@ import (
 )
 
 func sendFileCommand(input []string, connection net.Conn) error {
-	file, metaData, err := getFileFromMemory(input[1:])
+	file, metaData, err := getFileFromMemory(input)
 	if err != nil {
 		return err
 	}
+
+	//SND: short for send
+	//Lets the server know the client is about to send a file
+	connection.Write([]byte("SND"))
 	if err := sendFileToServer(file, metaData, connection); err != nil {
 		return err
 	}

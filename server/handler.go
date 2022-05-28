@@ -9,14 +9,14 @@ import (
 	"os"
 )
 
+//TODO: Turn all of the buffer sizes into contants
+//TODO: Determine proper buffer size
 func checkUserCredentials(username string, password string) {
 	//stub
 }
 
 func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Conn) bool {
-	fmt.Println("AUTHENTICATING CLIENT")
 	connectionScanner.Scan()
-	fmt.Println("GOT TOKEN")
 
 	username := connectionScanner.Text()
 	connectionScanner.Scan()
@@ -62,16 +62,32 @@ func acceptFileData(metaData *FileMetaData, file *os.File, connection net.Conn) 
 	} else {
 		dataBuffer := make([]byte, 1024)
 		connection.Read(dataBuffer)
-		fmt.Printf("Server got => %s\n", string(dataBuffer))
-		result := bytes.TrimFunc(dataBuffer, func(r rune) bool {
-			if r == 0 {
-				return true
-			}
-			return false
-		})
-		fmt.Printf("result => %s\n", result)
-		file.Write(dataBuffer)
+		result := trimBuffer(dataBuffer)
+		file.Write(result)
 	}
+	return nil
+}
+
+func storeFileFromClient(connectionScanner *bufio.Scanner, connection net.Conn) error {
+	fmt.Println("ACCEPTING META DATA")
+	metaData, err := acceptFileMetaData(connectionScanner, connection)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("CREATE FILE")
+	file, err := createFile(metaData)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("ACCEPT FILE DATA")
+	err = acceptFileData(metaData, file, connection)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("SUCCESS")
 	return nil
 }
 
@@ -102,36 +118,54 @@ func HandleConnection(connection net.Conn) {
 
 	//Remove connection scanner
 	connectionScanner := bufio.NewScanner(connection)
-
 	authenticated := authenticateConnection(connectionScanner, connection)
 
 	fmt.Println("exited auth")
 	if !authenticated {
-		connection.Write([]byte("User Not Found"))
+		connection.Write([]byte("UNF")) //user not found
 		return
 	}
 
-	fmt.Println("WAITING FOR MESSAGE")
-	connectionScanner.Scan()
-	res := connectionScanner.Text()
-	fmt.Printf("res => %s\n", res)
-	fmt.Println("CLOSING CONNECTION")
-	/*
-		fmt.Println("About to accept meta data")
-
-		metaData, err := acceptFileMetaData(connectionScanner, connection)
+	//This limits the max length of a file name to 96
+	//Client message => COMMAND:PARAMETERS
+	//Command is three bytes
+	readBuffer := make([]byte, 100)
+	for {
+		fmt.Println("WAITING FOR MESSAGE")
+		_, err := connection.Read(readBuffer)
 		if err != nil {
-			fmt.Printf("Error while accepting meta data => %s\n", err.Error())
+			fmt.Println("ERROR CLOSING CONNECTION")
 			return
 		}
 
-		file, err := createFile(metaData)
-		if err != nil {
-			fmt.Printf("Error creating file => %s\n", err.Error())
+		switch string(readBuffer[0:3]) {
+		case "GET":
+			fmt.Println("FOUND GET REQEUST")
+			fileName := trimBuffer(readBuffer[4:])
+			sendFileToClient(string(fileName), connection)
+		case "SND":
+			fmt.Println("FOUND SEND REQUEST")
+			err := storeFileFromClient(connectionScanner, connection)
+			if err != nil {
+				fmt.Printf("ERROR => %s\n", err.Error())
+				connection.Write([]byte("ERR"))
+				return
+			}
+		case "ERR":
+			fmt.Println("CLIENT ERROR OCCURED")
 			return
+		default:
+			fmt.Println("UNRECOGNIZED REQUEST")
 		}
+	}
+}
 
-		fmt.Println("CREATED FILE")
-		err = acceptFileData(metaData, file, connection)
-	*/
+func trimBuffer(buffer []byte) []byte {
+	fmt.Printf("TRIMMING => %s\n", string(buffer))
+	return bytes.TrimFunc(buffer, func(r rune) bool {
+		if r == 0 {
+			return true
+		}
+		return false
+	})
 }
