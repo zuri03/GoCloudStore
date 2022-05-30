@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/zuri03/GoCloudStore/records"
 	"github.com/zuri03/GoCloudStore/server"
 )
 
@@ -16,6 +17,8 @@ func main() {
 		return
 	}
 
+	keeper := records.InitRecordKeeper()
+	handler := server.Handler{Keeper: keeper}
 	for {
 		fmt.Println("Waiting for connections")
 		connection, err := listener.Accept()
@@ -24,6 +27,6 @@ func main() {
 			fmt.Printf("Error accepting connections => %s\n", err.Error())
 		}
 
-		server.HandleConnection(connection)
+		handler.HandleConnection(connection)
 	}
 }

@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func HandleCliSession() {
@@ -36,16 +38,12 @@ func HandleCliSession() {
 	defer connection.Close()
 
 	//connectionScanner := bufio.NewScanner(connection)
-	authenticated := authenticateSession(connection, username, password)
-	if !authenticated {
-		fmt.Printf("Failed to authenticate user \n Exiting...")
-		return
-	}
-	runSessionLoop(commandLineReader, connection)
+	runSessionLoop(commandLineReader, connection, username, password)
 	fmt.Printf("Closing connection")
 }
 
-func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn) {
+func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, username string, password string) {
+	metadateClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 	for {
 		fmt.Printf(">")
 		str, err := commandLineReader.ReadString('\n')
@@ -62,18 +60,12 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn) {
 		case "help":
 			printHelpMessage()
 		case "send":
-			err := sendFileCommand(input[1:], connection)
+		case "get":
+			record, err := metadateClient.getFileRecord(username, password, input[1])
 			if err != nil {
 				fmt.Printf("Error => %s\n", err.Error())
-				break
 			}
-		case "get":
-			err := getFileCommand(input[1:], connection)
-			if err != nil {
-				fmt.Printf("Error retreiving file from server => %s\n", err.Error())
-				break
-			}
-			fmt.Println("FINISHED RETRIEVING FILE FROM SERVER")
+			fmt.Printf("record => %s\n", record.MetaData.Name)
 		case "quit":
 			fmt.Println("Exiting...")
 			return

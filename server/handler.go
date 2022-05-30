@@ -3,10 +3,8 @@ package server
 import (
 	"bufio"
 	"bytes"
-	"encoding/gob"
 	"fmt"
 	"net"
-	"os"
 
 	"github.com/zuri03/GoCloudStore/records"
 )
@@ -14,102 +12,11 @@ import (
 //TODO: Turn all of the buffer sizes into contants
 //TODO: Determine proper buffer size
 //TODO: Move storage functionality to the storage server
-func checkUserCredentials(username string, password string) {
-	//stub
+type Handler struct {
+	Keeper records.RecordKeeper
 }
 
-func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Conn) bool {
-	connectionScanner.Scan()
-
-	username := connectionScanner.Text()
-	connectionScanner.Scan()
-
-	password := connectionScanner.Text()
-
-	//From here pass username and password to some authenticaiton service
-	checkUserCredentials(username, password)
-	connection.Write([]byte("OK"))
-	return true
-}
-
-func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) (*records.FileMetaData, error) {
-	gob.Register(new(records.FileMetaData))
-	meta := &records.FileMetaData{}
-	decoder := gob.NewDecoder(connection)
-	fmt.Println("WAITING FOR GOB")
-	err := decoder.Decode(meta)
-	if err != nil {
-		return nil, err
-	}
-	return meta, nil
-}
-
-func createFile(metaData *records.FileMetaData) (*os.File, error) {
-	file, err := os.OpenFile(metaData.Name, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
-}
-
-func acceptFileData(metaData *records.FileMetaData, file *os.File, connection net.Conn) error {
-	if metaData.Size >= 1024 {
-		//Read the data from the connection in a loop
-	} else {
-		dataBuffer := make([]byte, 1024)
-		connection.Read(dataBuffer)
-		result := trimBuffer(dataBuffer)
-		file.Write(result)
-	}
-	return nil
-}
-
-func storeFileFromClient(connectionScanner *bufio.Scanner, connection net.Conn) error {
-	fmt.Println("ACCEPTING META DATA")
-	metaData, err := acceptFileMetaData(connectionScanner, connection)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("CREATE FILE")
-	file, err := createFile(metaData)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("ACCEPT FILE DATA")
-	err = acceptFileData(metaData, file, connection)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("SUCCESS")
-	return nil
-}
-
-func sendFileToClient(fileName string, connection net.Conn) error {
-	fmt.Printf("SENDING %s TO CLIENT\n", fileName)
-	metaData, err := os.Stat(fileName)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-
-	if metaData.Size() <= 1024 {
-		buffer := make([]byte, metaData.Size())
-		file.Read(buffer)
-		connection.Write(buffer)
-	}
-
-	connection.Write([]byte("EOF"))
-	return nil
-}
-
-func HandleConnection(connection net.Conn) {
+func (h *Handler) HandleConnection(connection net.Conn) {
 	defer connection.Close()
 
 	//Remove connection scanner
@@ -140,7 +47,7 @@ func HandleConnection(connection net.Conn) {
 			sendFileToClient(string(fileName), connection)
 		case "SND":
 			fmt.Println("FOUND SEND REQUEST")
-			err := storeFileFromClient(connectionScanner, connection)
+			err := storeFileFromClient(connectionScanner, connection, h.Keeper)
 			if err != nil {
 				fmt.Printf("ERROR => %s\n", err.Error())
 				connection.Write([]byte("ERR"))
@@ -153,6 +60,24 @@ func HandleConnection(connection net.Conn) {
 			fmt.Println("UNRECOGNIZED REQUEST")
 		}
 	}
+}
+
+func checkUserCredentials(username string, password string) {
+	//stub
+}
+
+func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Conn) bool {
+	connectionScanner.Scan()
+
+	username := connectionScanner.Text()
+	connectionScanner.Scan()
+
+	password := connectionScanner.Text()
+
+	//From here pass username and password to some authenticaiton service
+	checkUserCredentials(username, password)
+	connection.Write([]byte("OK"))
+	return true
 }
 
 func trimBuffer(buffer []byte) []byte {

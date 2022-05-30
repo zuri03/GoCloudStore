@@ -7,8 +7,7 @@ import (
 	"os"
 )
 
-func getFileCommand(input []string, connection net.Conn) error {
-	fileName := input[0]
+func getFileCommand(fileName string, connection net.Conn) error {
 	connection.Write([]byte(fmt.Sprintf("GET:%s", fileName)))
 	fileData, err := getFileDataFromServer(connection)
 	if err != nil {

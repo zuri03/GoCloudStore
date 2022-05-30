@@ -3,10 +3,15 @@ package cli
 import (
 	//"encoding/json"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
+
+	"github.com/zuri03/GoCloudStore/records"
 )
 
 func authenticateSession(connection net.Conn, username string, password string) bool {
@@ -91,4 +96,53 @@ func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) erro
 	fmt.Println("SENDING FILE DATA TO SERVER")
 	sendFileDataToServer(file, meta, connection)
 	return nil
+}
+
+type MetadataServerClient struct {
+	Client http.Client
+}
+
+//Meta data server functions
+func (c *MetadataServerClient) getFileRecord(username string, password string, key string) (*records.Record, error) {
+
+	url := fmt.Sprintf("http://localhost:8080/file?username=%s&password=%s&key=%s", username, password, key)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	var record records.Record
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(body, &record)
+	return &record, nil
+}
+
+func (c *MetadataServerClient) createFileRecord(username string, password string, key string) (*records.Record, error) {
+
+	url := fmt.Sprintf("http://localhost:8080/file", username, password, key)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	var record records.Record
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(body, &record)
+	return &record, nil
 }

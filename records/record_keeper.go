@@ -5,19 +5,20 @@ import (
 	"time"
 )
 
+//TODO: Make record keeper thread safe
 type RecordKeeper struct {
 	records map[string]Record
 }
 
 type Record struct {
-	MetaData *FileMetaData
+	MetaData *FileMetaData `json:"file"`
 	//Location points to the node and path on that node that the file is stored on
 	//For now files are simply stored in a single chunk in a single location
-	Location     string
-	CreatedAt    string
-	IsPublic     bool
-	Owner        string
-	AllowedUsers []string
+	Location     string   `json:"location"`
+	CreatedAt    string   `json:"createdAt"`
+	IsPublic     bool     `json:"isPublic"`
+	Owner        string   `json:"owner"`
+	AllowedUsers []string `json:"allowedUsers"`
 }
 
 type FileMetaData struct {
@@ -25,7 +26,14 @@ type FileMetaData struct {
 	Name string
 }
 
-func (keeper *RecordKeeper) getRecord(key string) *Record {
+//Ensure this is only called once in the main function
+func InitRecordKeeper() RecordKeeper {
+	return RecordKeeper{
+		records: make(map[string]Record),
+	}
+}
+
+func (keeper *RecordKeeper) GetRecord(key string) *Record {
 	record, ok := keeper.records[key]
 	if !ok {
 		return nil
@@ -33,7 +41,7 @@ func (keeper *RecordKeeper) getRecord(key string) *Record {
 	return &record
 }
 
-func (keeper *RecordKeeper) setRecord(key string, owner string, meta *FileMetaData) error {
+func (keeper *RecordKeeper) SetRecord(key string, owner string, meta *FileMetaData) error {
 	_, ok := keeper.records[key]
 	if ok {
 		return fmt.Errorf("Record %s already exists", key)
@@ -50,16 +58,16 @@ func (keeper *RecordKeeper) setRecord(key string, owner string, meta *FileMetaDa
 	return nil
 }
 
-func (keeper *RecordKeeper) removeRecord(key string) error {
-	if record := keeper.getRecord(key); record == nil {
+func (keeper *RecordKeeper) RemoveRecord(key string) error {
+	if record := keeper.GetRecord(key); record == nil {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
 	delete(keeper.records, key)
 	return nil
 }
 
-func (keeper *RecordKeeper) addAllowedUser(key string, user string) error {
-	record := keeper.getRecord(key)
+func (keeper *RecordKeeper) AddAllowedUser(key string, user string) error {
+	record := keeper.GetRecord(key)
 	if record == nil {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
@@ -67,8 +75,8 @@ func (keeper *RecordKeeper) addAllowedUser(key string, user string) error {
 	return nil
 }
 
-func (keeper *RecordKeeper) removeAllowedUser(key string, user string) error {
-	record := keeper.getRecord(key)
+func (keeper *RecordKeeper) RemoveAllowedUser(key string, user string) error {
+	record := keeper.GetRecord(key)
 	if record == nil {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
