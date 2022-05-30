@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"net"
 	"os"
+
+	"github.com/zuri03/GoCloudStore/records"
 )
 
 //TODO: Turn all of the buffer sizes into contants
 //TODO: Determine proper buffer size
+//TODO: Move storage functionality to the storage server
 func checkUserCredentials(username string, password string) {
 	//stub
 }
@@ -29,34 +32,27 @@ func authenticateConnection(connectionScanner *bufio.Scanner, connection net.Con
 	return true
 }
 
-type FileMetaData struct {
-	Size int64
-	Name string
-}
-
-func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) (*FileMetaData, error) {
-	gob.Register(new(FileMetaData))
-	meta := &FileMetaData{}
+func acceptFileMetaData(connectionScanner *bufio.Scanner, connection net.Conn) (*records.FileMetaData, error) {
+	gob.Register(new(records.FileMetaData))
+	meta := &records.FileMetaData{}
 	decoder := gob.NewDecoder(connection)
 	fmt.Println("WAITING FOR GOB")
 	err := decoder.Decode(meta)
 	if err != nil {
-		fmt.Printf("Error decoding gob => %s\n", err.Error())
 		return nil, err
 	}
 	return meta, nil
 }
 
-func createFile(metaData *FileMetaData) (*os.File, error) {
+func createFile(metaData *records.FileMetaData) (*os.File, error) {
 	file, err := os.OpenFile(metaData.Name, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("CREATED FILE")
 	return file, nil
 }
 
-func acceptFileData(metaData *FileMetaData, file *os.File, connection net.Conn) error {
+func acceptFileData(metaData *records.FileMetaData, file *os.File, connection net.Conn) error {
 	if metaData.Size >= 1024 {
 		//Read the data from the connection in a loop
 	} else {
@@ -92,35 +88,34 @@ func storeFileFromClient(connectionScanner *bufio.Scanner, connection net.Conn) 
 }
 
 func sendFileToClient(fileName string, connection net.Conn) error {
+	fmt.Printf("SENDING %s TO CLIENT\n", fileName)
 	metaData, err := os.Stat(fileName)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("size => %d\n", metaData.Size())
+
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
 
-	if metaData.Size() >= 1024 {
+	if metaData.Size() <= 1024 {
 		buffer := make([]byte, metaData.Size())
 		file.Read(buffer)
 		connection.Write(buffer)
-		fmt.Println("SENT DATA TO CLIENT")
 	}
 
+	connection.Write([]byte("EOF"))
 	return nil
 }
 
 func HandleConnection(connection net.Conn) {
-	fmt.Println("Handling connection")
 	defer connection.Close()
 
 	//Remove connection scanner
 	connectionScanner := bufio.NewScanner(connection)
 	authenticated := authenticateConnection(connectionScanner, connection)
 
-	fmt.Println("exited auth")
 	if !authenticated {
 		connection.Write([]byte("UNF")) //user not found
 		return
@@ -161,7 +156,6 @@ func HandleConnection(connection net.Conn) {
 }
 
 func trimBuffer(buffer []byte) []byte {
-	fmt.Printf("TRIMMING => %s\n", string(buffer))
 	return bytes.TrimFunc(buffer, func(r rune) bool {
 		if r == 0 {
 			return true

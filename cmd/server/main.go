@@ -16,7 +16,6 @@ func main() {
 		return
 	}
 
-	fmt.Println("SET UP LISTENER")
 	for {
 		fmt.Println("Waiting for connections")
 		connection, err := listener.Accept()
@@ -24,8 +23,6 @@ func main() {
 		if err != nil {
 			fmt.Printf("Error accepting connections => %s\n", err.Error())
 		}
-
-		fmt.Println("GOT CONNECTION ON SERVER")
 
 		server.HandleConnection(connection)
 	}
