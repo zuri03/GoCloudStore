@@ -2,6 +2,7 @@ package cli
 
 import (
 	//"encoding/json"
+	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -121,28 +122,42 @@ func (c *MetadataServerClient) getFileRecord(username string, password string, k
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error has occured while creating record: %s\n", string(body))
+	}
 	json.Unmarshal(body, &record)
 	return &record, nil
 }
 
-func (c *MetadataServerClient) createFileRecord(username string, password string, key string) (*records.Record, error) {
+func (c *MetadataServerClient) createFileRecord(username string, password string, key string, fileName string, fileSize int64) error {
 
-	url := fmt.Sprintf("http://localhost:8080/file", username, password, key)
-	request, err := http.NewRequest("GET", url, nil)
+	record := records.CreateReqest{
+		Username: username,
+		Password: password,
+		Key:      key,
+		FileName: fileName,
+		Size:     fileSize,
+	}
+
+	recordBytes, _ := json.Marshal(record)
+	request, err := http.NewRequest("GET", "http://localhost:8080/file", bytes.NewBuffer(recordBytes))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	resp, err := c.Client.Do(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var record records.Record
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != 200 {
+		errorMessage, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Error has occured while creating record: %s\n", string(errorMessage))
 	}
-	json.Unmarshal(body, &record)
-	return &record, nil
+
+	return nil
 }

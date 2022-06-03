@@ -3,6 +3,13 @@ Completely refactor client to fit new architecture
     client must open tcp connection to correct data server and read file data from tcp connection
     Determine how to optimize connections by using the least amount of connections possible
 
+set up one time command/client 
+    when the user does not supply the cli option a single use client will be created 
+    create switch to read the command and execute a function 
+    program will run once no need for a manual shutdown by user
+    use flag package to parse command parameters
+        parse flag options in main.go of the client
+
 Add rest api to record keeper
     Rest api exposes endpoints to get/delete/create/update records
     each record can be accessed with a key set by user during record creation

@@ -17,7 +17,7 @@ type Record struct {
 	Location     string   `json:"location"`
 	CreatedAt    string   `json:"createdAt"`
 	IsPublic     bool     `json:"isPublic"`
-	Owner        string   `json:"owner"`
+	Owner        string   `json:"owner"` //For now Onwer is just username:password
 	AllowedUsers []string `json:"allowedUsers"`
 }
 
@@ -33,42 +33,60 @@ func InitRecordKeeper() RecordKeeper {
 	}
 }
 
-func (keeper *RecordKeeper) GetRecord(key string) *Record {
+func (keeper *RecordKeeper) GetRecord(key string, username string, password string) (*Record, error) {
 	record, ok := keeper.records[key]
 	if !ok {
-		return nil
+		return nil, fmt.Errorf("Not Found")
 	}
-	return &record
+
+	user := fmt.Sprintf("%s:%s", username, password)
+
+	if record.Owner == user {
+		return &record, nil
+	}
+	if record.Owner != user {
+		for _, allowedUser := range record.AllowedUsers {
+			if allowedUser == user {
+				return &record, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("Unathorized")
 }
 
-func (keeper *RecordKeeper) SetRecord(key string, owner string, meta *FileMetaData) error {
+func (keeper *RecordKeeper) SetRecord(key string, owner string, size int64, name string) (*Record, error) {
 	_, ok := keeper.records[key]
 	if ok {
-		return fmt.Errorf("Record %s already exists", key)
+		return nil, fmt.Errorf("Record %s already exists", key)
 	}
 	creationTime := time.Now().Format("YYYY-MM-DD") //TODO:Determine formatting
-	keeper.records[key] = Record{
-		MetaData:     meta,
-		Location:     fmt.Sprintf("%s/%s", owner, meta.Name), //Ex: user/foo.txt
+	record := Record{
+		MetaData: &FileMetaData{
+			Size: size,
+			Name: name,
+		},
+		Location:     fmt.Sprintf("%s/%s", owner, name), //Ex: user/foo.txt
 		CreatedAt:    creationTime,
 		IsPublic:     false,
 		Owner:        owner,
 		AllowedUsers: make([]string, 0),
 	}
-	return nil
+	keeper.records[key] = record
+	return &record, nil
 }
 
 func (keeper *RecordKeeper) RemoveRecord(key string) error {
-	if record := keeper.GetRecord(key); record == nil {
+	if _, ok := keeper.records[key]; !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
+
 	delete(keeper.records, key)
 	return nil
 }
 
 func (keeper *RecordKeeper) AddAllowedUser(key string, user string) error {
-	record := keeper.GetRecord(key)
-	if record == nil {
+	record, ok := keeper.records[key]
+	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
 	record.AllowedUsers = append(record.AllowedUsers, user)
@@ -76,8 +94,8 @@ func (keeper *RecordKeeper) AddAllowedUser(key string, user string) error {
 }
 
 func (keeper *RecordKeeper) RemoveAllowedUser(key string, user string) error {
-	record := keeper.GetRecord(key)
-	if record == nil {
+	record, ok := keeper.records[key]
+	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
 

@@ -3,23 +3,39 @@ package cli
 import (
 	"fmt"
 	"io/fs"
-	"net"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func sendFileCommand(input []string, connection net.Conn) error {
-	file, metaData, err := getFileFromMemory(input)
+func sendFileCommand(username string, password string, input []string, client *MetadataServerClient) error {
+	if len(input) != 2 {
+		return fmt.Errorf("Incorrect amount of arguments for command \n Proper Send Command Usage: \n send ./example.txt key=foo")
+	}
+
+	//For now just ignore the actual file object
+	//The file object will be used when we need to send the file data to the correct data server
+	_, metadata, err := getFileFromMemory(input)
 	if err != nil {
 		return err
 	}
 
+	if !strings.Contains(input[1], "key=") {
+		return fmt.Errorf("Missing key for record \n Proper Send Command Usage: \n send ./example.txt key=foo")
+	}
+
+	key := strings.Split(input[1], "=")[1]
+
+	client.createFileRecord(username, password, key, metadata.Name(), metadata.Size())
+
 	//SND: short for send
 	//Lets the server know the client is about to send a file
-	connection.Write([]byte("SND"))
-	if err := sendFileToServer(file, metaData, connection); err != nil {
-		return err
-	}
+	/*
+		connection.Write([]byte("SND"))
+		if err := sendFileToServer(file, metaData, connection); err != nil {
+			return err
+		}
+	*/
 	return nil
 }
 
