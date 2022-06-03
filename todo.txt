@@ -11,21 +11,8 @@ set up one time command/client
         parse flag options in main.go of the client
 
 Add rest api to record keeper
-    Rest api exposes endpoints to get/delete/create/update records
-    each record can be accessed with a key set by user during record creation
-    Get:
-        Get request requires username/password/key which are encoded within the url
-        ensure that the user reqeusting the record is allowed access to the record
-    Create:
-        create a new record using filename/filesize/owner/key all other fields are optional
-        if optional fields are not provided use default values
-            determine default values for optional fields
-        if any of the required fields are missing return a bad request status code along with error
-        fields are json encoded within the body of the request
-    delete:
-        TBD
-    update:
-        TBD
+    Add dynamic urls to paths
+    
 
 Add database support to record keeper  
     records will be stored in a database for persistant storage

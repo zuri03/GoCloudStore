@@ -30,8 +30,7 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	}
 	fmt.Printf("DECODED JSON => %s\n", request.Username)
 
-	record, err := handler.Keeper.SetRecord(request.Key, fmt.Sprintf("%s:%s", request.Username, request.Password),
-		request.Size, request.FileName)
+	record, err := handler.Keeper.SetRecord(request.Key, request.Username, request.Password, request.Size, request.FileName)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte(fmt.Sprintf("record %s alread exists", request.Key)))

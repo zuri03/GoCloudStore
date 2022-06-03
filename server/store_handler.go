@@ -24,7 +24,7 @@ func storeFileFromClient(connectionScanner *bufio.Scanner, connection net.Conn, 
 	}
 
 	//TODO: Use context to get owner and key?
-	keeper.SetRecord("PLACEHOLDER", "PLACEHOLDER", metaData)
+	//keeper.SetRecord("PLACEHOLDER", "PLACEHOLDER", metaData)
 
 	fmt.Println("ACCEPT FILE DATA")
 	err = acceptFileData(metaData, file, connection)

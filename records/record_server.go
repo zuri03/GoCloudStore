@@ -18,17 +18,32 @@ func InitServer(keeper *RecordKeeper) {
 	fmt.Println("CREATING SERVER")
 	getHandler := GetHandler{Keeper: keeper}
 	createHandler := PostHandler{Keeper: keeper}
+	deleteHandler := DeleteHandler{Keeper: keeper}
+	addUserHandler := AddUserHandler{Keeper: keeper}
+	removeUserHandler := RemoveUserHandler{Keeper: keeper}
 	router := http.NewServeMux()
 
-	router.HandleFunc("/file", func(writer http.ResponseWriter, req *http.Request) {
-		fmt.Println("IN ROUTER")
+	router.HandleFunc("/record", func(writer http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
-			fmt.Println("IN POST REQUEST")
 			createHandler.ServeHTTP(writer, req)
 		case http.MethodGet:
-			fmt.Println("IN GET REQUEST")
 			getHandler.ServeHTTP(writer, req)
+		case http.MethodDelete:
+			deleteHandler.ServeHTTP(writer, req)
+		default:
+			writer.WriteHeader(http.StatusMethodNotAllowed)
+			writer.Write([]byte("Method not allowed"))
+		}
+	})
+
+	router.HandleFunc("/record/allowedUsers", func(writer http.ResponseWriter, req *http.Request) {
+		fmt.Println("IN ROUTER")
+		switch req.Method {
+		case http.MethodPut:
+			addUserHandler.ServeHTTP(writer, req)
+		case http.MethodDelete:
+			removeUserHandler.ServeHTTP(writer, req)
 		default:
 			writer.WriteHeader(http.StatusMethodNotAllowed)
 			writer.Write([]byte("Method not allowed"))

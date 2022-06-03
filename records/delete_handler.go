@@ -1,16 +1,15 @@
 package records
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type GetHandler struct {
+type DeleteHandler struct {
 	Keeper *RecordKeeper
 }
 
-func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+func (handler *DeleteHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Bad Request"))
@@ -27,17 +26,15 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	record, err := handler.Keeper.GetRecord(key, username, password)
-	if err != nil {
+	if err := handler.Keeper.RemoveRecord(key, username, password); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to view this record", key)))
+			writer.Write([]byte(fmt.Sprintf("%s is not athorized to delete this record", key)))
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
 		}
 	}
 
-	jsonBytes, _ := json.Marshal(record)
-	writer.Write(jsonBytes)
+	writer.WriteHeader(http.StatusOK)
 }

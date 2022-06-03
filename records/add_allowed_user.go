@@ -1,43 +1,41 @@
 package records
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type GetHandler struct {
+type AddUserHandler struct {
 	Keeper *RecordKeeper
 }
 
-func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Bad Request"))
 		return
 	}
 
+	allowedUser := req.FormValue("allowedUser")
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if key == "" || password == "" || username == "" {
+	if key == "" || password == "" || username == "" || allowedUser == "" {
 		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write([]byte("Key, Username or password missing from request"))
+		writer.Write([]byte("Key, Username, password or allowed user missing from request"))
 		return
 	}
 
-	record, err := handler.Keeper.GetRecord(key, username, password)
-	if err != nil {
+	if err := handler.Keeper.AddAllowedUser(key, username, password, allowedUser); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to view this record", key)))
+			writer.Write([]byte(fmt.Sprintf("%s is not athorized to add allowed users to this record", key)))
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
 		}
 	}
 
-	jsonBytes, _ := json.Marshal(record)
-	writer.Write(jsonBytes)
+	writer.WriteHeader(http.StatusOK)
 }

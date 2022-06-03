@@ -54,18 +54,19 @@ func (keeper *RecordKeeper) GetRecord(key string, username string, password stri
 	return nil, fmt.Errorf("Unathorized")
 }
 
-func (keeper *RecordKeeper) SetRecord(key string, owner string, size int64, name string) (*Record, error) {
+func (keeper *RecordKeeper) SetRecord(key string, username string, password string, size int64, name string) (*Record, error) {
 	_, ok := keeper.records[key]
 	if ok {
 		return nil, fmt.Errorf("Record %s already exists", key)
 	}
 	creationTime := time.Now().Format("YYYY-MM-DD") //TODO:Determine formatting
+	owner := fmt.Sprintf("%s:%s", username, password)
 	record := Record{
 		MetaData: &FileMetaData{
 			Size: size,
 			Name: name,
 		},
-		Location:     fmt.Sprintf("%s/%s", owner, name), //Ex: user/foo.txt
+		Location:     fmt.Sprintf("%s/%s", username, name), //Ex: user/foo.txt
 		CreatedAt:    creationTime,
 		IsPublic:     false,
 		Owner:        owner,
@@ -75,25 +76,44 @@ func (keeper *RecordKeeper) SetRecord(key string, owner string, size int64, name
 	return &record, nil
 }
 
-func (keeper *RecordKeeper) RemoveRecord(key string) error {
-	if _, ok := keeper.records[key]; !ok {
-		return fmt.Errorf("Record %s does not exist", key)
+func (keeper *RecordKeeper) RemoveRecord(key string, username string, password string) error {
+	record, ok := keeper.records[key]
+	if !ok {
+		return fmt.Errorf("Not found")
 	}
 
+	user := fmt.Sprintf("%s:%s", username, password)
+	if record.Owner != user {
+		return fmt.Errorf("Unathorized")
+	}
 	delete(keeper.records, key)
 	return nil
 }
 
-func (keeper *RecordKeeper) AddAllowedUser(key string, user string) error {
+func (keeper *RecordKeeper) AddAllowedUser(key string, ownerUsername string, ownerPassword, username string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
-	record.AllowedUsers = append(record.AllowedUsers, user)
+
+	owner := fmt.Sprintf("%s:%s", ownerUsername, ownerPassword)
+	if record.Owner != owner {
+		return fmt.Errorf("Unathorized")
+	}
+
+	for i, c := range record.AllowedUsers {
+		fmt.Printf("%d => %s\n", i, c)
+	}
+	fmt.Println("After")
+	record.AllowedUsers = append(record.AllowedUsers, username)
+	for i, c := range record.AllowedUsers {
+		fmt.Printf("%d => %s\n", i, c)
+	}
+	keeper.records[key] = record
 	return nil
 }
 
-func (keeper *RecordKeeper) RemoveAllowedUser(key string, user string) error {
+func (keeper *RecordKeeper) RemoveAllowedUser(key string, ownerUsername string, ownerPassword string, user string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
@@ -104,8 +124,13 @@ func (keeper *RecordKeeper) RemoveAllowedUser(key string, user string) error {
 		return fmt.Errorf("User %s is not in the allowed list", user)
 	}
 
+	if fmt.Sprintf("%s:%s", ownerUsername, ownerPassword) != record.Owner {
+		return fmt.Errorf("Unathorized")
+	}
+
 	record.AllowedUsers[index] = record.AllowedUsers[len(record.AllowedUsers)-1]
 	record.AllowedUsers = record.AllowedUsers[:len(record.AllowedUsers)-1]
+	keeper.records[key] = record
 	return nil
 }
 
