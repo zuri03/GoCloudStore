@@ -1,14 +1,14 @@
 Completely refactor client to fit new architecture
     client must first send http request to metadata server for file location
-    client must open tcp connection to correct data server and read file data from tcp connection
+    client must open tcp connection to correct data server and read/write file data from tcp connection
     Determine how to optimize connections by using the least amount of connections possible
 
 set up one time command/client 
-    when the user does not supply the cli option a single use client will be created 
-    create switch to read the command and execute a function 
-    program will run once no need for a manual shutdown by user
-    use flag package to parse command parameters
-        parse flag options in main.go of the client
+    set up switch statement in main.go similar to switch statement in cli loop
+
+gather all steps of each command into a single function     
+    this function can be called either by the cli loop or the main function for single use
+    this function will have all of the steps to complete a single command to make each command more cohesive and reusable
 
 Add rest api to record keeper
     Add dynamic urls to paths
@@ -20,3 +20,7 @@ Add database support to record keeper
 
 Set up data node:
     data node will contain the file data referenced by the records in records storage
+
+Add users service:
+    this service will be a rest api that provides persistant storage for user objects
+    
