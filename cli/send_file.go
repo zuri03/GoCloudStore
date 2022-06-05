@@ -41,6 +41,7 @@ func sendFileCommand(username string, password string, input []string, client *M
 
 func getFileFromMemory(input []string) (*os.File, fs.FileInfo, error) {
 	fileName := input[0]
+	fmt.Printf("FILe name => %s\n", fileName)
 	fileExtension := filepath.Ext(fileName)
 	if fileExtension != ".txt" && fileExtension != ".rtf" && fileExtension != ".pdf" {
 		return nil, nil, fmt.Errorf("Not a text file")

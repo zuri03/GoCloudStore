@@ -8,7 +8,15 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 )
+
+func cleanUserInput(r rune) bool {
+	if unicode.IsGraphic(r) {
+		return false
+	}
+	return true
+}
 
 func HandleCliSession() {
 
@@ -20,7 +28,7 @@ func HandleCliSession() {
 		fmt.Printf("Internal Cli error: %s\n Exiting...", err.Error())
 		return
 	}
-
+	username = strings.TrimFunc(username, cleanUserInput)
 	fmt.Printf("password:")
 
 	password, err := commandLineReader.ReadString('\n')
@@ -28,7 +36,7 @@ func HandleCliSession() {
 		fmt.Printf("Internal Cli error: %s\n Exiting...", err.Error())
 		return
 	}
-
+	password = strings.TrimFunc(password, cleanUserInput)
 	//Replace with a proper ip address later
 	connection, err := net.Dial("tcp", ":8080")
 	if err != nil {
@@ -43,7 +51,7 @@ func HandleCliSession() {
 }
 
 func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, username string, password string) {
-	metadateClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
+	metadataClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 	for {
 		fmt.Printf(">")
 		str, err := commandLineReader.ReadString('\n')
@@ -60,10 +68,26 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, userna
 		case "help":
 			printHelpMessage()
 		case "send":
-		case "get":
-			record, err := metadateClient.getFileRecord(username, password, input[1])
+			file, meta, err := getFileFromMemory(input[1:])
 			if err != nil {
-				fmt.Printf("Error => %s\n", err.Error())
+				fmt.Println(err.Error())
+			}
+			if meta == nil || file == nil {
+				fmt.Println("Error file not found")
+				continue
+			}
+			err = metadataClient.createFileRecord(username, password, meta.Name(), meta.Name(), meta.Size()) //For now just leave the key as the file name
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			} else {
+				fmt.Println("NO ERROR")
+			}
+		case "get":
+			record, err := metadataClient.getFileRecord(username, password, input[1])
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
 			}
 			fmt.Printf("record => %s\n", record.MetaData.Name)
 		case "quit":
