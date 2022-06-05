@@ -14,15 +14,23 @@ gather all steps of each command into a single function
 
 Add rest api to record keeper
     Add dynamic urls to paths
-    
 
-Add database support to record keeper  
-    records will be stored in a database for persistant storage
-    determine which database to use for the record keeper
+Add local file to record keeper to keep track of records
 
 Set up data node:
     data node will contain the file data referenced by the records in records storage
+    set up a listener to listen to tcp connections on a port
+    Use basic protocol to determine whether to send or accept byte data 
+        - First three bytes of first message from client will determine the actions 
+        - GET: client wants to retrieve data from datanode
+        - SND: client wants to send data to datanode
+        - DEL: client wants to delete a file on the datanode
 
 Add users service:
     this service will be a rest api that provides persistant storage for user objects
-    
+
+Set up kubernetes
+
+Create help message for the help command
+
+Reduce docker image size

@@ -35,6 +35,7 @@ func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.R
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
 		}
+		return
 	}
 
 	writer.WriteHeader(http.StatusOK)

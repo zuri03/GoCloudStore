@@ -28,7 +28,6 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		writer.Write([]byte("INTERNAL SERVER ERROR"))
 		return
 	}
-	fmt.Printf("DECODED JSON => %s\n", request.Username)
 
 	record, err := handler.Keeper.SetRecord(request.Key, request.Username, request.Password, request.Size, request.FileName)
 	if err != nil {

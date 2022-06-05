@@ -4,23 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"net"
-	"os"
 )
 
-func getFileCommand(fileName string, connection net.Conn) error {
-	connection.Write([]byte(fmt.Sprintf("GET:%s", fileName)))
-	fileData, err := getFileDataFromServer(connection)
+func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
+	key := input[0]
+	record, err := metaClient.getFileRecord(username, password, key)
 	if err != nil {
 		return err
 	}
-
-	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND, 0755)
-	buf := make([]byte, fileData.Len())
-	_, err = fileData.Read(buf)
-	if err != nil {
-		return err
-	}
-	file.Write(buf)
+	fmt.Printf("record => %+v\n", record)
 	return nil
 }
 

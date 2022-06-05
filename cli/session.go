@@ -68,30 +68,26 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, userna
 		case "help":
 			printHelpMessage()
 		case "send":
-			file, meta, err := getFileFromMemory(input[1:])
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			if meta == nil || file == nil {
-				fmt.Println("Error file not found")
-				continue
-			}
-			err = metadataClient.createFileRecord(username, password, meta.Name(), meta.Name(), meta.Size()) //For now just leave the key as the file name
+			err := sendFileCommand(username, password, input[1:], &metadataClient)
 			if err != nil {
 				fmt.Println(err.Error())
 				continue
-			} else {
-				fmt.Println("NO ERROR")
 			}
+			fmt.Println("Successfully sent file to server")
 		case "get":
-			record, err := metadataClient.getFileRecord(username, password, input[1])
+			err := getFileCommand(username, password, input[1:], &metadataClient)
 			if err != nil {
 				fmt.Println(err.Error())
 				continue
 			}
-			fmt.Printf("record => %s\n", record.MetaData.Name)
+			fmt.Println("Successuflly retreived file from server")
 		case "delete":
-			deleteFile(username, password, input[1:], &metadataClient)
+			err := deleteFile(username, password, input[1:], &metadataClient)
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
+			fmt.Println("Successuflly deleted file from server")
 		case "quit":
 			fmt.Println("Exiting...")
 			return

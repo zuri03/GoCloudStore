@@ -5,42 +5,25 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-func sendFileCommand(username string, password string, input []string, client *MetadataServerClient) error {
-	if len(input) != 2 {
-		return fmt.Errorf("Incorrect amount of arguments for command \n Proper Send Command Usage: \n send ./example.txt key=foo")
-	}
-
-	//For now just ignore the actual file object
-	//The file object will be used when we need to send the file data to the correct data server
-	_, metadata, err := getFileFromMemory(input)
+func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
+	fileName := input[0]
+	file, meta, err := getFileFromMemory(fileName)
 	if err != nil {
-		return err
+		fmt.Println(err.Error())
 	}
-
-	if !strings.Contains(input[1], "key=") {
-		return fmt.Errorf("Missing key for record \n Proper Send Command Usage: \n send ./example.txt key=foo")
+	if meta == nil || file == nil {
+		return fmt.Errorf("Error could not find file %s\n", fileName)
 	}
-
-	key := strings.Split(input[1], "=")[1]
-
-	client.createFileRecord(username, password, key, metadata.Name(), metadata.Size())
-
-	//SND: short for send
-	//Lets the server know the client is about to send a file
-	/*
-		connection.Write([]byte("SND"))
-		if err := sendFileToServer(file, metaData, connection); err != nil {
-			return err
-		}
-	*/
+	err = metaClient.createFileRecord(username, password, meta.Name(), meta.Name(), meta.Size()) //For now just leave the key as the file name
+	if err != nil {
+		return nil
+	}
 	return nil
 }
 
-func getFileFromMemory(input []string) (*os.File, fs.FileInfo, error) {
-	fileName := input[0]
+func getFileFromMemory(fileName string) (*os.File, fs.FileInfo, error) {
 	fmt.Printf("FILe name => %s\n", fileName)
 	fileExtension := filepath.Ext(fileName)
 	if fileExtension != ".txt" && fileExtension != ".rtf" && fileExtension != ".pdf" {

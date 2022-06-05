@@ -35,6 +35,7 @@ func (handler *RemoveUserHandler) ServeHTTP(writer http.ResponseWriter, req *htt
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(err.Error()))
 		}
+		return
 	}
 
 	writer.WriteHeader(http.StatusOK)

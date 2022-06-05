@@ -36,6 +36,7 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
 		}
+		return
 	}
 
 	jsonBytes, _ := json.Marshal(record)
