@@ -90,6 +90,8 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, userna
 				continue
 			}
 			fmt.Printf("record => %s\n", record.MetaData.Name)
+		case "delete":
+			deleteFile(username, password, input[1:], &metadataClient)
 		case "quit":
 			fmt.Println("Exiting...")
 			return

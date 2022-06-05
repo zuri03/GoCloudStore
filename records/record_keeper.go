@@ -6,6 +6,7 @@ import (
 )
 
 //TODO: Make record keeper thread safe
+//TODO: Replace record keeper with database
 type RecordKeeper struct {
 	records map[string]Record
 }

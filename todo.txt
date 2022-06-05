@@ -2,6 +2,8 @@ Completely refactor client to fit new architecture
     client must first send http request to metadata server for file location
     client must open tcp connection to correct data server and read/write file data from tcp connection
     Determine how to optimize connections by using the least amount of connections possible
+    set up addAllowedUser, removeAllowedUser, deleteRecord requests on cli
+    create more robust error/success messages for the user
 
 set up one time command/client 
     set up switch statement in main.go similar to switch statement in cli loop

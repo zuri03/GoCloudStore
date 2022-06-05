@@ -124,12 +124,38 @@ func (c *MetadataServerClient) getFileRecord(username string, password string, k
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error has occured while creating record: %s\n", string(body))
+		return nil, fmt.Errorf("Error has occured while getting record: %s\n", string(body))
 	}
 
-	fmt.Printf("resp body => %s\n", string(body))
 	json.Unmarshal(body, &record)
 	return &record, nil
+}
+
+func (c *MetadataServerClient) deleteFileRecord(username string, password string, key string) error {
+
+	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
+	request, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	var record records.Record
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error has occured while deleting record: %s\n", string(body))
+	}
+
+	json.Unmarshal(body, &record)
+	return nil
 }
 
 func (c *MetadataServerClient) createFileRecord(username string, password string, key string, fileName string, fileSize int64) error {
