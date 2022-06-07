@@ -61,7 +61,10 @@ func (keeper *RecordKeeper) SetRecord(key string, username string, password stri
 		return nil, fmt.Errorf("Record %s already exists", key)
 	}
 	creationTime := time.Now().Format("YYYY-MM-DD") //TODO:Determine formatting
-	owner := fmt.Sprintf("%s:%s", username, password)
+	now := time.Now()
+	owner := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
+		now.Year(), now.Month(), now.Day(),
+		now.Hour(), now.Minute(), now.Second())
 	record := Record{
 		MetaData: &FileMetaData{
 			Size: size,
