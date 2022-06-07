@@ -189,3 +189,51 @@ func (c *MetadataServerClient) createFileRecord(username string, password string
 
 	return nil
 }
+
+func (c *MetadataServerClient) addAllowedUser(username string, password string, key string, allowedUser string) error {
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?allowedUser=%s&username=%s&password=%s&key=%s",
+		allowedUser,
+		username,
+		password,
+		key)
+
+	request, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Client.Do(request)
+	if resp.StatusCode != 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Error has occured while giving user access to record: %s\n", string(body))
+	}
+
+	return nil
+}
+
+func (c *MetadataServerClient) removeAllowedUser(username string, password string, key string, removedUser string) error {
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?removedUser=%s&username=%s&password=%s&key=%s",
+		removedUser,
+		username,
+		password,
+		key)
+
+	request, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Client.Do(request)
+	if resp.StatusCode != 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Error has occured while removing user: %s\n", string(body))
+	}
+
+	return nil
+}

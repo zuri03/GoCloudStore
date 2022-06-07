@@ -29,7 +29,7 @@ func (handler *DeleteHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	if err := handler.Keeper.RemoveRecord(key, username, password); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to delete this record", key)))
+			writer.Write([]byte(fmt.Sprintf("%s is not athorized to delete this record", username)))
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))

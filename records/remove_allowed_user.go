@@ -10,27 +10,28 @@ type RemoveUserHandler struct {
 }
 
 func (handler *RemoveUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	fmt.Println("IN REMOVE HANDLER")
 	if err := req.ParseForm(); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Bad Request"))
 		return
 	}
 
-	allowedUser := req.FormValue("allowedUser")
+	removedUser := req.FormValue("removedUser")
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if key == "" || password == "" || username == "" || allowedUser == "" {
+	if key == "" || password == "" || username == "" || removedUser == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Key, Username, password or allowed user missing from request"))
 		return
 	}
 
-	if err := handler.Keeper.RemoveAllowedUser(key, username, password, allowedUser); err != nil {
+	if err := handler.Keeper.RemoveAllowedUser(key, username, password, removedUser); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to add allowed users to this record", key)))
+			writer.Write([]byte(fmt.Sprintf("%s is not athorized to add allowed users to this record", username)))
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(err.Error()))

@@ -34,3 +34,14 @@ Set up kubernetes
 Create help message for the help command
 
 Reduce docker image size
+
+set up tls for each of the rest apis
+
+come up with a better name for allowedUsers
+    allowed users are allowed to retrieve a file despite not being the owner
+
+fix record date formatting
+
+Determine how allowed system works
+    for now allowed users is simply a slice of usernames
+    need to determine the best way to store users in this slice

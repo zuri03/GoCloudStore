@@ -16,10 +16,10 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 		writer.Write([]byte("Bad Request"))
 		return
 	}
-
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	key := req.FormValue("key")
+	fmt.Printf("u => %s \n p => %s \n k => %s\n", username, password, key)
 
 	if key == "" || password == "" || username == "" {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -31,7 +31,7 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 	if err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to view this record", key)))
+			writer.Write([]byte(fmt.Sprintf("%s is not athorized to view this record", username)))
 		} else {
 			writer.WriteHeader(http.StatusNotFound)
 			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))

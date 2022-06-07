@@ -67,6 +67,20 @@ func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, userna
 		switch strings.ToLower(input[0]) {
 		case "help":
 			printHelpMessage()
+		case "allow":
+			err := addAllowedUserCommand(username, password, input[1:], &metadataClient)
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
+			fmt.Println("Successfully added user to permissions list")
+		case "remove":
+			err := removeUserAccessCommand(username, password, input[1:], &metadataClient)
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
+			fmt.Println("Successfully removed user from permissions list")
 		case "send":
 			err := sendFileCommand(username, password, input[1:], &metadataClient)
 			if err != nil {
