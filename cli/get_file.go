@@ -8,6 +8,8 @@ import (
 
 func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	key := input[0]
+	fmt.Printf("u len =. %d\n", len(username))
+	fmt.Printf("p len =. %d\n", len(password))
 	record, err := metaClient.getFileRecord(username, password, key)
 	if err != nil {
 		return err

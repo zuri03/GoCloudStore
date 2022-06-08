@@ -21,6 +21,7 @@ func main() {
 		cli.HandleCliSession()
 		return
 	} else {
+		cli.ExecuteSingleCommand(args)
 		//HandleFileTransfer();
 		return
 	}

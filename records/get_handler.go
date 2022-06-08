@@ -19,7 +19,6 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	key := req.FormValue("key")
-	fmt.Printf("u => %s \n p => %s \n k => %s\n", username, password, key)
 
 	if key == "" || password == "" || username == "" {
 		writer.WriteHeader(http.StatusBadRequest)

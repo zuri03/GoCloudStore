@@ -15,6 +15,7 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	body, err := ioutil.ReadAll(req.Body)
 	fmt.Printf("Body => %s\n", string(body))
 	if err != nil {
+		
 		writer.WriteHeader(http.StatusInternalServerError)
 		writer.Write([]byte("INTERNAL SERVER ERROR"))
 		return
@@ -24,8 +25,8 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		fmt.Printf("Error decoding json => %s\n", err.Error())
-		writer.WriteHeader(http.StatusInternalServerError)
-		writer.Write([]byte("INTERNAL SERVER ERROR"))
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Incorrect json formatting"))
 		return
 	}
 
