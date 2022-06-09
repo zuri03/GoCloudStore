@@ -3,7 +3,6 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -37,20 +36,13 @@ func HandleCliSession() {
 		return
 	}
 	password = strings.TrimFunc(password, cleanUserInput)
-	//Replace with a proper ip address later
-	connection, err := net.Dial("tcp", ":8080")
-	if err != nil {
-		fmt.Printf("Error connecting => %s\n", err.Error())
-		return
-	}
-	defer connection.Close()
 
 	//connectionScanner := bufio.NewScanner(connection)
-	runSessionLoop(commandLineReader, connection, username, password)
+	runSessionLoop(commandLineReader, username, password)
 	fmt.Printf("Closing connection")
 }
 
-func runSessionLoop(commandLineReader *bufio.Reader, connection net.Conn, username string, password string) {
+func runSessionLoop(commandLineReader *bufio.Reader, username string, password string) {
 	metadataClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 	for {
 		fmt.Printf(">")

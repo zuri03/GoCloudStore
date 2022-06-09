@@ -1,6 +1,9 @@
 package cli
 
-import "fmt"
+import (
+	"fmt"
+	"net"
+)
 
 func deleteFile(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	key := input[0]
@@ -9,5 +12,10 @@ func deleteFile(username string, password string, input []string, metaClient *Me
 	if err != nil {
 		return err
 	}
+
+	connection, err := net.Dial("tcp", ":8000")
+	defer connection.Close()
+	fmt.Println("ABOUT TO GET")
+	connection.Write([]byte(DELETE_PROTOCOL))
 	return nil
 }

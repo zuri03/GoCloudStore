@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io/fs"
+	"net"
 	"os"
 	"path/filepath"
 )
@@ -18,8 +19,22 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	}
 	err = metaClient.createFileRecord(username, password, meta.Name(), meta.Name(), meta.Size()) //For now just leave the key as the file name
 	if err != nil {
-		return nil
+		return err
 	}
+
+	//TODO: The address of the datanode must come from the record server
+	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
+	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", ":8080")
+	if err != nil {
+		return err
+	}
+	fmt.Println("DIALED CONNECTION")
+	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
+	connection, err := net.Dial("tcp", ":8000")
+	defer connection.Close()
+	fmt.Println("ABOUT TO SEND")
+	connection.Write([]byte(SEND_PROTOCOL))
+
 	return nil
 }
 

@@ -8,13 +8,17 @@ import (
 
 func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	key := input[0]
-	fmt.Printf("u len =. %d\n", len(username))
-	fmt.Printf("p len =. %d\n", len(password))
 	record, err := metaClient.getFileRecord(username, password, key)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("record => %+v\n", record)
+	fmt.Println("DIALED CONNECTION")
+	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
+	connection, err := net.Dial("tcp", ":8000")
+	defer connection.Close()
+	fmt.Println("ABOUT TO GET")
+	connection.Write([]byte(GET_PROTOCOL))
 	return nil
 }
 
