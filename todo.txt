@@ -1,21 +1,9 @@
-Completely refactor client to fit new architecture
-    client must first send http request to metadata server for file location
-    client must open tcp connection to correct data server and read/write file data from tcp connection
-    Determine how to optimize connections by using the least amount of connections possible
-    set up addAllowedUser, removeAllowedUser, deleteRecord requests on cli
-    create more robust error/success messages for the user
-
-set up one time command/client 
-    set up switch statement in main.go similar to switch statement in cli loop
-
-gather all steps of each command into a single function     
-    this function can be called either by the cli loop or the main function for single use
-    this function will have all of the steps to complete a single command to make each command more cohesive and reusable
-
 Add rest api to record keeper
     Add dynamic urls to paths
 
 Add local file to record keeper to keep track of records
+    make record keeper thread safe
+    reduce number of writes to record keeper file
 
 Set up data node:
     data node will contain the file data referenced by the records in records storage
@@ -39,6 +27,8 @@ set up tls for each of the rest apis
 
 come up with a better name for allowedUsers
     allowed users are allowed to retrieve a file despite not being the owner
+
+
 
 
 Determine how allowed system works
