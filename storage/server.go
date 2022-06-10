@@ -5,6 +5,13 @@ import (
 	"net"
 )
 
+const (
+	GET_PROTOCOL    string = "GET"
+	ERROR_PROTOCOL  string = "ERR"
+	SEND_PROTOCOL   string = "SND"
+	DELETE_PROTOCOL string = "DEL"
+)
+
 func InitializeListener() {
 	address, err := net.ResolveTCPAddr("tcp", ":8000")
 	if err != nil {
@@ -42,5 +49,19 @@ func handleConnection(connection *net.TCPConn) {
 	defer connection.Close()
 
 	fmt.Printf("Got Protocol => %s\n", string(protocol))
+
+	switch string(protocol) {
+	case GET_PROTOCOL:
+	case SEND_PROTOCOL:
+		err := storeFileHandler(connection)
+		if err != nil {
+			fmt.Printf("Error in handler: %s\n", err.Error())
+			return
+		}
+		fmt.Println("SUCCESSFULLY STORED FILE")
+	case DELETE_PROTOCOL:
+	case ERROR_PROTOCOL:
+	}
+
 	return
 }

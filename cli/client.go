@@ -3,14 +3,11 @@ package cli
 import (
 	//"encoding/json"
 	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/zuri03/GoCloudStore/records"
 )
@@ -28,27 +25,10 @@ func authenticateSession(connection net.Conn, username string, password string) 
 	return true
 }
 
+/*
 type FileMetaData struct {
 	Size int64
 	Name string
-}
-
-//Place types in a shared directory in the future
-func sendMetaDataToServer(meta fs.FileInfo, connection net.Conn) error {
-	fmt.Println("Generated gob")
-	gob.Register(new(FileMetaData))
-	metaData := FileMetaData{
-		Size: meta.Size(),
-		Name: meta.Name(),
-	}
-	encoder := gob.NewEncoder(connection)
-	fmt.Println("Connected gob to buffer")
-	err := encoder.Encode(metaData)
-	if err != nil {
-		return err
-	}
-	fmt.Println("Encoded meta data")
-	return nil
 }
 
 func sendFileDataToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
@@ -98,6 +78,7 @@ func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) erro
 	sendFileDataToServer(file, meta, connection)
 	return nil
 }
+*/
 
 type MetadataServerClient struct {
 	Client http.Client

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/gob"
 	"fmt"
 	"io/fs"
 	"net"
@@ -8,16 +9,23 @@ import (
 	"path/filepath"
 )
 
+//Since fs.FileInfo cannot be encoded by
+type FileMetaData struct {
+	Size     int64
+	Name     string
+	Username string
+}
+
 func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	fileName := input[0]
-	file, meta, err := getFileFromMemory(fileName)
+	file, fileInfo, err := getFileFromMemory(fileName)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	if meta == nil || file == nil {
+	if fileInfo == nil || file == nil {
 		return fmt.Errorf("Error could not find file %s\n", fileName)
 	}
-	err = metaClient.createFileRecord(username, password, meta.Name(), meta.Name(), meta.Size()) //For now just leave the key as the file name
+	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 	if err != nil {
 		return err
 	}
@@ -34,7 +42,28 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	defer connection.Close()
 	fmt.Println("ABOUT TO SEND")
 	connection.Write([]byte(SEND_PROTOCOL))
+	fmt.Println("ABOUT TO SEND META DATA")
+	meta := FileMetaData{
+		Username: username,
+		Name:     fileInfo.Name(),
+		Size:     fileInfo.Size(),
+	}
 
+	sendMetaDataToServer(meta, connection)
+	return nil
+}
+
+func sendMetaDataToServer(meta FileMetaData, connection net.Conn) error {
+	fmt.Println("Generated gob")
+	gob.Register(new(FileMetaData))
+	encoder := gob.NewEncoder(connection)
+	fmt.Println("Connected gob to buffer")
+	err := encoder.Encode(meta)
+	if err != nil {
+		fmt.Printf("ERORR ENCODING: %s\n", err.Error())
+		return err
+	}
+	fmt.Println("Encoded meta data")
 	return nil
 }
 
