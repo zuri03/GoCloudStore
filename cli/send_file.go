@@ -12,7 +12,7 @@ import (
 //Since fs.FileInfo cannot be encoded by
 type FileMetaData struct {
 	Size     int64
-	Name     string
+	FileName string
 	Username string
 }
 
@@ -36,16 +36,13 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	if err != nil {
 		return err
 	}
-	fmt.Println("DIALED CONNECTION")
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
-	fmt.Println("ABOUT TO SEND")
 	connection.Write([]byte(SEND_PROTOCOL))
-	fmt.Println("ABOUT TO SEND META DATA")
 	meta := FileMetaData{
 		Username: username,
-		Name:     fileInfo.Name(),
+		FileName: fileInfo.Name(),
 		Size:     fileInfo.Size(),
 	}
 

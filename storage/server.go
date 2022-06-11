@@ -40,13 +40,13 @@ func InitializeListener() {
 }
 
 func handleConnection(connection *net.TCPConn) {
+	defer connection.Close()
 	fmt.Println("Got protocol")
 	protocol := make([]byte, 3)
 
 	fmt.Println("About to read")
 
 	connection.Read(protocol)
-	defer connection.Close()
 
 	fmt.Printf("Got Protocol => %s\n", string(protocol))
 

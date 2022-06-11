@@ -5,11 +5,12 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
+	"os"
 )
 
 type FileMetaData struct {
 	Size     int64
-	Name     string
+	FileName string
 	Username string
 }
 
@@ -19,55 +20,66 @@ const (
 )
 
 func storeFileHandler(connection *net.TCPConn) error {
-	fmt.Println("IN STORAGE HANDLER")
 	meta, err := acceptFileMetaData(connection)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("GOT META DATA %s\n", meta.Name)
+
+	if err := storeFileData(meta, connection); err != nil {
+		return err
+	}
 	return nil
 }
 
-func storeFile(connection *net.TCPConn) error {
+func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
 
-	fmt.Println("ABOUT TO BEGIN READING")
+	file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
+	if err != nil {
+		return err
+	}
 	fileDataCacheBuffer := new(bytes.Buffer)
 	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
 
-	for {
-		numOfBytes, err := connection.Read(readBuffer)
-		if err != nil {
-			fmt.Println("ERROR OCCURRED RETURING")
+	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
+		fmt.Println("READING FILE IN ONE CHUNCK")
+		if _, err := connection.ReadFrom(fileDataCacheBuffer); err != nil {
 			return err
 		}
 
-		_, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-		if err != nil {
-			fmt.Println("Error on appending file buffer")
-			return err
-		}
+	} else {
+		fmt.Println("ABOUT TO BEGIN READING LOOP")
 
-		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
+		for {
+			numOfBytes, err := connection.Read(readBuffer)
+			if err != nil {
+				fmt.Println("ERROR OCCURRED RETURING")
+				return err
+			}
 
+			_, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
+			if err != nil {
+				fmt.Println("Error on appending file buffer")
+				return err
+			}
+
+			if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
+				file.Write(fileDataCacheBuffer.Bytes())
+				fileDataCacheBuffer.Reset()
+			}
 		}
 	}
+
+	return nil
 }
 
 func acceptFileMetaData(connection net.Conn) (FileMetaData, error) {
 	meta := FileMetaData{}
 	decoder := gob.NewDecoder(connection)
 	fmt.Println("WAITING FOR GOB")
-	err := decoder.Decode(&meta)
-	if err != nil {
+	if err := decoder.Decode(&meta); err != nil {
 		fmt.Printf("ERROR IN DECODER: %s\n", err.Error())
 		return meta, err
 	}
 
 	return meta, nil
 }
-
-/*
-func appendFileDatatoFile(fileData []byte) error {
-
-}
-*/
