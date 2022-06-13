@@ -34,3 +34,7 @@ come up with a better name for allowedUsers
 Determine how allowed system works
     for now allowed users is simply a slice of usernames
     need to determine the best way to store users in this slice
+
+standardize Constant value names
+    system uses multiple names for constant values that represent the same thing
+    determine best name for each constant and make the name the same throughout the entire system

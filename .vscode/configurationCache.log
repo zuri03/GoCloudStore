@@ -1,0 +1,1 @@
+{"buildTargets":["build-all","build-cli","build-recordKeeper","build-storage","clean","run"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

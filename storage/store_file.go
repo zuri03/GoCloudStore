@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
-	"os"
+	//"os"
 )
 
 type FileMetaData struct {
@@ -32,43 +32,50 @@ func storeFileHandler(connection *net.TCPConn) error {
 }
 
 func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
+	/*
 
-	file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
-	if err != nil {
-		return err
-	}
-	fileDataCacheBuffer := new(bytes.Buffer)
-	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
+		file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
+		if err != nil {
+			return err
+		}
+	*/
 
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
 		fmt.Println("READING FILE IN ONE CHUNCK")
-		if _, err := connection.ReadFrom(fileDataCacheBuffer); err != nil {
+		fileDataBuffer := make([]byte, meta.Size)
+		if _, err := connection.Read(fileDataBuffer); err != nil {
+			fmt.Println("error reading connection")
+			return err
+		}
+		return nil
+	}
+
+	fileDataCacheBuffer := new(bytes.Buffer)
+	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
+	fmt.Println("ABOUT TO BEGIN READING LOOP")
+	for {
+		numOfBytes, err := connection.Read(readBuffer)
+		if err != nil {
+			return err
+		}
+		if numOfBytes == 0 {
+			break
+		}
+		_, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
+		if err != nil {
+			fmt.Println("Error on appending file buffer")
 			return err
 		}
 
-	} else {
-		fmt.Println("ABOUT TO BEGIN READING LOOP")
-
-		for {
-			numOfBytes, err := connection.Read(readBuffer)
-			if err != nil {
-				fmt.Println("ERROR OCCURRED RETURING")
-				return err
-			}
-
-			_, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-			if err != nil {
-				fmt.Println("Error on appending file buffer")
-				return err
-			}
-
-			if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
+		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
+			/*
 				file.Write(fileDataCacheBuffer.Bytes())
 				fileDataCacheBuffer.Reset()
-			}
+			*/
 		}
 	}
-
+	fmt.Printf("Final result => %s\n", string(fileDataCacheBuffer.Bytes()))
+	fmt.Printf("Final length => %d\n", fileDataCacheBuffer.Len())
 	return nil
 }
 

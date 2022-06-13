@@ -9,6 +9,10 @@ import (
 	"path/filepath"
 )
 
+const (
+	BLOCK_SIZE int = 1024
+)
+
 //Since fs.FileInfo cannot be encoded by
 type FileMetaData struct {
 	Size     int64
@@ -19,6 +23,8 @@ type FileMetaData struct {
 func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
+	defer file.Close()
+
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -46,7 +52,52 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		Size:     fileInfo.Size(),
 	}
 
-	sendMetaDataToServer(meta, connection)
+	if err := sendMetaDataToServer(meta, connection); err != nil {
+		return nil
+	}
+
+	if err := sendFileDataToServer(file, meta, connection); err != nil {
+		return err
+	}
+	return nil
+}
+
+func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
+
+	if meta.Size <= int64(BLOCK_SIZE) {
+		fmt.Println("SENDING FILE IN ONE CHUNK")
+		buffer := make([]byte, meta.Size)
+		file.Read(buffer)
+		if _, err := connection.Write(buffer); err != nil {
+			return err
+		}
+		fmt.Println("SENT FILE DATA")
+		return nil
+	}
+
+	buffer := make([]byte, BLOCK_SIZE)
+
+	for {
+		numOfBytes, err := file.Read(buffer)
+
+		if err != nil {
+			if err.Error() == "EOF" {
+				fmt.Println("End of file found")
+				connection.Write([]byte("EOF"))
+				return nil
+			} else {
+				return fmt.Errorf("Error occured while reading file => %s\n", err.Error())
+			}
+		}
+
+		fmt.Printf("Number of bytes => %d\n", numOfBytes)
+		if numOfBytes == 0 {
+			fmt.Println("Finished reading file")
+			break
+		}
+
+		connection.Write(buffer)
+	}
 	return nil
 }
 

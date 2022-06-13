@@ -1,4 +1,0 @@
-This is the data server that actually contians the file data
-The meta data server will contact this server to retreive file data to return to the user
-For now we will just have a single data server.
-Add multiple data servers later

@@ -1,0 +1,5 @@
+make.exe --dry-run --always-make --keep-going --print-directory
+make: Entering directory 'c:/Users/shawz/go/src/GoCloudStore'
+go build -o build/cli cmd/client/main.go
+make: Leaving directory 'c:/Users/shawz/go/src/GoCloudStore'
+ 
