@@ -24,7 +24,6 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
-
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -63,15 +62,31 @@ func sendFileCommand(username string, password string, input []string, metaClien
 }
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
+	/*
+		defer func(connection net.Conn) {
+			fmt.Println("WAITING FOR GO AHEAD TO RETURN")
+			signal := make([]byte, 1)
+			connection.Read(signal)
+			fmt.Println("SIGNAL RECEIVED CLOSING CONNECTION")
+		}(connection)
+	*/
 
 	if meta.Size <= int64(BLOCK_SIZE) {
-		fmt.Println("SENDING FILE IN ONE CHUNK")
+		fmt.Printf("SENDING FILE IN ONE CHUNK => %d\n", meta.Size)
 		buffer := make([]byte, meta.Size)
-		file.Read(buffer)
-		if _, err := connection.Write(buffer); err != nil {
+		n, e := file.Read(buffer)
+		if e != nil {
+			fmt.Printf("error reading file => %s\n", e.Error())
+			return e
+		}
+		fmt.Printf("file => %d\n", n)
+		fmt.Printf("buffer => %s\n", string(buffer))
+		n, err := connection.Write(buffer)
+		if err != nil {
 			return err
 		}
-		fmt.Println("SENT FILE DATA")
+		fmt.Printf("SENT FILE DATA => %d\n", n)
+
 		return nil
 	}
 

@@ -8,12 +8,10 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jun 12 21:29:22 2022
+# Make data base, printed on Mon Jun 13 18:17:13 2022
 
 # Variables
 
-# environment
-FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
 SYSTEMDRIVE = C:
 # environment
@@ -23,9 +21,9 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-dc4b6704-d2d6-4a19-890c-c6500081cca8-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-c9b81bd9-5032-4b43-9d1b-d9182f1b4b92-sock
 # environment
-VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore\cmd\client
+VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -41,9 +39,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_7488_TYIXLXTMOTBQJQDW
-# environment
-FPS_BROWSER_USER_PROFILE_STRING = Default
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_9696_BXNBFLUDIJJFEVFZ
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -89,7 +85,8 @@ MFLAGS = -pqrR
 # default
 .SHELLFLAGS := -c
 # environment
-COMMONPROGRAMW6432 = C:\Program Files\Common Files
+COMMONPROGRAMW6432 = C:\ 
+Program Files\Common Files
 # automatic
 +D = $(patsubst %/,%,$(patsubst %\,%,$(dir $+)))
 # makefile (from 'Makefile', line 1)
@@ -99,7 +96,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 7488
+VSCODE_PID = 9696
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -216,21 +213,21 @@ GOPROXY = https://proxy.golang.org,direct
 SUFFIXES := 
 # environment
 ALLUSERSPROFILE = C:\ProgramData
-# environment 
-
+# environment
 SESSIONNAME = Console
 # environment
 VSCODE_CLI = 1
 # environment
 ELECTRON_NO_ATTACH_CONSOLE = 1
 # default
-.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
+.FEATURES := target-speci 
+fic order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
 # environment
 PROCESSOR_REVISION = 7e05
 # environment
 PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 # variable set hash-table stats:
-# Load=108/1024=11%, Rehash=0, Collisions=10/135=7%
+# Load=106/1024=10%, Rehash=0, Collisions=9/133=7%
 
 # Pattern-specific Variable Values
 
@@ -238,7 +235,8 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 
 # Directories
 
-# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1655083760): 16 files, no impossibilities.
+# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 165508376 
+0): 16 files, no impossibilities.
 
 # 16 files, no impossibilities in 1 directories.
 
@@ -324,6 +322,6 @@ build-cli:
 # strcache performance: lookups = 39 / hit rate = 35%
 # hash-table stats:
 # Load=25/8192=0%, Rehash=0, Collisions=0/39=0%
-# Finished Make data base on Sun Jun 12 21:29:22 2022
+# Finished Make data base on Mon Jun 13 18:17:13 2022
 
  
