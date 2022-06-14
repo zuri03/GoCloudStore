@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"net"
-	//"os"
+	"os"
 )
 
 type FileMetaData struct {
@@ -32,33 +33,17 @@ func storeFileHandler(connection *net.TCPConn) error {
 }
 
 func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
-	/*
-		defer func(connection net.Conn) {
-			fmt.Printf("DONE READING SENDING SIGNAL")
-			connection.Write([]byte("t"))
-			fmt.Printf("SENT SIGNAL")
-		}(connection)
-			file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
-			if err != nil {
-				return err
-			}
-	*/
+
+	file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
+	if err != nil {
+		return err
+	}
 	fileDataCacheBuffer := new(bytes.Buffer)
-	readBuffer := make([]byte, meta.Size+100)
+	readBuffer := make([]byte, MAX_CACHE_BUFFER_SIZE)
 	fmt.Printf("initial length => %d\n", fileDataCacheBuffer.Len())
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
 		fmt.Println("READING FILE IN ONE CHUNCK")
-		/*
-			num, err := fileDataCacheBuffer.ReadFrom(connection)
-			if err != nil {
-				fmt.Printf("Error: %d => %s\n", num, err.Error())
-			}
-			fmt.Printf("No error => %d => %d => %s\n", num, fileDataCacheBuffer.Len(), string(fileDataCacheBuffer.Bytes()))
-		*/
-
 		n, err := connection.Read(readBuffer)
-		fmt.Printf("read buffer => %s\n", string(readBuffer))
-		fmt.Printf("len => %d\n", n)
 		if err != nil {
 			fmt.Printf("read buffer error => %s\n", string(readBuffer))
 			fmt.Printf("len error => %d\n", n)
@@ -69,24 +54,36 @@ func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
 	}
 	fmt.Println("ABOUT TO BEGIN READING LOOP")
 
+	resetCacheBuffer := func(buffer *bytes.Buffer, file *os.File) {
+		file.Write(fileDataCacheBuffer.Bytes())
+		fileDataCacheBuffer.Reset()
+	}
+
 	for {
 		numOfBytes, err := connection.Read(readBuffer)
 		if err != nil {
+			if numOfBytes > 0 {
+				fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
+				resetCacheBuffer(fileDataCacheBuffer, file)
+			}
+			if err == io.EOF {
+				break
+			}
 			fmt.Println("ERROR OCCURRED RETURING")
 			return err
 		}
 
-		_, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-		if err != nil {
+		if numOfBytes == 0 {
+			break
+		}
+
+		if _, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes]); err != nil {
 			fmt.Println("Error on appending file buffer")
 			return err
 		}
 
 		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
-			/*
-				file.Write(fileDataCacheBuffer.Bytes())
-				fileDataCacheBuffer.Reset()
-			*/
+			resetCacheBuffer(fileDataCacheBuffer, file)
 		}
 	}
 	return nil
