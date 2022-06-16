@@ -30,10 +30,12 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	if fileInfo == nil || file == nil {
 		return fmt.Errorf("Error could not find file %s\n", fileName)
 	}
-	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
-	if err != nil {
-		return err
-	}
+	/*
+		err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+		if err != nil {
+			return err
+		}
+	*/
 
 	//TODO: The address of the datanode must come from the record server
 	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
@@ -50,11 +52,9 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		FileName: fileInfo.Name(),
 		Size:     fileInfo.Size(),
 	}
-
 	if err := sendMetaDataToServer(meta, connection); err != nil {
 		return nil
 	}
-
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
 		return err
 	}

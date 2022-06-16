@@ -39,7 +39,7 @@ func InitializeListener() {
 	}
 }
 
-func handleConnection(connection *net.TCPConn) {
+func handleConnection(connection net.Conn) {
 	defer connection.Close()
 	fmt.Println("Got protocol")
 	protocol := make([]byte, 3)

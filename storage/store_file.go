@@ -20,51 +20,54 @@ const (
 	MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
 )
 
-func storeFileHandler(connection *net.TCPConn) error {
+func storeFileHandler(connection net.Conn) error {
 	meta, err := acceptFileMetaData(connection)
 	if err != nil {
 		return err
 	}
-
-	if err := storeFileData(meta, connection); err != nil {
+	if err := storeFileData(connection, meta); err != nil {
 		return err
 	}
 	return nil
 }
 
-func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
-
-	file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
-	if err != nil {
-		return err
-	}
+func storeFileData(connection net.Conn, meta FileMetaData) error {
+	/*
+		file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
+		if err != nil {
+			return err
+		}
+	*/
 	fileDataCacheBuffer := new(bytes.Buffer)
-	readBuffer := make([]byte, MAX_CACHE_BUFFER_SIZE)
-	fmt.Printf("initial length => %d\n", fileDataCacheBuffer.Len())
+	readBuffer := make([]byte, MAX_CACHE_BUFFER_SIZE) //setting the read buffer size to meta.Size+200 fixes the error for some reason
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
 		fmt.Println("READING FILE IN ONE CHUNCK")
 		n, err := connection.Read(readBuffer)
 		if err != nil {
 			fmt.Printf("read buffer error => %s\n", string(readBuffer))
 			fmt.Printf("len error => %d\n", n)
+			connection.Read(readBuffer)
+			fmt.Printf("read buffer error => %s\n", string(readBuffer))
+			fmt.Printf("len error => %d\n", n)
 			return err
 		}
-
+		fmt.Printf("BUFFER => %s\n", string(readBuffer))
 		return nil
 	}
 	fmt.Println("ABOUT TO BEGIN READING LOOP")
 
-	resetCacheBuffer := func(buffer *bytes.Buffer, file *os.File) {
+	_ = func(buffer *bytes.Buffer, file *os.File) {
 		file.Write(fileDataCacheBuffer.Bytes())
 		fileDataCacheBuffer.Reset()
 	}
 
 	for {
+
 		numOfBytes, err := connection.Read(readBuffer)
 		if err != nil {
 			if numOfBytes > 0 {
 				fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-				resetCacheBuffer(fileDataCacheBuffer, file)
+				//resetCacheBuffer(fileDataCacheBuffer, file)
 			}
 			if err == io.EOF {
 				break
@@ -83,7 +86,7 @@ func storeFileData(meta FileMetaData, connection *net.TCPConn) error {
 		}
 
 		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
-			resetCacheBuffer(fileDataCacheBuffer, file)
+			//resetCacheBuffer(fileDataCacheBuffer, file)
 		}
 	}
 	return nil
@@ -97,11 +100,5 @@ func acceptFileMetaData(connection net.Conn) (FileMetaData, error) {
 		fmt.Printf("ERROR IN DECODER: %s\n", err.Error())
 		return meta, err
 	}
-	fmt.Printf("Meta size => %s\n", meta.FileName)
-	/*
-		con := make([]byte, 1024)
-		connection.Read(con)
-		fmt.Printf("con => %s\n", string(con))
-	*/
 	return meta, nil
 }
