@@ -29,7 +29,9 @@ come up with a better name for allowedUsers
     allowed users are allowed to retrieve a file despite not being the owner
 
 
-
+Implement more coordination between client and storage sever
+    - Instead of a one way stream of data the client and storage node must send 
+    messages back and forth in order to coordinate their actions and ensure their is no failure from the other side
 
 Determine how allowed system works
     for now allowed users is simply a slice of usernames
@@ -38,3 +40,5 @@ Determine how allowed system works
 standardize Constant value names
     system uses multiple names for constant values that represent the same thing
     determine best name for each constant and make the name the same throughout the entire system
+
+Implement system logging

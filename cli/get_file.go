@@ -1,11 +1,17 @@
 package cli
 
 import (
-	"bytes"
 	"fmt"
 	"net"
+	"os"
 )
 
+const (
+	FILE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
+)
+
+//Opens and closes connections and calls the file retreival functions
+//in the correct order
 func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	key := input[0]
 	record, err := metaClient.getFileRecord(username, password, key)
@@ -13,36 +19,41 @@ func getFileCommand(username string, password string, input []string, metaClient
 		return err
 	}
 	fmt.Printf("record => %+v\n", record)
-	fmt.Println("DIALED CONNECTION")
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
-	fmt.Println("ABOUT TO GET")
-	connection.Write([]byte(GET_PROTOCOL))
+	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
+		connection); err != nil {
+		return nil
+	}
 	return nil
 }
 
-func getFileDataFromServer(connection net.Conn) (*bytes.Buffer, error) {
-	fileDataReader := make([]byte, 1024)
-	fileDataBuffer := new(bytes.Buffer)
-	for {
-		_, err := connection.Read(fileDataReader)
-		if err != nil {
-			return nil, err
-		}
-
-		trimmed := bytes.TrimRightFunc(fileDataReader, func(r rune) bool {
-			if r == 0 {
-				return true
-			}
-			return false
-		})
-
-		if string(trimmed[len(trimmed)-3:]) == "EOF" {
-			fileDataBuffer.Write(trimmed[:len(trimmed)-3])
-			break
-		}
-		fileDataBuffer.Write(trimmed)
+//uses a connection object to retrieve byte data from a storage server and store it in a file
+func getFileDataFromServer(fileName string, fileSize int, connection net.Conn) error {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return err
 	}
-	return fileDataBuffer, nil
+	defer file.Close()
+	connection.Write([]byte(GET_PROTOCOL))
+	if fileSize <= FILE_BUFFER_SIZE {
+		buffer := make([]byte, fileSize)
+		numOfBytes, err := connection.Read(buffer)
+		if err != nil {
+			fmt.Printf("ERROR NUM OF BYTES => %d\n", numOfBytes)
+			return err
+		}
+		fmt.Printf("final buffer => %s\n", string(buffer))
+		if _, err := file.Write(buffer); err != nil {
+			fmt.Printf("ERROR WRITING TO FILE +> %s\n", err.Error())
+			return err
+		}
+
+		return nil
+	}
+
+	//Here we would use buffered io to read larger files
+	//or maybe a for loop
+	return nil
 }

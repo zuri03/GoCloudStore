@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 13 18:17:13 2022
+# Make data base, printed on Thu Jun 16 19:26:13 2022
 
 # Variables
 
@@ -21,7 +21,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-c9b81bd9-5032-4b43-9d1b-d9182f1b4b92-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-010e13c3-6cf3-46f9-9085-f87ed428411f-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +39,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_9696_BXNBFLUDIJJFEVFZ
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_14500_VXHGBEOFXPWPNVSD
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -53,7 +53,7 @@ VSCODE_LOG_STACK = false
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = C:\Users\shawz\AppData\Roaming\Code\CachedData\4af164ea3a06f701fe3e89a2bcbb421d2026b68f
+VSCODE_CODE_CACHE_PATH = C:\Users\shawz\AppData\Roaming\Code\CachedData\30d9c6cd9483b2cc586687151bcbcd635f373630
 # environment
 LANG = C
 # default
@@ -85,8 +85,7 @@ MFLAGS = -pqrR
 # default
 .SHELLFLAGS := -c
 # environment
-COMMONPROGRAMW6432 = C:\ 
-Program Files\Common Files
+COMMONPROGRAMW6432 = C:\Program Files\Common Files
 # automatic
 +D = $(patsubst %/,%,$(patsubst %\,%,$(dir $+)))
 # makefile (from 'Makefile', line 1)
@@ -96,7 +95,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 9696
+VSCODE_PID = 14500
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -197,12 +196,13 @@ GOMODCACHE = C:\Users\shawz\go\pkg\mod
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
+ 
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
 TEMP = C:\Users\shawz\AppData\Local\Temp
 # environment
-VSCODE_IPC_HOOK = \\.\pipe\47ae0f0527ea5536b2b92321df344074-1.68.0-main-sock
+VSCODE_IPC_HOOK = \\.\pipe\47ae0f0527ea5536b2b92321df344074-1.68.1-main-sock
 # environment
 GOPROXY = https://proxy.golang.org,direct
 # default
@@ -220,8 +220,8 @@ VSCODE_CLI = 1
 # environment
 ELECTRON_NO_ATTACH_CONSOLE = 1
 # default
-.FEATURES := target-speci 
-fic order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
+.FEATURES := target-spe 
+cific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
 # environment
 PROCESSOR_REVISION = 7e05
 # environment
@@ -235,10 +235,9 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 
 # Directories
 
-# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 165508376 
-0): 16 files, no impossibilities.
+# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1655341228): 17 files, no impossibilities.
 
-# 16 files, no impossibilities in 1 directories.
+# 17 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -316,12 +315,12 @@ build-cli:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 25 / storage = 211 B / avg = 8 B
-# current buf: size = 8174 B / used = 211 B / count = 25 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 222 B / avg = 8 B
+# current buf: size = 8174 B / used = 222 B / count = 26 / avg = 8 B
 
-# strcache performance: lookups = 39 / hit rate = 35%
+# strcache performance: lookups = 40 / hit rate = 35%
 # hash-table stats:
-# Load=25/8192=0%, Rehash=0, Collisions=0/39=0%
-# Finished Make data base on Mon Jun 13 18:17:13 2022
+# Load=26/8192=0%, Rehash=0, Collisions=0/40=0%
+# Finished Make data base on Thu Jun 16 19:26:13 2022
 
  

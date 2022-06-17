@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+//TODO: Implement connection reading with buffered io
 type FileMetaData struct {
 	Size     int64
 	FileName string
@@ -21,23 +22,34 @@ const (
 )
 
 func storeFileHandler(connection net.Conn) error {
-	meta, err := acceptFileMetaData(connection)
-	if err != nil {
-		return err
-	}
-	if err := storeFileData(connection, meta); err != nil {
+
+	if err := storeFileDataFromClient(connection); err != nil {
 		return err
 	}
 	return nil
 }
 
-func storeFileData(connection net.Conn, meta FileMetaData) error {
+func storeFileDataFromClient(connection net.Conn) error {
+	meta := FileMetaData{}
+	decoder := gob.NewDecoder(connection)
+	fmt.Println("WAITING FOR GOB")
+	if err := decoder.Decode(&meta); err != nil {
+		fmt.Printf("ERROR IN DECODER: %s\n", err.Error())
+		return err
+	}
+
+	filePath := fmt.Sprintf("/%s/%s", meta.Username, meta.FileName)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
 	/*
-		file, err := os.Open(fmt.Sprintf("./%s/%s", meta.Username, meta.FileName))
-		if err != nil {
-			return err
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			//file does not exist
 		}
 	*/
+
 	fileDataCacheBuffer := new(bytes.Buffer)
 	readBuffer := make([]byte, MAX_CACHE_BUFFER_SIZE) //setting the read buffer size to meta.Size+200 fixes the error for some reason
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
@@ -46,14 +58,13 @@ func storeFileData(connection net.Conn, meta FileMetaData) error {
 		if err != nil {
 			fmt.Printf("read buffer error => %s\n", string(readBuffer))
 			fmt.Printf("len error => %d\n", n)
-			connection.Read(readBuffer)
-			fmt.Printf("read buffer error => %s\n", string(readBuffer))
-			fmt.Printf("len error => %d\n", n)
 			return err
 		}
 		fmt.Printf("BUFFER => %s\n", string(readBuffer))
+		file.Write(readBuffer)
 		return nil
 	}
+
 	fmt.Println("ABOUT TO BEGIN READING LOOP")
 
 	_ = func(buffer *bytes.Buffer, file *os.File) {
@@ -90,15 +101,4 @@ func storeFileData(connection net.Conn, meta FileMetaData) error {
 		}
 	}
 	return nil
-}
-
-func acceptFileMetaData(connection net.Conn) (FileMetaData, error) {
-	meta := FileMetaData{}
-	decoder := gob.NewDecoder(connection)
-	fmt.Println("WAITING FOR GOB")
-	if err := decoder.Decode(&meta); err != nil {
-		fmt.Printf("ERROR IN DECODER: %s\n", err.Error())
-		return meta, err
-	}
-	return meta, nil
 }
