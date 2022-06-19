@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	GET_PROTOCOL    string = "GET"
-	ERROR_PROTOCOL  string = "ERR"
-	SEND_PROTOCOL   string = "SND"
-	DELETE_PROTOCOL string = "DEL"
+	GET_PROTOCOL     string = "GET"
+	ERROR_PROTOCOL   string = "ERR"
+	SEND_PROTOCOL    string = "SND"
+	DELETE_PROTOCOL  string = "DEL"
+	PROCEED_PROTOCOL string = "PRC"
 )
 
 func InitializeListener() {
@@ -29,22 +30,17 @@ func InitializeListener() {
 	for {
 		fmt.Println("Waiting for connections")
 		connection, err := listener.AcceptTCP()
-		fmt.Println("GOT CONNECTION")
 		if err != nil {
 			fmt.Printf("Error accepting connections => %s\n", err.Error())
 			break
 		}
-		fmt.Println("PASSING TO HANDLER")
 		go handleConnection(connection)
 	}
 }
 
 func handleConnection(connection net.Conn) {
 	defer connection.Close()
-	fmt.Println("Got protocol")
 	protocol := make([]byte, 3)
-
-	fmt.Println("About to read")
 
 	connection.Read(protocol)
 

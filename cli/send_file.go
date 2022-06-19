@@ -55,6 +55,11 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	if err := sendMetaDataToServer(meta, connection); err != nil {
 		return nil
 	}
+
+	fmt.Println("WAITING FOR PROCEED SIGNAL")
+	signal := make([]byte, 3)
+	connection.Read(signal)
+	fmt.Println("SIGNAL RECEIVED SENDING FILE DATA")
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
 		return err
 	}
@@ -62,31 +67,16 @@ func sendFileCommand(username string, password string, input []string, metaClien
 }
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
-	/*
-		defer func(connection net.Conn) {
-			fmt.Println("WAITING FOR GO AHEAD TO RETURN")
-			signal := make([]byte, 1)
-			connection.Read(signal)
-			fmt.Println("SIGNAL RECEIVED CLOSING CONNECTION")
-		}(connection)
-	*/
 
 	if meta.Size <= int64(BLOCK_SIZE) {
-		fmt.Printf("SENDING FILE IN ONE CHUNK => %d\n", meta.Size)
 		buffer := make([]byte, meta.Size)
-		n, e := file.Read(buffer)
-		if e != nil {
-			fmt.Printf("error reading file => %s\n", e.Error())
-			return e
-		}
-		fmt.Printf("file => %d\n", n)
-		fmt.Printf("buffer => %s\n", string(buffer))
-		n, err := connection.Write(buffer)
-		if err != nil {
+		if _, err := file.Read(buffer); err != nil {
 			return err
 		}
-		fmt.Printf("SENT FILE DATA => %d\n", n)
 
+		if _, err := connection.Write(buffer); err != nil {
+			return err
+		}
 		return nil
 	}
 

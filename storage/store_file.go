@@ -23,50 +23,57 @@ const (
 
 func storeFileHandler(connection net.Conn) error {
 
-	if err := storeFileDataFromClient(connection); err != nil {
+	meta, err := acceptFileMetaData(connection)
+	if err != nil {
+		return err
+	}
+	if err := storeFileDataFromClient(meta, connection); err != nil {
 		return err
 	}
 	return nil
 }
 
-func storeFileDataFromClient(connection net.Conn) error {
-	meta := FileMetaData{}
-	decoder := gob.NewDecoder(connection)
-	fmt.Println("WAITING FOR GOB")
-	if err := decoder.Decode(&meta); err != nil {
-		fmt.Printf("ERROR IN DECODER: %s\n", err.Error())
-		return err
+func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
+
+	directoryName := meta.Username
+	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
+
+	if _, err := os.Stat(directoryName); err != nil && os.IsNotExist(err) {
+		//file does not exist
+		fmt.Printf("Directory does not exist %s\n", directoryName)
+		if err := os.Mkdir(directoryName, 0644); err != nil {
+			fmt.Printf("Error creating directory: %s\n", directoryName)
+			return err
+		}
+		fmt.Printf("created directory for new user")
 	}
 
-	filePath := fmt.Sprintf("/%s/%s", meta.Username, meta.FileName)
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0700)
 	if err != nil {
 		return err
 	}
 
 	/*
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			//file does not exist
-		}
+		In order to fix the EOF errors the client must wait before it begins to send file data
+		this write to the connection serves as a signal from the server to the client letting the client
+		know that the server is ready to begin receiving file data
 	*/
+	connection.Write([]byte(PROCEED_PROTOCOL))
 
-	fileDataCacheBuffer := new(bytes.Buffer)
-	readBuffer := make([]byte, MAX_CACHE_BUFFER_SIZE) //setting the read buffer size to meta.Size+200 fixes the error for some reason
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
-		fmt.Println("READING FILE IN ONE CHUNCK")
-		n, err := connection.Read(readBuffer)
-		if err != nil {
-			fmt.Printf("read buffer error => %s\n", string(readBuffer))
-			fmt.Printf("len error => %d\n", n)
+		buffer := make([]byte, meta.Size)
+		if _, err := connection.Read(buffer); err != nil {
 			return err
 		}
-		fmt.Printf("BUFFER => %s\n", string(readBuffer))
-		file.Write(readBuffer)
+		if _, err := file.Write(buffer); err != nil {
+			return err
+		}
 		return nil
 	}
 
 	fmt.Println("ABOUT TO BEGIN READING LOOP")
-
+	fileDataCacheBuffer := new(bytes.Buffer)
+	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
 	_ = func(buffer *bytes.Buffer, file *os.File) {
 		file.Write(fileDataCacheBuffer.Bytes())
 		fileDataCacheBuffer.Reset()
@@ -101,4 +108,14 @@ func storeFileDataFromClient(connection net.Conn) error {
 		}
 	}
 	return nil
+}
+
+func acceptMetaData(connection net.Conn) (FileMetaData, error) {
+	meta := FileMetaData{}
+	decoder := gob.NewDecoder(connection)
+	if err := decoder.Decode(&meta); err != nil {
+		return meta, err
+	}
+
+	return meta, nil
 }

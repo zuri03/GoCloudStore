@@ -8,10 +8,12 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jun 16 19:26:13 2022
+# Make data base, printed on Sun Jun 19 16:46:57 2022
 
 # Variables
 
+# environment
+FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
 SYSTEMDRIVE = C:
 # environment
@@ -21,7 +23,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-010e13c3-6cf3-46f9-9085-f87ed428411f-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-8d6d50c7-8535-443f-8f72-55fe1beb6afa-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +41,9 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_14500_VXHGBEOFXPWPNVSD
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_32908_LPSIBORANZPVGUMX
+# environment
+FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -95,7 +99,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 14500
+VSCODE_PID = 32908
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -196,7 +200,6 @@ GOMODCACHE = C:\Users\shawz\go\pkg\mod
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
- 
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
@@ -220,14 +223,13 @@ VSCODE_CLI = 1
 # environment
 ELECTRON_NO_ATTACH_CONSOLE = 1
 # default
-.FEATURES := target-spe 
-cific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync load
 # environment
 PROCESSOR_REVISION = 7e05
 # environment
 PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 # variable set hash-table stats:
-# Load=106/1024=10%, Rehash=0, Collisions=9/133=7%
+# Load=108/1024=11%, Rehash=0, Collisions=10/135=7%
 
 # Pattern-specific Variable Values
 
@@ -321,6 +323,6 @@ build-cli:
 # strcache performance: lookups = 40 / hit rate = 35%
 # hash-table stats:
 # Load=26/8192=0%, Rehash=0, Collisions=0/40=0%
-# Finished Make data base on Thu Jun 16 19:26:13 2022
+# Finished Make data base on Sun Jun 19 16:46:57 2022
 
  

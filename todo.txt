@@ -42,3 +42,6 @@ standardize Constant value names
     determine best name for each constant and make the name the same throughout the entire system
 
 Implement system logging
+
+Set up dev environment
+    use docker and docker compose to set up a quick development environment modeled after the production environment
