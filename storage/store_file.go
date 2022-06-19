@@ -38,14 +38,18 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 	directoryName := meta.Username
 	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
 
-	if _, err := os.Stat(directoryName); err != nil && os.IsNotExist(err) {
-		//file does not exist
-		fmt.Printf("Directory does not exist %s\n", directoryName)
-		if err := os.Mkdir(directoryName, 0644); err != nil {
-			fmt.Printf("Error creating directory: %s\n", directoryName)
+	if _, err := os.Stat(directoryName); err != nil {
+		if os.IsNotExist(err) {
+			//file does not exist
+			fmt.Printf("Directory does not exist %s\n", directoryName)
+			if err := os.Mkdir(directoryName, 0644); err != nil {
+				fmt.Printf("Error creating directory: %s\n", directoryName)
+				return err
+			}
+			fmt.Printf("created directory for new user")
+		} else {
 			return err
 		}
-		fmt.Printf("created directory for new user")
 	}
 
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0700)
