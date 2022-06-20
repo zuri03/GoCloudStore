@@ -17,8 +17,10 @@ type FileMetaData struct {
 }
 
 const (
-	TEMP_BUFFER_SIZE      int = 256  //TODO: Determine best temp buffer size
-	MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
+	//TEMP_BUFFER_SIZE      int = 256  //TODO: Determine best temp buffer size
+	TEMP_BUFFER_SIZE int = 5 //TODO: Determine best temp buffer size
+	//MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
+	MAX_CACHE_BUFFER_SIZE int = 10 //TODO: Determine caching buffer size
 )
 
 func storeFileHandler(connection net.Conn) error {
@@ -37,16 +39,11 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 
 	directoryName := meta.Username
 	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
-
 	if _, err := os.Stat(directoryName); err != nil {
 		if os.IsNotExist(err) {
-			//file does not exist
-			fmt.Printf("Directory does not exist %s\n", directoryName)
 			if err := os.Mkdir(directoryName, 0644); err != nil {
-				fmt.Printf("Error creating directory: %s\n", directoryName)
 				return err
 			}
-			fmt.Printf("created directory for new user")
 		} else {
 			return err
 		}
@@ -56,42 +53,42 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 	if err != nil {
 		return err
 	}
-
+	defer file.Close()
 	/*
 		In order to fix the EOF errors the client must wait before it begins to send file data
 		this write to the connection serves as a signal from the server to the client letting the client
 		know that the server is ready to begin receiving file data
 	*/
 	connection.Write([]byte(PROCEED_PROTOCOL))
-
-	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
-		buffer := make([]byte, meta.Size)
-		if _, err := connection.Read(buffer); err != nil {
-			return err
+	/*
+		if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
+			buffer := make([]byte, meta.Size)
+			if _, err := connection.Read(buffer); err != nil {
+				return err
+			}
+			if _, err := file.Write(buffer); err != nil {
+				return err
+			}
+			return nil
 		}
-		if _, err := file.Write(buffer); err != nil {
-			return err
-		}
-		return nil
-	}
+	*/
 
 	fmt.Println("ABOUT TO BEGIN READING LOOP")
 	fileDataCacheBuffer := new(bytes.Buffer)
 	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
-	_ = func(buffer *bytes.Buffer, file *os.File) {
-		file.Write(fileDataCacheBuffer.Bytes())
-		fileDataCacheBuffer.Reset()
+	writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
+		file.Write(buffer.Bytes())
+		buffer.Reset()
 	}
 
 	for {
-
 		numOfBytes, err := connection.Read(readBuffer)
 		if err != nil {
-			if numOfBytes > 0 {
-				fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-				//resetCacheBuffer(fileDataCacheBuffer, file)
-			}
 			if err == io.EOF {
+				if numOfBytes > 0 {
+					fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
+					writeBuffertoFile(fileDataCacheBuffer, file)
+				}
 				break
 			}
 			fmt.Println("ERROR OCCURRED RETURING")
@@ -99,16 +96,17 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 		}
 
 		if numOfBytes == 0 {
+			fmt.Println("finished reading breaking")
 			break
 		}
-
+		fmt.Printf("read => %d\n", numOfBytes)
+		fmt.Printf("read => %s\n", string(readBuffer[:numOfBytes]))
 		if _, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes]); err != nil {
-			fmt.Println("Error on appending file buffer")
 			return err
 		}
 
 		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
-			//resetCacheBuffer(fileDataCacheBuffer, file)
+			writeBuffertoFile(fileDataCacheBuffer, file)
 		}
 	}
 	return nil

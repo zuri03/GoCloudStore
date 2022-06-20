@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	BLOCK_SIZE int = 1024
+	//BLOCK_SIZE int = 1024
+	BLOCK_SIZE int = 5
 )
 
 //Since fs.FileInfo cannot be encoded by
@@ -56,10 +57,10 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return nil
 	}
 
-	fmt.Println("WAITING FOR PROCEED SIGNAL")
+	//wait for signal from server to begin sending file data
 	signal := make([]byte, 3)
 	connection.Read(signal)
-	fmt.Println("SIGNAL RECEIVED SENDING FILE DATA")
+
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
 		return err
 	}
@@ -67,19 +68,19 @@ func sendFileCommand(username string, password string, input []string, metaClien
 }
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
+	/*
+		if meta.Size <= int64(BLOCK_SIZE) {
+			buffer := make([]byte, meta.Size)
+			if _, err := file.Read(buffer); err != nil {
+				return err
+			}
 
-	if meta.Size <= int64(BLOCK_SIZE) {
-		buffer := make([]byte, meta.Size)
-		if _, err := file.Read(buffer); err != nil {
-			return err
+			if _, err := connection.Write(buffer); err != nil {
+				return err
+			}
+			return nil
 		}
-
-		if _, err := connection.Write(buffer); err != nil {
-			return err
-		}
-		return nil
-	}
-
+	*/
 	buffer := make([]byte, BLOCK_SIZE)
 
 	for {
@@ -87,36 +88,26 @@ func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn)
 
 		if err != nil {
 			if err.Error() == "EOF" {
-				fmt.Println("End of file found")
-				connection.Write([]byte("EOF"))
+				if numOfBytes > 0 {
+					connection.Write(buffer[:numOfBytes])
+				}
 				return nil
 			} else {
-				return fmt.Errorf("Error occured while reading file => %s\n", err.Error())
+				return err
 			}
 		}
 
-		fmt.Printf("Number of bytes => %d\n", numOfBytes)
-		if numOfBytes == 0 {
-			fmt.Println("Finished reading file")
-			break
-		}
-
-		connection.Write(buffer)
+		connection.Write(buffer[:numOfBytes])
 	}
-	return nil
 }
 
 func sendMetaDataToServer(meta FileMetaData, connection net.Conn) error {
-	fmt.Println("Generated gob")
 	gob.Register(new(FileMetaData))
 	encoder := gob.NewEncoder(connection)
-	fmt.Println("Connected gob to buffer")
 	err := encoder.Encode(meta)
 	if err != nil {
-		fmt.Printf("ERORR ENCODING: %s\n", err.Error())
 		return err
 	}
-	fmt.Println("Encoded meta data")
 	return nil
 }
 

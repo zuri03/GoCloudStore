@@ -19,7 +19,7 @@ func sendFileToClientHandler(connection net.Conn) error {
 }
 
 func sendFileDataToClient(meta FileMetaData, connection net.Conn) (e error) {
-	file, err := os.OpenFile(meta.FileName, os.O_RDONLY, 0655) //TODO: Figure out what perm is
+	file, err := os.OpenFile(meta.FileName, os.O_RDONLY, 0655)
 	if err != nil {
 		return err
 	}
