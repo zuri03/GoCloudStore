@@ -45,3 +45,5 @@ Implement system logging
 
 Set up dev environment
     use docker and docker compose to set up a quick development environment modeled after the production environment
+
+fix makefile

@@ -1,18 +1,18 @@
-build-cli:
-	go build -o build/cli cmd/client/main.go
+build-client:
+	docker build . -f ./docker/dev/Dockerfile.client -t client
 
 build-recordKeeper:
-	go build -o build/recordKeeper cmd/recordKeeper/main.go
+	docker build . -f ./docker/dev/Dockerfile.record -t recordKeeper
 
 build-storage:
-	go build -o build/storage cmd/storage/main.go
+	docker build . -f ./docker/dev/Dockerfile.storage -t storage
 
-build-all: build-cli build-recordKeeper build-storage
+build-all: build-cli build-recordKeeper build-storage 
 
 run: build-all
-	go run build/recordKeeper
-	go run build/storage
-	go run build/cli cli
+	docker run -d -p8000:8000 storage
+	docker run -d -p8080:8080 recordKeeper
+	docker run -d client
 
 #broken target
 clean:

@@ -7,6 +7,14 @@ import (
 	"net/http"
 )
 
+type CreateReqest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Key      string `json:"key"`
+	FileName string `json:"name"`
+	Size     int64  `json:"size"`
+}
+
 type PostHandler struct {
 	Keeper *RecordKeeper
 }
@@ -15,7 +23,7 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	body, err := ioutil.ReadAll(req.Body)
 	fmt.Printf("Body => %s\n", string(body))
 	if err != nil {
-		
+
 		writer.WriteHeader(http.StatusInternalServerError)
 		writer.Write([]byte("INTERNAL SERVER ERROR"))
 		return

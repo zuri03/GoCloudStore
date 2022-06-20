@@ -1,0 +1,15 @@
+FROM golang:1.17 as builder
+WORKDIR /go/src/github.com/zuri03/GoCloudStore/
+
+COPY storage ./storage
+COPY go.mod .
+COPY ./cmd/storage/main.go .
+
+RUN CGO_ENABLED=0 go build -o  build/Storage ./main.go
+FROM alpine:latest  
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /go/src/github.com/zuri03/GoCloudStore/
+COPY --from=builder /go/src/github.com/zuri03/GoCloudStore/build/Storage ./main
+EXPOSE 8000
+ENTRYPOINT [ "./main" ]

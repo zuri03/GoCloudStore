@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jun 19 16:46:57 2022
+# Make data base, printed on Sun Jun 19 20:46:45 2022
 
 # Variables
 
@@ -23,7 +23,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-8d6d50c7-8535-443f-8f72-55fe1beb6afa-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-65cb858f-b7aa-49ca-b4de-baadb2f76c43-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -41,7 +41,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_32908_LPSIBORANZPVGUMX
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_13940_UKCHOZKBWTJNGJHS
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -99,7 +99,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 32908
+VSCODE_PID = 13940
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -311,7 +311,8 @@ build-cli:
 
 # files hash-table stats:
 # Load=10/1024=1%, Rehash=0, Collisions=0/24=0%
-# VPATH Search Paths
+# VPATH Sear 
+ch Paths
 
 # No 'vpath' search paths.
 
@@ -323,6 +324,6 @@ build-cli:
 # strcache performance: lookups = 40 / hit rate = 35%
 # hash-table stats:
 # Load=26/8192=0%, Rehash=0, Collisions=0/40=0%
-# Finished Make data base on Sun Jun 19 16:46:57 2022
+# Finished Make data base on Sun Jun 19 20:46:45 2022
 
  

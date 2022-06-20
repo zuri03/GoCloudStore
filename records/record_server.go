@@ -6,14 +6,6 @@ import (
 	"net/http"
 )
 
-type CreateReqest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Key      string `json:"key"`
-	FileName string `json:"name"`
-	Size     int64  `json:"size"`
-}
-
 func InitServer(keeper *RecordKeeper) {
 	fmt.Println("CREATING SERVER")
 	getHandler := GetHandler{Keeper: keeper}

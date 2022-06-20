@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	//BLOCK_SIZE int = 1024
-	BLOCK_SIZE int = 5
+	BLOCK_SIZE int = 1024
 )
 
 //Since fs.FileInfo cannot be encoded by
@@ -28,22 +27,19 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
 	if fileInfo == nil || file == nil {
 		return fmt.Errorf("Error could not find file %s\n", fileName)
 	}
-	/*
-		err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
-		if err != nil {
-			return err
-		}
-	*/
+
+	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+	if err != nil {
+		return err
+	}
 
 	//TODO: The address of the datanode must come from the record server
 	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
 	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", ":8080")
-	if err != nil {
-		return err
-	}
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
@@ -68,19 +64,19 @@ func sendFileCommand(username string, password string, input []string, metaClien
 }
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
-	/*
-		if meta.Size <= int64(BLOCK_SIZE) {
-			buffer := make([]byte, meta.Size)
-			if _, err := file.Read(buffer); err != nil {
-				return err
-			}
 
-			if _, err := connection.Write(buffer); err != nil {
-				return err
-			}
-			return nil
+	if meta.Size <= int64(BLOCK_SIZE) {
+		buffer := make([]byte, meta.Size)
+		if _, err := file.Read(buffer); err != nil {
+			return err
 		}
-	*/
+
+		if _, err := connection.Write(buffer); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	buffer := make([]byte, BLOCK_SIZE)
 
 	for {
