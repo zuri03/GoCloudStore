@@ -1,9 +1,12 @@
 FROM golang:1.17 as builder
 WORKDIR /go/src/github.com/zuri03/GoCloudStore/
 
-COPY cli ./Cli
+COPY cli ./cli
+COPY records ./records
 COPY go.mod .
+COPY go.sum .
 COPY ./cmd/cli/main.go .
+
 
 RUN CGO_ENABLED=0 go build -o  build/Cli ./main.go
 FROM alpine:latest  

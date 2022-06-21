@@ -8,12 +8,10 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jun 19 20:46:45 2022
+# Make data base, printed on Tue Jun 21 18:44:25 2022
 
 # Variables
 
-# environment
-FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
 SYSTEMDRIVE = C:
 # environment
@@ -23,7 +21,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-65cb858f-b7aa-49ca-b4de-baadb2f76c43-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-e40f1681-f4d4-4b7c-8c07-de988c5087e2-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -41,9 +39,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_13940_UKCHOZKBWTJNGJHS
-# environment
-FPS_BROWSER_USER_PROFILE_STRING = Default
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_19240_QNCIMNKGMBMUUHQP
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -99,7 +95,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 13940
+VSCODE_PID = 19240
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -177,7 +173,7 @@ GNUMAKEFLAGS :=
 # environment
 OS = Windows_NT
 # makefile
-.DEFAULT_GOAL := build-cli
+.DEFAULT_GOAL := build-client
 # default
 MAKE_VERSION := 4.3
 # environment
@@ -229,7 +225,7 @@ PROCESSOR_REVISION = 7e05
 # environment
 PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 # variable set hash-table stats:
-# Load=108/1024=11%, Rehash=0, Collisions=10/135=7%
+# Load=106/1024=10%, Rehash=0, Collisions=9/133=7%
 
 # Pattern-specific Variable Values
 
@@ -237,7 +233,7 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 
 # Directories
 
-# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1655341228): 17 files, no impossibilities.
+# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1655687135): 17 files, no impossibilities.
 
 # 17 files, no impossibilities in 1 directories.
 
@@ -252,12 +248,12 @@ build-storage:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 8):
-	go build -o build/storage cmd/storage/main.go
+	docker build . -f ./docker/dev/Dockerfile.storage -t storage
 
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-12 21:16:22
+#  Last modified 2022-06-19 21:04:04
 #  File has been updated.
 #  Successfully updated.
 
@@ -266,7 +262,7 @@ build-recordKeeper:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 5):
-	go build -o build/recordKeeper cmd/recordKeeper/main.go
+	docker build . -f ./docker/dev/Dockerfile.record -t recordKeeper
 
 clean:
 #  Implicit rule search has not been done.
@@ -298,32 +294,37 @@ run: build-all
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 13):
-	go run build/recordKeeper
-	go run build/storage
-	go run build/cli cli
+	docker run -d -p8000:8000 storage
+	docker run -d -p8080:8080 recordKeeper
+	docker run -d client
 
-build-cli:
+build-client:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 2):
-	go build -o build/cli cmd/client/main.go
+	docker build . -f ./docker/dev/Dockerfile.client -t client
+
+# Not a target:
+build-cli:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
 
 # files hash-table stats:
-# Load=10/1024=1%, Rehash=0, Collisions=0/24=0%
-# VPATH Sear 
-ch Paths
+# Load=11/1024=1%, Rehash=0, Collisions=0/25=0%
+# VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 26 / storage = 222 B / avg = 8 B
-# current buf: size = 8174 B / used = 222 B / count = 26 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 27 / storage = 243 B / avg = 9 B
+# current buf: size = 8174 B / used = 243 B / count = 27 / avg = 9 B
 
-# strcache performance: lookups = 40 / hit rate = 35%
+# strcache performance: lookups = 40 / hit rate = 32%
 # hash-table stats:
-# Load=26/8192=0%, Rehash=0, Collisions=0/40=0%
-# Finished Make data base on Sun Jun 19 20:46:45 2022
+# Load=27/8192=0%, Rehash=0, Collisions=0/40=0%
+# Finished Make data base on Tue Jun 21 18:44:25 2022
 
  

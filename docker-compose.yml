@@ -1,5 +1,20 @@
-#Three services so far
+#Two services so far
   #record keeper
   #storage
-  #client
 #docker compose is for devlopment purposes only until I learn to use kubernetes
+version: '3'
+services:
+  records:
+    build: 
+      context: .
+      dockerfile: ./docker/dev/Dockerfile.records
+    ports:
+     - '8080:8080'
+  storage:
+    build: 
+      context: .
+      dockerfile: ./docker/dev/Dockerfile.storage
+    ports:
+      - '8000:8000'
+
+  

@@ -1,5 +1,5 @@
 make.exe --dry-run --always-make --keep-going --print-directory
 make: Entering directory 'c:/Users/shawz/go/src/GoCloudStore'
-go build -o build/cli cmd/client/main.go
+docker build . -f ./docker/dev/Dockerfile.client -t client
 make: Leaving directory 'c:/Users/shawz/go/src/GoCloudStore'
  

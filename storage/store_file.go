@@ -17,10 +17,8 @@ type FileMetaData struct {
 }
 
 const (
-	//TEMP_BUFFER_SIZE      int = 256  //TODO: Determine best temp buffer size
-	TEMP_BUFFER_SIZE int = 5 //TODO: Determine best temp buffer size
-	//MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
-	MAX_CACHE_BUFFER_SIZE int = 10 //TODO: Determine caching buffer size
+	TEMP_BUFFER_SIZE      int = 256  //TODO: Determine best temp buffer size\
+	MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
 )
 
 func storeFileHandler(connection net.Conn) error {
@@ -54,26 +52,24 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 		return err
 	}
 	defer file.Close()
+
 	/*
 		In order to fix the EOF errors the client must wait before it begins to send file data
 		this write to the connection serves as a signal from the server to the client letting the client
 		know that the server is ready to begin receiving file data
 	*/
 	connection.Write([]byte(PROCEED_PROTOCOL))
-	/*
-		if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
-			buffer := make([]byte, meta.Size)
-			if _, err := connection.Read(buffer); err != nil {
-				return err
-			}
-			if _, err := file.Write(buffer); err != nil {
-				return err
-			}
-			return nil
+	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
+		buffer := make([]byte, meta.Size)
+		if _, err := connection.Read(buffer); err != nil {
+			return err
 		}
-	*/
+		if _, err := file.Write(buffer); err != nil {
+			return err
+		}
+		return nil
+	}
 
-	fmt.Println("ABOUT TO BEGIN READING LOOP")
 	fileDataCacheBuffer := new(bytes.Buffer)
 	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
 	writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
