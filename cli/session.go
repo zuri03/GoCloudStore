@@ -60,40 +60,15 @@ func runSessionLoop(commandLineReader *bufio.Reader, username string, password s
 		case "help":
 			printHelpMessage()
 		case "allow":
-			err := addAllowedUserCommand(username, password, input[1:], &metadataClient)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Println("Successfully added user to permissions list")
+			addAllowedUserCommand(username, password, input[1:], &metadataClient)
 		case "remove":
-			err := removeUserAccessCommand(username, password, input[1:], &metadataClient)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Println("Successfully removed user from permissions list")
+			removeUserAccessCommand(username, password, input[1:], &metadataClient)
 		case "send":
-			err := sendFileCommand(username, password, input[1:], &metadataClient)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Println("Successfully sent file to server")
+			sendFileCommand(username, password, input[1:], &metadataClient)
 		case "get":
-			err := getFileCommand(username, password, input[1:], &metadataClient)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Println("Successuflly retreived file from server")
+			getFileCommand(username, password, input[1:], &metadataClient)
 		case "delete":
-			err := deleteFile(username, password, input[1:], &metadataClient)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Println("Successuflly deleted file from server")
+			deleteFile(username, password, input[1:], &metadataClient)
 		case "quit":
 			fmt.Println("Exiting...")
 			return

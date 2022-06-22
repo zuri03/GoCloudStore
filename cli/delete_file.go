@@ -1,13 +1,13 @@
 package cli
 
 import (
-	"fmt"
 	"net"
+
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 func deleteFile(username string, password string, input []string, metaClient *MetadataServerClient) error {
 	key := input[0]
-	fmt.Printf("key => %s\n", key)
 	err := metaClient.deleteFileRecord(username, password, key)
 	if err != nil {
 		return err
@@ -15,7 +15,6 @@ func deleteFile(username string, password string, input []string, metaClient *Me
 
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
-	fmt.Println("ABOUT TO GET")
-	connection.Write([]byte(DELETE_PROTOCOL))
+	connection.Write([]byte(c.DELETE_PROTOCOL))
 	return nil
 }

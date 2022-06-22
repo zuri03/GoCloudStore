@@ -7,6 +7,8 @@ import (
 	"io"
 	"net"
 	"os"
+
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 //TODO: Implement connection reading with buffered io
@@ -58,7 +60,7 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 		this write to the connection serves as a signal from the server to the client letting the client
 		know that the server is ready to begin receiving file data
 	*/
-	connection.Write([]byte(PROCEED_PROTOCOL))
+	connection.Write([]byte(c.PROCEED_PROTOCOL))
 	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
 		buffer := make([]byte, meta.Size)
 		if _, err := connection.Read(buffer); err != nil {
@@ -95,8 +97,7 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 			fmt.Println("finished reading breaking")
 			break
 		}
-		fmt.Printf("read => %d\n", numOfBytes)
-		fmt.Printf("read => %s\n", string(readBuffer[:numOfBytes]))
+
 		if _, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes]); err != nil {
 			return err
 		}

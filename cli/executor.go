@@ -11,7 +11,6 @@ func ExecuteSingleCommand(input []string) {
 
 	fmt.Println("EXECUTING ONE TIME COMMAND")
 
-
 	if len(input) == 0 {
 		fmt.Println("Error: No arguments found ")
 		return
@@ -36,40 +35,15 @@ func ExecuteSingleCommand(input []string) {
 
 	switch command {
 	case "allow":
-		err := addAllowedUserCommand(username, password, input[3:], &metadataClient)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("Successfully added user to permissions list")
+		addAllowedUserCommand(username, password, input[3:], &metadataClient)
 	case "remove":
-		err := removeUserAccessCommand(username, password, input[3:], &metadataClient)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("Successfully removed user from permissions list")
+		removeUserAccessCommand(username, password, input[3:], &metadataClient)
 	case "send":
-		err := sendFileCommand(username, password, input[3:], &metadataClient)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("Successfully sent file to server")
+		sendFileCommand(username, password, input[3:], &metadataClient)
 	case "get":
-		err := getFileCommand(username, password, input[3:], &metadataClient)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("Successuflly retreived file from server")
+		getFileCommand(username, password, input[3:], &metadataClient)
 	case "delete":
-		err := deleteFile(username, password, input[3:], &metadataClient)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("Successuflly deleted file from server")
+		deleteFile(username, password, input[3:], &metadataClient)
 	case "quit":
 		fmt.Println("Exiting...")
 		return

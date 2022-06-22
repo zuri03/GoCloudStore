@@ -3,14 +3,8 @@ package storage
 import (
 	"fmt"
 	"net"
-)
 
-const (
-	GET_PROTOCOL     string = "GET"
-	ERROR_PROTOCOL   string = "ERR"
-	SEND_PROTOCOL    string = "SND"
-	DELETE_PROTOCOL  string = "DEL"
-	PROCEED_PROTOCOL string = "PRC"
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 func InitializeListener() {
@@ -47,16 +41,16 @@ func handleConnection(connection net.Conn) {
 	fmt.Printf("Got Protocol => %s\n", string(protocol))
 
 	switch string(protocol) {
-	case GET_PROTOCOL:
-	case SEND_PROTOCOL:
+	case c.GET_PROTOCOL:
+	case c.SEND_PROTOCOL:
 		err := storeFileHandler(connection)
 		if err != nil {
 			fmt.Printf("Error in handler: %s\n", err.Error())
 			return
 		}
 		fmt.Println("SUCCESSFULLY STORED FILE")
-	case DELETE_PROTOCOL:
-	case ERROR_PROTOCOL:
+	case c.DELETE_PROTOCOL:
+	case c.ERROR_PROTOCOL:
 	}
 
 	return

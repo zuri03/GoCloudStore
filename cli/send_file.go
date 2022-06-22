@@ -7,10 +7,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-)
 
-const (
-	BLOCK_SIZE int = 1024
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 //Since fs.FileInfo cannot be encoded by
@@ -43,7 +41,7 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
-	connection.Write([]byte(SEND_PROTOCOL))
+	connection.Write([]byte(c.SEND_PROTOCOL))
 	meta := FileMetaData{
 		Username: username,
 		FileName: fileInfo.Name(),
@@ -65,7 +63,7 @@ func sendFileCommand(username string, password string, input []string, metaClien
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
 
-	if meta.Size <= int64(BLOCK_SIZE) {
+	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
 			return err
@@ -77,7 +75,7 @@ func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn)
 		return nil
 	}
 
-	buffer := make([]byte, BLOCK_SIZE)
+	buffer := make([]byte, c.MAX_CACHE_BUFFER_SIZE)
 
 	for {
 		numOfBytes, err := file.Read(buffer)

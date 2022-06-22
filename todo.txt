@@ -48,7 +48,7 @@ Set up dev environment
 
 fix makefile
 
-
+Use Bufio for sending files in loop
 
 
 Future Plans:

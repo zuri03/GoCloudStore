@@ -7,13 +7,13 @@ services:
   records:
     build: 
       context: .
-      dockerfile: ./docker/dev/Dockerfile.records
+      dockerfile: ./docker/deployments/Dockerfile.records
     ports:
      - '8080:8080'
   storage:
     build: 
       context: .
-      dockerfile: ./docker/dev/Dockerfile.storage
+      dockerfile: ./docker/deployments/Dockerfile.storage
     ports:
       - '8000:8000'
 

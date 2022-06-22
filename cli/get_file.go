@@ -1,59 +1,95 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"os"
-)
 
-const (
-	FILE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 //Opens and closes connections and calls the file retreival functions
 //in the correct order
-func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
+//Handles any errors that may occur by notifying the user
+func getFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) {
 	key := input[0]
 	record, err := metaClient.getFileRecord(username, password, key)
 	if err != nil {
-		return err
+		fmt.Printf("Error getting file record: %s\n", err.Error())
+		return
 	}
+
 	fmt.Printf("record => %+v\n", record)
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
 	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
 		connection); err != nil {
-		return nil
+		//Log error
+		fmt.Printf("Error retreiving file data: %s\n", err.Error())
+		return
 	}
-	return nil
+
+	fmt.Printf("SUCCESSFULLY RETREIVED FILE FROM SERVER")
 }
 
 //uses a connection object to retrieve byte data from a storage server and store it in a file
 func getFileDataFromServer(fileName string, fileSize int, connection net.Conn) error {
-	file, err := os.Open(fileName)
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0700)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	connection.Write([]byte(GET_PROTOCOL))
-	if fileSize <= FILE_BUFFER_SIZE {
-		buffer := make([]byte, fileSize)
-		numOfBytes, err := connection.Read(buffer)
-		if err != nil {
-			fmt.Printf("ERROR NUM OF BYTES => %d\n", numOfBytes)
-			return err
-		}
-		fmt.Printf("final buffer => %s\n", string(buffer))
-		if _, err := file.Write(buffer); err != nil {
-			fmt.Printf("ERROR WRITING TO FILE +> %s\n", err.Error())
-			return err
-		}
 
+	if fileSize <= c.MAX_CACHE_BUFFER_SIZE {
+		fmt.Println("Storing file in one chunk")
+		buffer := make([]byte, fileSize)
+		if _, err := connection.Read(buffer); err != nil {
+			return err
+		}
+		if _, err := file.Write(buffer); err != nil {
+			return err
+		}
 		return nil
 	}
 
-	//Here we would use buffered io to read larger files
-	//or maybe a for loop
+	fileDataCacheBuffer := new(bytes.Buffer)
+	readBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
+	writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
+		file.Write(buffer.Bytes())
+		buffer.Reset()
+	}
+
+	for {
+		numOfBytes, err := connection.Read(readBuffer)
+		if err != nil {
+			if err == io.EOF {
+				if numOfBytes > 0 {
+					fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
+					writeBuffertoFile(fileDataCacheBuffer, file)
+				}
+				break
+			}
+			fmt.Println("ERROR OCCURRED RETURING")
+			return err
+		}
+
+		if numOfBytes == 0 {
+			fmt.Println("finished reading breaking")
+			break
+		}
+		fmt.Printf("read => %d\n", numOfBytes)
+		fmt.Printf("read => %s\n", string(readBuffer[:numOfBytes]))
+		if _, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes]); err != nil {
+			return err
+		}
+
+		if fileDataCacheBuffer.Len() > c.MAX_CACHE_BUFFER_SIZE {
+			writeBuffertoFile(fileDataCacheBuffer, file)
+		}
+	}
+
 	return nil
 }
