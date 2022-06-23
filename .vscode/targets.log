@@ -8,10 +8,12 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Jun 22 19:26:58 2022
+# Make data base, printed on Thu Jun 23 18:27:15 2022
 
 # Variables
 
+# environment
+FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
 SYSTEMDRIVE = C:
 # environment
@@ -21,7 +23,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-64a4b82c-f75f-4324-9597-4b8fb25abe7c-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-503fc101-2622-463e-912a-e8328b8e8ccf-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +41,9 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_18308_NXQLDKQJETTMPZFD
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_20824_EZQMPBACVUWBVRGS
+# environment
+FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -95,7 +99,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 18308
+VSCODE_PID = 20824
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -225,7 +229,7 @@ PROCESSOR_REVISION = 7e05
 # environment
 PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 # variable set hash-table stats:
-# Load=106/1024=10%, Rehash=0, Collisions=9/133=7%
+# Load=108/1024=11%, Rehash=0, Collisions=10/135=7%
 
 # Pattern-specific Variable Values
 
@@ -309,8 +313,7 @@ build-client:
 build-cli:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
-#  File has not been updated 
-.
+#  File has not been updated.
 
 # files hash-table stats:
 # Load=11/1024=1%, Rehash=0, Collisions=0/25=0%
@@ -326,6 +329,6 @@ build-cli:
 # strcache performance: lookups = 41 / hit rate = 31%
 # hash-table stats:
 # Load=28/8192=0%, Rehash=0, Collisions=0/41=0%
-# Finished Make data base on Wed Jun 22 19:26:58 2022
+# Finished Make data base on Thu Jun 23 18:27:15 2022
 
  

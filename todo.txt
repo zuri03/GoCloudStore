@@ -1,5 +1,3 @@
-Add rest api to record keeper
-    Add dynamic urls to paths
 
 Add local file to record keeper to keep track of records
     make record keeper thread safe

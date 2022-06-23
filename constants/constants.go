@@ -13,4 +13,5 @@ const (
 	SEND_PROTOCOL    string = "SND"
 	DELETE_PROTOCOL  string = "DEL"
 	PROCEED_PROTOCOL string = "PRC"
+	SUCCESS_PROTOCOL string = "SCS"
 )
