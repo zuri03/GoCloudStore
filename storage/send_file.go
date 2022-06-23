@@ -16,6 +16,11 @@ func sendFileToClientHandler(connection net.Conn) {
 		fmt.Printf("Error accepting meta: %s\n", err.Error())
 		return
 	}
+
+	//Wait for signal from client to begin sending data
+	signal := make([]byte, 3)
+	connection.Read(signal)
+
 	if err := sendFileDataToClient(meta, connection); err != nil {
 		fmt.Printf("Error while reading file data: %s\n", err.Error())
 		return
@@ -69,35 +74,6 @@ func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
 			}
 		}
 	}
-	/*
-
-		fileReader := bufio.NewReader(file)
-		connectionWriter := bufio.NewWriter(connection)
-		//A strange way to hanlde any error in flush
-		defer func() {
-			if err := connectionWriter.Flush(); err != nil {
-				e = err
-			}
-		}()
-		fmt.Printf("writer size => %d\n", connectionWriter.Size())
-		fmt.Printf("reader size => %d\n", fileReader.Size())
-
-		if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
-			fileData, err := ioutil.ReadAll(file)
-			if err != nil {
-				fmt.Printf("ERROR IN IOUTIL READ => %s\n", err.Error())
-				return err
-			}
-			fmt.Printf("ioutil buffer => %s\n", string(fileData))
-			fmt.Printf("SENDING FILE IN ONE CHUNCK")
-			connectionWriter.Write(fileData)
-			fmt.Printf("writer size => %d\n", connectionWriter.Size())
-			fmt.Printf("writer buf size => %d\n", connectionWriter.Buffered())
-			fmt.Printf("reader size => %d\n", fileReader.Size())
-			return nil
-		}
-		return nil
-	*/
 }
 
 func acceptFileMetaData(connection net.Conn) (FileMetaData, error) {

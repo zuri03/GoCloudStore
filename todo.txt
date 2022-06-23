@@ -3,16 +3,7 @@ Add rest api to record keeper
 
 Add local file to record keeper to keep track of records
     make record keeper thread safe
-    reduce number of writes to record keeper file
-
-Set up data node:
-    data node will contain the file data referenced by the records in records storage
-    set up a listener to listen to tcp connections on a port
-    Use basic protocol to determine whether to send or accept byte data 
-        - First three bytes of first message from client will determine the actions 
-        - GET: client wants to retrieve data from datanode
-        - SND: client wants to send data to datanode
-        - DEL: client wants to delete a file on the datanode
+    reduce number of writes to record keeper files
 
 Add users service:
     this service will be a rest api that provides persistant storage for user objects
@@ -26,11 +17,9 @@ Reduce docker image size
 set up tls for each of the rest apis
 
 come up with a better name for allowedUsers
-    allowed users are allowed to retrieve a file despite not being the owner
-
+    allowed users is a list of users that are allowed to retrieve a file despite not being the owner
 
 Implement more coordination between client and storage sever
-    - Instead of a one way stream of data the client and storage node must send 
     messages back and forth in order to coordinate their actions and ensure their is no failure from the other side
 
 Determine how allowed system works

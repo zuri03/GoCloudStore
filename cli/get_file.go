@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 
 	c "github.com/zuri03/GoCloudStore/constants"
 )
@@ -23,7 +24,7 @@ func getFileCommand(username string, password string, input []string, metaClient
 
 	fmt.Printf("record => %+v\n", record)
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
-	connection, err := net.Dial("tcp", ":8000")
+	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
 
 	connection.Write([]byte(c.GET_PROTOCOL))
@@ -37,6 +38,9 @@ func getFileCommand(username string, password string, input []string, metaClient
 		fmt.Printf("Error sending meta data: %s\n", err.Error())
 		return
 	}
+
+	//Let the server know its okay to begin sending data
+	connection.Write([]byte(c.PROCEED_PROTOCOL))
 
 	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
 		connection); err != nil {

@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"time"
 
 	c "github.com/zuri03/GoCloudStore/constants"
 )
@@ -41,7 +42,7 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	//TODO: The address of the datanode must come from the record server
 	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
-	connection, err := net.Dial("tcp", ":8000")
+	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
 	connection.Write([]byte(c.SEND_PROTOCOL))
 	meta := FileMetaData{
