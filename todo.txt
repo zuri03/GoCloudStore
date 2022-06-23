@@ -37,9 +37,7 @@ Determine how allowed system works
     for now allowed users is simply a slice of usernames
     need to determine the best way to store users in this slice
 
-standardize Constant value names
-    system uses multiple names for constant values that represent the same thing
-    determine best name for each constant and make the name the same throughout the entire system
+determine best numerical values for constants
 
 Implement system logging
 
@@ -49,7 +47,6 @@ Set up dev environment
 fix makefile
 
 Use Bufio for sending files in loop
-
 
 Future Plans:
     Make electron desktop app that uses the client to send data to server

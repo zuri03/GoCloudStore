@@ -1,3 +1,7 @@
+/*
+This package contains system wide constants. Keeping all of these constants in a single
+location makes it easier to sychronize the value and name of each constant across the system
+*/
 package constants
 
 const (

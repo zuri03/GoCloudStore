@@ -18,26 +18,28 @@ type FileMetaData struct {
 	Username string
 }
 
-func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) error {
+func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("Error getting file from memory: %s\n", err.Error())
+		return
 	}
 
 	if fileInfo == nil || file == nil {
-		return fmt.Errorf("Error could not find file %s\n", fileName)
+		fmt.Printf("Error could not find file %s\n", fileName)
+		return
 	}
 
 	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 	if err != nil {
-		return err
+		fmt.Printf("Error sending creating file record: %s\n", err.Error())
+		return
 	}
 
 	//TODO: The address of the datanode must come from the record server
 	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
-	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", ":8080")
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
@@ -48,17 +50,21 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		Size:     fileInfo.Size(),
 	}
 	if err := sendMetaDataToServer(meta, connection); err != nil {
-		return nil
+		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
+		return
 	}
 
+	//Add timeout so this does not get stuck
 	//wait for signal from server to begin sending file data
 	signal := make([]byte, 3)
 	connection.Read(signal)
 
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
-		return err
+		fmt.Printf("Error sending file data to server: %s\n", err.Error())
+		return
 	}
-	return nil
+
+	fmt.Println("Successfully sent file to server")
 }
 
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {

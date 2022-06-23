@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"bufio"
 	"encoding/gob"
 	"fmt"
 	"net"
 	"os"
+
+	c "github.com/zuri03/GoCloudStore/constants"
 )
 
 func sendFileToClientHandler(connection net.Conn) {
@@ -15,7 +18,10 @@ func sendFileToClientHandler(connection net.Conn) {
 	}
 	if err := sendFileDataToClient(meta, connection); err != nil {
 		fmt.Printf("Error while reading file data: %s\n", err.Error())
+		return
 	}
+
+	fmt.Println("Successfully sent file data")
 }
 
 func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
@@ -37,14 +43,17 @@ func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
 		return nil
 	}
 
-	buffer := make([]byte, MAX_CACHE_BUFFER_SIZE)
+	bufferedConnWriter := bufio.NewWriter(connection)
+	fileBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
 	for {
-		numOfBytes, err := file.Read(buffer)
-
+		numOfBytes, err := file.Read(fileBuffer)
 		if err != nil {
 			if err.Error() == "EOF" {
 				if numOfBytes > 0 {
-					connection.Write(buffer[:numOfBytes])
+					bufferedConnWriter.Write(fileBuffer[:numOfBytes])
+					if err := bufferedConnWriter.Flush(); err != nil {
+						return nil
+					}
 				}
 				return nil
 			} else {
@@ -52,9 +61,16 @@ func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
 			}
 		}
 
-		connection.Write(buffer[:numOfBytes])
+		bufferedConnWriter.Write(fileBuffer[:numOfBytes])
+
+		if bufferedConnWriter.Buffered() >= c.MAX_CACHE_BUFFER_SIZE {
+			if err := bufferedConnWriter.Flush(); err != nil {
+				return err
+			}
+		}
 	}
 	/*
+
 		fileReader := bufio.NewReader(file)
 		connectionWriter := bufio.NewWriter(connection)
 		//A strange way to hanlde any error in flush

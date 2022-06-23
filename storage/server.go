@@ -42,13 +42,9 @@ func handleConnection(connection net.Conn) {
 
 	switch string(protocol) {
 	case c.GET_PROTOCOL:
+		sendFileToClientHandler(connection)
 	case c.SEND_PROTOCOL:
-		err := storeFileHandler(connection)
-		if err != nil {
-			fmt.Printf("Error in handler: %s\n", err.Error())
-			return
-		}
-		fmt.Println("SUCCESSFULLY STORED FILE")
+		storeFileHandler(connection)
 	case c.DELETE_PROTOCOL:
 	case c.ERROR_PROTOCOL:
 	}

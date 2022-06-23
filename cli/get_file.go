@@ -25,6 +25,19 @@ func getFileCommand(username string, password string, input []string, metaClient
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
+
+	connection.Write([]byte(c.GET_PROTOCOL))
+	meta := FileMetaData{
+		Username: username,
+		FileName: record.MetaData.Name,
+		Size:     record.MetaData.Size,
+	}
+
+	if err := sendMetaDataToServer(meta, connection); err != nil {
+		fmt.Printf("Error sending meta data: %s\n", err.Error())
+		return
+	}
+
 	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
 		connection); err != nil {
 		//Log error

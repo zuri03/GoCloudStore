@@ -23,16 +23,19 @@ const (
 	MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
 )
 
-func storeFileHandler(connection net.Conn) error {
+func storeFileHandler(connection net.Conn) {
 
 	meta, err := acceptFileMetaData(connection)
 	if err != nil {
-		return err
+		fmt.Printf("Error accepting meta: %s\n", err.Error())
+		return
 	}
 	if err := storeFileDataFromClient(meta, connection); err != nil {
-		return err
+		fmt.Printf("Error storing file data: %s\n", err.Error())
+		return
 	}
-	return nil
+
+	fmt.Println("Successfully store file")
 }
 
 func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
