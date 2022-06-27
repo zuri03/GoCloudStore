@@ -21,6 +21,12 @@ func sendFileToClientHandler(connection net.Conn) {
 	signal := make([]byte, 3)
 	connection.Read(signal)
 
+	if string(signal) != c.PROCEED_PROTOCOL {
+		fmt.Printf("Signal: %s\n", string(signal))
+		fmt.Println("Error on client")
+		return
+	}
+
 	if err := sendFileDataToClient(meta, connection); err != nil {
 		fmt.Printf("Error while reading file data: %s\n", err.Error())
 		return

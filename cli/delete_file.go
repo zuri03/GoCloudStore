@@ -43,5 +43,10 @@ func deleteFile(username string, password string, input []string, metaClient *Me
 		return
 	}
 
+	if string(signal) != c.SUCCESS_PROTOCOL {
+		fmt.Println("Error on server")
+		return
+	}
+
 	fmt.Println("Successfully deleted file from server")
 }

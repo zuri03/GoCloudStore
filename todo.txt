@@ -28,12 +28,11 @@ determine best numerical values for constants
 
 Implement system logging
 
-Set up dev environment
-    use docker and docker compose to set up a quick development environment modeled after the production environment
-
 fix makefile
 
 Use Bufio for sending files in loop
+
+setup timeouts with connections
 
 Future Plans:
     Make electron desktop app that uses the client to send data to server

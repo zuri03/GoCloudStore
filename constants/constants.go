@@ -8,10 +8,16 @@ const (
 	MAX_CACHE_BUFFER_SIZE int = 1024 //Max amount of data that can be read to memory before it must be stored in a file
 	TEMP_BUFFER_SIZE      int = 256
 
-	GET_PROTOCOL     string = "GET"
-	ERROR_PROTOCOL   string = "ERR"
-	SEND_PROTOCOL    string = "SND"
-	DELETE_PROTOCOL  string = "DEL"
+	//Messages sent by the client to a storage server describing the desired operation
+	GET_PROTOCOL    string = "GET"
+	SEND_PROTOCOL   string = "SND"
+	DELETE_PROTOCOL string = "DEL"
+
+	//Used in situations for entities to express an internal error to the other entity it is connected to
+	ERROR_PROTOCOL string = "ERR"
+
+	//Proceed is used in situations where the actions of the client and server need to be coordinated to ensure no error occurs
 	PROCEED_PROTOCOL string = "PRC"
+	//success message is used in situations where file data is not transferred E.g. file deletion
 	SUCCESS_PROTOCOL string = "SCS"
 )

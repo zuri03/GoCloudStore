@@ -55,10 +55,14 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return
 	}
 
-	//Add timeout so this does not get stuck
-	//wait for signal from server to begin sending file data
 	signal := make([]byte, 3)
 	connection.Read(signal)
+
+	if string(signal) != c.PROCEED_PROTOCOL {
+		fmt.Printf("Signal: %s\n", string(signal))
+		fmt.Println("Error on server")
+		return
+	}
 
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
 		fmt.Printf("Error sending file data to server: %s\n", err.Error())
