@@ -9,8 +9,6 @@ import (
 
 func ExecuteSingleCommand(input []string) {
 
-	fmt.Println("EXECUTING ONE TIME COMMAND")
-
 	if len(input) == 0 {
 		fmt.Println("Error: No arguments found ")
 		return
@@ -25,7 +23,6 @@ func ExecuteSingleCommand(input []string) {
 	if len(input) < 3 {
 		fmt.Println("Incorrect number of arguments. Correct format \n \t" +
 			"GoCloudStore [command] [username] [password] [command arguments]")
-		fmt.Println("")
 		return
 	}
 	username := input[1]
@@ -44,8 +41,7 @@ func ExecuteSingleCommand(input []string) {
 		getFileCommand(username, password, input[3:], &metadataClient)
 	case "delete":
 		deleteFile(username, password, input[3:], &metadataClient)
-	case "quit":
-		fmt.Println("Exiting...")
-		return
+	case "help":
+		printHelpMessage()
 	}
 }
