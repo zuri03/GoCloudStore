@@ -8,8 +8,6 @@ Add users service:
 
 Set up kubernetes
 
-Create help message for the help command
-
 Reduce docker image size
 
 set up tls for each of the rest apis
