@@ -1,7 +1,5 @@
 
-Add local file to record keeper to keep track of records
-    make record keeper thread safe
-    reduce number of writes to record keeper files
+Use mongodb to add persistance to file meta data
 
 Add users service:
     this service will be a rest api that provides persistant storage for user objects
