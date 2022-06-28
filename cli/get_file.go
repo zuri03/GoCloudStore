@@ -34,6 +34,10 @@ func getFileCommand(username string, password string, input []string, metaClient
 		Size:     record.MetaData.Size,
 	}
 
+	signal := make([]byte, 3)
+	connection.Read(signal)
+	fmt.Printf("Signal => %s\n", string(signal))
+
 	if err := sendMetaDataToServer(meta, connection); err != nil {
 		fmt.Printf("Error sending meta data: %s\n", err.Error())
 		return

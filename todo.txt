@@ -8,6 +8,8 @@ Add users service:
 
 Set up kubernetes
 
+set up go tests
+
 Reduce docker image size
 
 set up tls for each of the rest apis
@@ -31,6 +33,11 @@ fix makefile
 Use Bufio for sending files in loop
 
 setup timeouts with connections
+
+Improve communication protocol
+    - right now communication is handled by a series of signals that represent actions a client wishes to take
+    - instead create an object representing a single message
+    - this object will be gob encoded by the entity and decoded by the other
 
 Future Plans:
     Make electron desktop app that uses the client to send data to server

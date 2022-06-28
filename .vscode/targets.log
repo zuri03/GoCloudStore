@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 27 18:15:11 2022
+# Make data base, printed on Tue Jun 28 18:11:50 2022
 
 # Variables
 
@@ -21,7 +21,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-75986568-9a74-4951-afa6-d4e875ba4f73-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-d01674db-a581-4433-83f4-ad23c8c1a962-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +39,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_10744_EXQJWMMJWBPGGBGL
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_21400_VYIBUGCSNFNBRROL
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -95,7 +95,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 10744
+VSCODE_PID = 21400
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -173,7 +173,7 @@ GNUMAKEFLAGS :=
 # environment
 OS = Windows_NT
 # makefile
-.DEFAULT_GOAL := build-client
+.DEFAULT_GOAL := build-recordKeeper
 # default
 MAKE_VERSION := 4.3
 # environment
@@ -247,29 +247,29 @@ build-storage:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 8):
+#  recipe to execute (from 'Makefile', line 5):
 	docker build . -f ./docker/dev/Dockerfile.storage -t storage
 
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-19 21:04:04
+#  Last modified 2022-06-27 19:45:23
 #  File has been updated.
-#  Success 
-fully updated.
+#  S 
+uccessfully updated.
 
 build-recordKeeper:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 5):
+#  recipe to execute (from 'Makefile', line 2):
 	docker build . -f ./docker/dev/Dockerfile.record -t recordKeeper
 
 clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 19):
+#  recipe to execute (from 'Makefile', line 15):
 	rm build/* build/.*; rmdir build
 
 # Not a target:
@@ -278,7 +278,7 @@ clean:
 #  Modification time never checked.
 #  File has not been updated.
 
-build-all: build-cli build-recordKeeper build-storage
+build-all: build-recordKeeper build-storage
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -294,38 +294,24 @@ run: build-all
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 13):
+#  recipe to execute (from 'Makefile', line 10):
 	docker run -d -p8000:8000 storage
 	docker run -d -p8080:8080 recordKeeper
-	docker run -d client
-
-build-client:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
-#  recipe to execute (from 'Makefile', line 2):
-	docker build . -f ./docker/dev/Dockerfile.client -t client
-
-# Not a target:
-build-cli:
-#  Implicit rule search has not been done.
-#  Modification time never checked.
-#  File has not been updated.
 
 # files hash-table stats:
-# Load=11/1024=1%, Rehash=0, Collisions=0/25=0%
+# Load=9/1024=1%, Rehash=0, Collisions=0/22=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 28 / storage = 258 B / avg = 9 B
-# current buf: size = 8174 B / used = 258 B / count = 28 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 235 B / avg = 9 B
+# current buf: size = 8174 B / used = 235 B / count = 26 / avg = 9 B
 
-# strcache performance: lookups = 41 / hit rate = 31%
+# strcache performance: lookups = 38 / hit rate = 31%
 # hash-table stats:
-# Load=28/8192=0%, Rehash=0, Collisions=0/41=0%
-# Finished Make data base on Mon Jun 27 18:15:11 2022
+# Load=26/8192=0%, Rehash=0, Collisions=0/38=0%
+# Finished Make data base on Tue Jun 28 18:11:50 2022
 
  

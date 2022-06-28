@@ -109,10 +109,12 @@ func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn)
 func sendMetaDataToServer(meta FileMetaData, connection net.Conn) error {
 	gob.Register(new(FileMetaData))
 	encoder := gob.NewEncoder(connection)
+	fmt.Println("Encoded gob")
 	err := encoder.Encode(meta)
 	if err != nil {
 		return err
 	}
+	fmt.Println("SENT META DATA")
 	return nil
 }
 

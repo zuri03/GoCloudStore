@@ -11,6 +11,9 @@ import (
 )
 
 func sendFileToClientHandler(connection net.Conn) {
+
+	connection.Write([]byte(c.PROCEED_PROTOCOL))
+
 	meta, err := acceptFileMetaData(connection)
 	if err != nil {
 		fmt.Printf("Error accepting meta: %s\n", err.Error())
