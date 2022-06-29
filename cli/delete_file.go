@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 func deleteFile(username string, password string, input []string, metaClient *MetadataServerClient) {

@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 //Opens and closes connections and calls the file retreival functions

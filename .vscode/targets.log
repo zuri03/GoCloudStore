@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Jun 28 18:11:50 2022
+# Make data base, printed on Wed Jun 29 18:46:28 2022
 
 # Variables
 
@@ -21,7 +21,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-d01674db-a581-4433-83f4-ad23c8c1a962-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-25ba5275-5d1a-4c41-b145-dc08b612c231-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +39,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_21400_VYIBUGCSNFNBRROL
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_21500_SKJRRWHUVWUHTCSY
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -95,7 +95,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 21400
+VSCODE_PID = 21500
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -233,7 +233,8 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 
 # Directories
 
-# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1655858809): 18 files, no impossibilities.
+# . (key c:/Users/shawz/go/src/GoCloudStore, mtim 
+e 1655858809): 18 files, no impossibilities.
 
 # 18 files, no impossibilities in 1 directories.
 
@@ -255,8 +256,7 @@ Makefile:
 #  Implicit rule search has been done.
 #  Last modified 2022-06-27 19:45:23
 #  File has been updated.
-#  S 
-uccessfully updated.
+#  Successfully updated.
 
 build-recordKeeper:
 #  Implicit rule search has not been done.
@@ -312,6 +312,6 @@ run: build-all
 # strcache performance: lookups = 38 / hit rate = 31%
 # hash-table stats:
 # Load=26/8192=0%, Rehash=0, Collisions=0/38=0%
-# Finished Make data base on Tue Jun 28 18:11:50 2022
+# Finished Make data base on Wed Jun 29 18:46:28 2022
 
  

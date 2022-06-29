@@ -2,7 +2,7 @@
 This package contains system wide constants. Keeping all of these constants in a single
 location makes it easier to sychronize the value and name of each constant across the system
 */
-package constants
+package common
 
 const (
 	MAX_CACHE_BUFFER_SIZE int = 1024 //Max amount of data that can be read to memory before it must be stored in a file

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 //Since fs.FileInfo cannot be encoded by

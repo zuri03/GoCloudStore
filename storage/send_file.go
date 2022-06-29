@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 func sendFileToClientHandler(connection net.Conn) {
