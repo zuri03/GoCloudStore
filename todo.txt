@@ -1,8 +1,18 @@
 
-Use mongodb to add persistance to file meta data
+refactor communication protocol
+    - Use structs and gob encoding instead
+
+Use mongodb? to add persistance to file meta data
 
 Add users service:
     this service will be a rest api that provides persistant storage for user objects
+    hash [username:password] and use resulting hash as id  
+        this means that no two users can have the same username and password
+    use struct to store user info
+        id: hash(username:password)
+        username: string
+        password: hash(password)
+        creationDate: date 
 
 Set up kubernetes
 
@@ -38,4 +48,4 @@ Improve communication protocol
     - this object will be gob encoded by the entity and decoded by the other
 
 Future Plans:
-    Make electron desktop app that uses the client to send data to server
+    Make desktop app that uses the client to send data to server

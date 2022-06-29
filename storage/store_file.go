@@ -8,7 +8,7 @@ import (
 	"net"
 	"os"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 //TODO: Implement connection reading with buffered io

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	c "github.com/zuri03/GoCloudStore/constants"
+	c "github.com/zuri03/GoCloudStore/common"
 )
 
 func InitializeListener() {
@@ -41,7 +41,7 @@ func handleConnection(connection net.Conn) {
 	fmt.Printf("Got Protocol => %s\n", string(protocol))
 
 	switch string(protocol) {
-	case c.GET_PROTOCOL:
+	case string(c.GET_PROTOCOL):
 		sendFileToClientHandler(connection)
 	case c.SEND_PROTOCOL:
 		storeFileHandler(connection)
