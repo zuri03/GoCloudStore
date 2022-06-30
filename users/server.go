@@ -21,11 +21,13 @@ func InitServer() {
 
 	users := make(map[string]User)
 	createHandler := CreateHandler{Users: users}
+	GetHandler := GetHandler{Users: users}
 
 	router.HandleFunc("/user", func(writer http.ResponseWriter, req *http.Request) {
 		fmt.Println("GOT USER REQUEST")
 		switch req.Method {
 		case http.MethodGet:
+			GetHandler.ServeHTTP(writer, req)
 		case http.MethodPost:
 			createHandler.ServeHTTP(writer, req)
 		case http.MethodDelete:

@@ -13,7 +13,6 @@ type CreateHandler struct {
 }
 
 func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("Got creation request")
 	if err := req.ParseForm(); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Bad Request"))
@@ -21,7 +20,7 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	}
 	username := req.FormValue("username")
 	password := req.FormValue("password")
-	fmt.Printf("Username => %s\n Password => %s\n", username, password)
+
 	if password == "" || username == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Username or password missing from request"))
@@ -29,7 +28,7 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	}
 
 	id := fmt.Sprintf("%s:%s", username, password)
-	fmt.Println("STARTING HASH")
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(id), bcryptCost)
 	if err != nil {
 		fmt.Println("ERROR GENERATING HASH")
@@ -37,7 +36,6 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		writer.Write([]byte("Internal Server Error"))
 		return
 	}
-	fmt.Println("GOT HASH")
 	//may hash the password as well
 
 	now := time.Now()
@@ -53,6 +51,4 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	}
 
 	handler.Users[string(hash)] = user
-
-	fmt.Println("created user")
 }
