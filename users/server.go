@@ -23,6 +23,7 @@ func InitServer() {
 	createHandler := CreateHandler{Users: users}
 
 	router.HandleFunc("/user", func(writer http.ResponseWriter, req *http.Request) {
+		fmt.Println("GOT USER REQUEST")
 		switch req.Method {
 		case http.MethodGet:
 		case http.MethodPost:

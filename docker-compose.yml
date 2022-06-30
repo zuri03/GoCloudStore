@@ -16,5 +16,11 @@ services:
       dockerfile: ./deployments/dev/Dockerfile.storage
     ports:
       - '8000:8000'
+  users:
+    build:
+      context: .
+      dockerfile: ./deployments/dev/Dockerfile.users
+    ports:
+      - '9000:9000'
 
   
