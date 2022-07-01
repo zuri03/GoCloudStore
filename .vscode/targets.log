@@ -7,8 +7,9 @@ make: *** No rule to make target 'all'.  Stop.
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
+ 
 
-# Make data base, printed on Wed Jun 29 18:46:28 2022
+# Make data base, printed on Fri Jul 01 18:25:44 2022
 
 # Variables
 
@@ -21,7 +22,7 @@ USERPROFILE = C:\Users\shawz
 # environment
 LOCALAPPDATA = C:\Users\shawz\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-25ba5275-5d1a-4c41-b145-dc08b612c231-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-3ae56671-ecb9-410b-a996-177c7f50cf33-sock
 # environment
 VSCODE_CWD = C:\Users\shawz\go\src\GoCloudStore
 # environment
@@ -39,7 +40,7 @@ GOPATH = C:\Users\shawz\go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_21500_SKJRRWHUVWUHTCSY
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_23792_SCDVUFJCFEEACTNA
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # default
@@ -95,7 +96,7 @@ MAKEFILE_LIST := Makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 21500
+VSCODE_PID = 23792
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -233,10 +234,9 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 126 Stepping 5, GenuineIntel
 
 # Directories
 
-# . (key c:/Users/shawz/go/src/GoCloudStore, mtim 
-e 1655858809): 18 files, no impossibilities.
+# . (key c:/Users/shawz/go/src/GoCloudStore, mtime 1656545596): 19 files, no impossibilities.
 
-# 18 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -306,12 +306,12 @@ run: build-all
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 26 / storage = 235 B / avg = 9 B
-# current buf: size = 8174 B / used = 235 B / count = 26 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 27 / storage = 238 B / avg = 8 B
+# current buf: size = 8174 B / used = 238 B / count = 27 / avg = 8 B
 
-# strcache performance: lookups = 38 / hit rate = 31%
+# strcache performance: lookups = 39 / hit rate = 30%
 # hash-table stats:
-# Load=26/8192=0%, Rehash=0, Collisions=0/38=0%
-# Finished Make data base on Wed Jun 29 18:46:28 2022
+# Load=27/8192=0%, Rehash=0, Collisions=0/39=0%
+# Finished Make data base on Fri Jul 01 18:25:44 2022
 
  

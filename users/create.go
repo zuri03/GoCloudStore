@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
+	sha "crypto/sha256"
 )
 
 type CreateHandler struct {
-	Users map[string]User
+	Users map[[32]byte]User
 }
 
 func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -27,17 +27,9 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		return
 	}
 
-	id := fmt.Sprintf("%s:%s", username, password)
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(id), bcryptCost)
-	if err != nil {
-		fmt.Println("ERROR GENERATING HASH")
-		writer.WriteHeader(http.StatusInternalServerError)
-		writer.Write([]byte("Internal Server Error"))
-		return
-	}
+	id := []byte(fmt.Sprintf("%s:%s", username, password))
+	hash := sha.Sum256(id)
 	//may hash the password as well
-
 	now := time.Now()
 	creationTime := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
 		now.Year(), now.Month(), now.Day(),
@@ -50,5 +42,5 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		CreationDate: creationTime,
 	}
 
-	handler.Users[string(hash)] = user
+	handler.Users[hash] = user
 }

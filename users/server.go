@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	Id           []byte
+	Id           [32]byte
 	Username     string
 	Password     string
 	CreationDate string
@@ -19,7 +19,7 @@ func InitServer() {
 	fmt.Println("CREATING SERVER")
 	router := http.NewServeMux()
 
-	users := make(map[string]User)
+	users := make(map[[32]byte]User)
 	createHandler := CreateHandler{Users: users}
 	GetHandler := GetHandler{Users: users}
 

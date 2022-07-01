@@ -14,4 +14,5 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /go/src/github.com/zuri03/GoCloudStore/
 COPY --from=builder /go/src/github.com/zuri03/GoCloudStore/build/users ./main
+EXPOSE 9000
 ENTRYPOINT [ "./main" ]

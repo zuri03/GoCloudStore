@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang.org/x/crypto/bcrypt"
+	sha "crypto/sha256"
 )
 
 type GetHandler struct {
-	Users map[string]User
+	Users map[[32]byte]User
 }
 
 func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("Got GET request")
+	fmt.Println("Got GET request")
 	if err := req.ParseForm(); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Bad Request"))
@@ -28,16 +28,9 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	id := fmt.Sprintf("%s:%s", username, password)
-	hash, err := bcrypt.GenerateFromPassword([]byte(id), bcryptCost)
-	if err != nil {
-		fmt.Println("ERROR GENERATING HASH")
-		writer.WriteHeader(http.StatusInternalServerError)
-		writer.Write([]byte("Internal Server Error"))
-		return
-	}
-
-	user, ok := handler.Users[string(hash)]
+	id := []byte(fmt.Sprintf("%s:%s", username, password))
+	hash := sha.Sum256(id)
+	user, ok := handler.Users[hash]
 	if !ok {
 		writer.WriteHeader(http.StatusNotFound)
 		return
