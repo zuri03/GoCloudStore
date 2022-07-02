@@ -2,7 +2,6 @@ package storage
 
 import (
 	"bytes"
-	"encoding/gob"
 	"fmt"
 	"io"
 	"net"
@@ -18,18 +17,13 @@ type FileMetaData struct {
 	Username string
 }
 
-const (
-	TEMP_BUFFER_SIZE      int = 256  //TODO: Determine best temp buffer size\
-	MAX_CACHE_BUFFER_SIZE int = 1024 //TODO: Determine caching buffer size
-)
-
-func storeFileHandler(connection net.Conn) {
-
-	meta, err := acceptFileMetaData(connection)
+func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
+	meta, err := decodeMetaData(frame)
 	if err != nil {
-		fmt.Printf("Error accepting meta: %s\n", err.Error())
+		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
+	fmt.Printf("Get meta => %s \n size => %d\n", meta.FileName, meta.Size)
 	if err := storeFileDataFromClient(meta, connection); err != nil {
 		fmt.Printf("Error storing file data: %s\n", err.Error())
 		return
@@ -40,19 +34,7 @@ func storeFileHandler(connection net.Conn) {
 
 func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 
-	directoryName := meta.Username
-	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
-	if _, err := os.Stat(directoryName); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.Mkdir(directoryName, 0644); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	}
-
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0700)
+	file, err := openFile(meta.Username, meta.FileName)
 	if err != nil {
 		return err
 	}
@@ -63,8 +45,9 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 		this write to the connection serves as a signal from the server to the client letting the client
 		know that the server is ready to begin receiving file data
 	*/
-	connection.Write([]byte(c.PROCEED_PROTOCOL))
-	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
+	//connection.Write([]byte(c.PROCEED_PROTOCOL))
+	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
+		fmt.Println("storing file in one chunk")
 		buffer := make([]byte, meta.Size)
 		if _, err := connection.Read(buffer); err != nil {
 			return err
@@ -76,7 +59,7 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 	}
 
 	fileDataCacheBuffer := new(bytes.Buffer)
-	readBuffer := make([]byte, TEMP_BUFFER_SIZE)
+	readBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
 	writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
 		file.Write(buffer.Bytes())
 		buffer.Reset()
@@ -105,19 +88,9 @@ func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
 			return err
 		}
 
-		if fileDataCacheBuffer.Len() > MAX_CACHE_BUFFER_SIZE {
+		if fileDataCacheBuffer.Len() > c.MAX_CACHE_BUFFER_SIZE {
 			writeBuffertoFile(fileDataCacheBuffer, file)
 		}
 	}
 	return nil
-}
-
-func acceptMetaData(connection net.Conn) (FileMetaData, error) {
-	meta := FileMetaData{}
-	decoder := gob.NewDecoder(connection)
-	if err := decoder.Decode(&meta); err != nil {
-		return meta, err
-	}
-
-	return meta, nil
 }

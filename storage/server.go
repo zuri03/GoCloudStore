@@ -46,10 +46,12 @@ func handleConnection(connection net.Conn) {
 		fmt.Printf("error: %s\n", err.Error())
 		return
 	}
-
+	fmt.Println("Got Frame")
+	fmt.Printf("Frame type => %d\n", metaFrame.Type)
 	switch metaFrame.Type {
 	case c.GET_FRAME:
 	case c.SEND_FRAME:
+		storeFileHandler(connection, metaFrame)
 	case c.DELETE_FRAME:
 	default:
 		if err := sendErrorFrame(encoder, "Unrecognized action type"); err != nil {

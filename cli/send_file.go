@@ -54,15 +54,6 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return
 	}
 
-	signal := make([]byte, 3)
-	connection.Read(signal)
-
-	if string(signal) != c.PROCEED_PROTOCOL {
-		fmt.Printf("Signal: %s\n", string(signal))
-		fmt.Println("Error on server")
-		return
-	}
-
 	if err := sendFileDataToServer(file, meta, connection); err != nil {
 		fmt.Printf("Error sending file data to server: %s\n", err.Error())
 		return
@@ -74,6 +65,7 @@ func sendFileCommand(username string, password string, input []string, metaClien
 func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
 
 	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
+		fmt.Println("Sending file in one chunck")
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
 			return err

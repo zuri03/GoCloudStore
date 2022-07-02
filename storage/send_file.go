@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
-	"os"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
@@ -39,14 +38,13 @@ func sendFileToClientHandler(connection net.Conn) {
 }
 
 func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
-	directoryName := meta.Username
-	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
-	file, err := os.OpenFile(filePath, os.O_RDONLY, 0400)
+	file, err := openFile(meta.Username, meta.FileName)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
-	if meta.Size <= int64(MAX_CACHE_BUFFER_SIZE) {
+	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
 			return err

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"net"
@@ -26,25 +27,16 @@ func getFileCommand(username string, password string, input []string, metaClient
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
-
-	connection.Write([]byte(c.GET_PROTOCOL))
 	meta := FileMetaData{
 		Username: username,
 		FileName: record.MetaData.Name,
 		Size:     record.MetaData.Size,
 	}
-
-	signal := make([]byte, 3)
-	connection.Read(signal)
-	fmt.Printf("Signal => %s\n", string(signal))
-
-	if err := sendMetaDataToServer(meta, connection); err != nil {
+	encoder := gob.NewEncoder(connection)
+	if err := sendMetaDataToServer(c.GET_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data: %s\n", err.Error())
 		return
 	}
-
-	//Let the server know its okay to begin sending data
-	connection.Write([]byte(c.PROCEED_PROTOCOL))
 
 	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
 		connection); err != nil {

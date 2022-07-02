@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/gob"
 	"fmt"
 	"net"
 
@@ -31,8 +32,9 @@ func deleteFile(username string, password string, input []string, metaClient *Me
 	connection, err := net.Dial("tcp", ":8000")
 	defer connection.Close()
 	connection.Write([]byte(c.DELETE_PROTOCOL))
+	encoder := gob.NewEncoder(connection)
 
-	if err := sendMetaDataToServer(meta, connection); err != nil {
+	if err := sendMetaDataToServer(c.DELETE_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data: %s\n", err.Error())
 		return
 	}
