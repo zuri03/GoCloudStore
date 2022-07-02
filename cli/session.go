@@ -43,7 +43,7 @@ func HandleCliSession() {
 }
 
 func runSessionLoop(commandLineReader *bufio.Reader, username string, password string) {
-	metadataClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
+	metadataClient := MetaDataClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 	for {
 		fmt.Printf(">")
 		str, err := commandLineReader.ReadString('\n')

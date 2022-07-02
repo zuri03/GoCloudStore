@@ -7,7 +7,7 @@ import (
 	c "github.com/zuri03/GoCloudStore/common"
 )
 
-func deleteFile(username string, password string, input []string, metaClient *MetadataServerClient) {
+func deleteFile(username string, password string, input []string, metaClient *MetaDataClient) {
 	key := input[0]
 
 	record, err := metaClient.getFileRecord(username, password, key)

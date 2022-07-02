@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/gob"
 	"fmt"
 	"net"
 
@@ -34,20 +35,27 @@ func InitializeListener() {
 
 func handleConnection(connection net.Conn) {
 	defer connection.Close()
-	protocol := make([]byte, 3)
 
-	connection.Read(protocol)
-
-	fmt.Printf("Got Protocol => %s\n", string(protocol))
-
-	switch string(protocol) {
-	case string(c.GET_PROTOCOL):
-		sendFileToClientHandler(connection)
-	case c.SEND_PROTOCOL:
-		storeFileHandler(connection)
-	case c.DELETE_PROTOCOL:
-	case c.ERROR_PROTOCOL:
+	decoder := gob.NewDecoder(connection)
+	encoder := gob.NewEncoder(connection)
+	metaFrame, err := acceptFrame(decoder)
+	if err != nil {
+		if err := sendErrorFrame(encoder, "Error accepting meta data"); err != nil {
+			//Log error
+		}
+		fmt.Printf("error: %s\n", err.Error())
+		return
 	}
 
+	switch metaFrame.Type {
+	case c.GET_FRAME:
+	case c.SEND_FRAME:
+	case c.DELETE_FRAME:
+	default:
+		if err := sendErrorFrame(encoder, "Unrecognized action type"); err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			return
+		}
+	}
 	return
 }

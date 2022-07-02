@@ -3,89 +3,47 @@ package cli
 import (
 	//"encoding/json"
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 
+	c "github.com/zuri03/GoCloudStore/common"
 	"github.com/zuri03/GoCloudStore/records"
 )
 
-func authenticateSession(connection net.Conn, username string, password string) bool {
-	fmt.Println("Authenticating")
-	connection.Write([]byte(username))
-	connection.Write([]byte(password))
-	buf := make([]byte, 2)
-	connection.Read(buf)
-	if string(buf) != "OK" {
-		return false
-	}
-	fmt.Println("SUCCESSFUL AUTHENTICATION")
-	return true
+func makeEncoder(connection net.Conn) *gob.Encoder {
+	gob.Register(new(c.ProtocolFrame))
+	gob.Register(new(FileMetaData))
+
+	return gob.NewEncoder(connection)
 }
 
-/*
-type FileMetaData struct {
-	Size int64
-	Name string
-}
-
-func sendFileDataToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
-	fmt.Printf("FILE SIZE => %d\n", meta.Size())
-	if meta.Size() >= 1024 {
-		buffer := make([]byte, 1024)
-
-		for {
-			numOfBytes, err := file.Read(buffer)
-
-			if err != nil {
-				if err.Error() == "EOF" {
-					fmt.Println("End of file found")
-					connection.Write([]byte("EOF"))
-					return nil
-				} else {
-					return fmt.Errorf("Error occured while reading file => %s\n", err.Error())
-				}
-			}
-
-			fmt.Printf("Number of bytes => %d\n", numOfBytes)
-			if numOfBytes == 0 {
-				fmt.Println("Finished reading file")
-				break
-			}
-
-			connection.Write(buffer)
-		}
-	} else {
-		fmt.Println("SENDING FILE IN ONE CHUNK")
-		dataBuffer := make([]byte, meta.Size())
-		file.Read(dataBuffer)
-		connection.Write(dataBuffer)
-		fmt.Println("SENT FILE DATA")
-	}
-	return nil
-}
-
-func sendFileToServer(file *os.File, meta fs.FileInfo, connection net.Conn) error {
-
-	fmt.Println("Sending meta data to server")
-	err := sendMetaDataToServer(meta, connection)
-	if err != nil {
+func sendMetaDataToServer(frameType c.FrameType, meta FileMetaData, encoder *gob.Encoder) error {
+	metaBuffer := new(bytes.Buffer)
+	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
 		return err
 	}
-	fmt.Println("SENDING FILE DATA TO SERVER")
-	sendFileDataToServer(file, meta, connection)
+
+	frame := c.ProtocolFrame{Type: frameType, PayloadLength: int64(metaBuffer.Len())}
+	fmt.Println("Encoded gob")
+
+	if err := encoder.Encode(frame); err != nil {
+		return err
+	}
+
+	fmt.Println("SENT META DATA")
 	return nil
 }
-*/
 
-type MetadataServerClient struct {
+type MetaDataClient struct {
 	Client http.Client
 }
 
 //Meta data server functions
-func (c *MetadataServerClient) getFileRecord(username string, password string, key string) (*records.Record, error) {
+func (c *MetaDataClient) getFileRecord(username string, password string, key string) (*records.Record, error) {
 
 	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
 	request, err := http.NewRequest("GET", url, nil)
@@ -112,7 +70,7 @@ func (c *MetadataServerClient) getFileRecord(username string, password string, k
 	return &record, nil
 }
 
-func (c *MetadataServerClient) deleteFileRecord(username string, password string, key string) error {
+func (c *MetaDataClient) deleteFileRecord(username string, password string, key string) error {
 
 	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
 	request, err := http.NewRequest("DELETE", url, nil)
@@ -139,7 +97,7 @@ func (c *MetadataServerClient) deleteFileRecord(username string, password string
 	return nil
 }
 
-func (c *MetadataServerClient) createFileRecord(username string, password string, key string, fileName string, fileSize int64) error {
+func (c *MetaDataClient) createFileRecord(username string, password string, key string, fileName string, fileSize int64) error {
 
 	record := records.CreateReqest{
 		Username: username,
@@ -171,7 +129,7 @@ func (c *MetadataServerClient) createFileRecord(username string, password string
 	return nil
 }
 
-func (c *MetadataServerClient) addAllowedUser(username string, password string, key string, allowedUser string) error {
+func (c *MetaDataClient) addAllowedUser(username string, password string, key string, allowedUser string) error {
 	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?allowedUser=%s&username=%s&password=%s&key=%s",
 		allowedUser,
 		username,
@@ -195,7 +153,7 @@ func (c *MetadataServerClient) addAllowedUser(username string, password string, 
 	return nil
 }
 
-func (c *MetadataServerClient) removeAllowedUser(username string, password string, key string, removedUser string) error {
+func (c *MetaDataClient) removeAllowedUser(username string, password string, key string, removedUser string) error {
 	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?removedUser=%s&username=%s&password=%s&key=%s",
 		removedUser,
 		username,

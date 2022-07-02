@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/gob"
 	"fmt"
 	"io/fs"
 	"net"
@@ -19,7 +18,7 @@ type FileMetaData struct {
 	Username string
 }
 
-func sendFileCommand(username string, password string, input []string, metaClient *MetadataServerClient) {
+func sendFileCommand(username string, password string, input []string, metaClient *MetaDataClient) {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
@@ -40,17 +39,17 @@ func sendFileCommand(username string, password string, input []string, metaClien
 	}
 
 	//TODO: The address of the datanode must come from the record server
-	//dataNodeAddress, err := net.ResolveTCPAddr("tcp", "localhost:8080")
-	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
-	connection.Write([]byte(c.SEND_PROTOCOL))
+
+	encoder := makeEncoder(connection)
 	meta := FileMetaData{
 		Username: username,
 		FileName: fileInfo.Name(),
 		Size:     fileInfo.Size(),
 	}
-	if err := sendMetaDataToServer(meta, connection); err != nil {
+
+	if err := sendMetaDataToServer(c.SEND_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
 		return
 	}
@@ -104,18 +103,6 @@ func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn)
 
 		connection.Write(buffer[:numOfBytes])
 	}
-}
-
-func sendMetaDataToServer(meta FileMetaData, connection net.Conn) error {
-	gob.Register(new(FileMetaData))
-	encoder := gob.NewEncoder(connection)
-	fmt.Println("Encoded gob")
-	err := encoder.Encode(meta)
-	if err != nil {
-		return err
-	}
-	fmt.Println("SENT META DATA")
-	return nil
 }
 
 func getFileFromMemory(fileName string) (*os.File, fs.FileInfo, error) {

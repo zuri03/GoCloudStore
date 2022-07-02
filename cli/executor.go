@@ -28,7 +28,7 @@ func ExecuteSingleCommand(input []string) {
 	username := input[1]
 	password := input[2]
 
-	metadataClient := MetadataServerClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
+	metadataClient := MetaDataClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 
 	switch command {
 	case "allow":
