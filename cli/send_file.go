@@ -32,12 +32,13 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return
 	}
 
-	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
-	if err != nil {
-		fmt.Printf("Error sending creating file record: %s\n", err.Error())
-		return
-	}
-
+	/*
+		err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+		if err != nil {
+			fmt.Printf("Error sending creating file record: %s\n", err.Error())
+			return
+		}
+	*/
 	//TODO: The address of the datanode must come from the record server
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()

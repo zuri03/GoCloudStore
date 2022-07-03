@@ -26,8 +26,13 @@ func sendMetaDataToServer(frameType c.FrameType, meta FileMetaData, encoder *gob
 	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
 		return err
 	}
-
-	frame := c.ProtocolFrame{Type: frameType, PayloadLength: int64(metaBuffer.Len())}
+	fmt.Printf("encoding meta => %+v\n", meta)
+	fmt.Printf("encoding meta length=> %d\n", metaBuffer.Len())
+	frame := c.ProtocolFrame{
+		Type:          frameType,
+		PayloadLength: int64(metaBuffer.Len()),
+		Data:          metaBuffer.Bytes(),
+	}
 	fmt.Println("Encoded gob")
 
 	if err := encoder.Encode(frame); err != nil {

@@ -44,6 +44,8 @@ func sendErrorFrame(encoder *gob.Encoder, message string) error {
 
 func decodeMetaData(frame c.ProtocolFrame) (FileMetaData, error) {
 	ioBuffer := new(bytes.Buffer)
+	fmt.Printf("Meta frame data lenth => %d\n", len(frame.Data))
+	fmt.Printf("Meta frame data => %s\n", string(frame.Data))
 	ioBuffer.Write(frame.Data)
 	gob.Register(new(FileMetaData)) //May be using this function incorrectly
 	decoder := gob.NewDecoder(ioBuffer)
