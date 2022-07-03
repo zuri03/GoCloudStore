@@ -4,10 +4,18 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"net"
 	"os"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
+
+func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
+	gob.Register(new(c.ProtocolFrame))
+	gob.Register(new(FileMetaData))
+
+	return gob.NewEncoder(connection), gob.NewDecoder(connection)
+}
 
 func acceptFrame(decoder *gob.Decoder) (c.ProtocolFrame, error) {
 	var frame c.ProtocolFrame
@@ -43,13 +51,11 @@ func sendErrorFrame(encoder *gob.Encoder, message string) error {
 }
 
 func decodeMetaData(frame c.ProtocolFrame) (FileMetaData, error) {
+	fmt.Println("SENDING META DATA")
 	ioBuffer := new(bytes.Buffer)
-	fmt.Printf("Meta frame data lenth => %d\n", len(frame.Data))
-	fmt.Printf("Meta frame data => %s\n", string(frame.Data))
 	ioBuffer.Write(frame.Data)
-	gob.Register(new(FileMetaData)) //May be using this function incorrectly
-	decoder := gob.NewDecoder(ioBuffer)
 	var meta FileMetaData
+	decoder := gob.NewDecoder(ioBuffer)
 	if err := decoder.Decode(&meta); err != nil {
 		return meta, err
 	}
@@ -76,4 +82,18 @@ func openFile(directoryName string, fileName string) (*os.File, error) {
 	}
 
 	return file, nil
+}
+
+func sendProceed(encoder *gob.Encoder) error {
+	proceedFrame := c.ProtocolFrame{
+		Type:          c.PROCEED_FRAME,
+		PayloadLength: 0,
+		Data:          nil,
+	}
+
+	if err := encoder.Encode(proceedFrame); err != nil {
+		return err
+	}
+
+	return nil
 }

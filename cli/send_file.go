@@ -31,7 +31,6 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		fmt.Printf("Error could not find file %s\n", fileName)
 		return
 	}
-
 	/*
 		err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 		if err != nil {
@@ -39,11 +38,12 @@ func sendFileCommand(username string, password string, input []string, metaClien
 			return
 		}
 	*/
+
 	//TODO: The address of the datanode must come from the record server
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
 
-	encoder := makeEncoder(connection)
+	encoder, decoder := newEncoderDecorder(connection)
 	meta := FileMetaData{
 		Username: username,
 		FileName: fileInfo.Name(),
@@ -52,6 +52,11 @@ func sendFileCommand(username string, password string, input []string, metaClien
 
 	if err := sendMetaDataToServer(c.SEND_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
+		return
+	}
+
+	if err := waitForProceed(decoder); err != nil {
+		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
 		return
 	}
 

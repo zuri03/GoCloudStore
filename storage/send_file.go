@@ -9,23 +9,11 @@ import (
 	c "github.com/zuri03/GoCloudStore/common"
 )
 
-func sendFileToClientHandler(connection net.Conn) {
-
-	connection.Write([]byte(c.PROCEED_PROTOCOL))
-
-	meta, err := acceptFileMetaData(connection)
+func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
+	_, _ = newEncoderDecorder(connection)
+	meta, err := decodeMetaData(frame)
 	if err != nil {
-		fmt.Printf("Error accepting meta: %s\n", err.Error())
-		return
-	}
-
-	//Wait for signal from client to begin sending data
-	signal := make([]byte, 3)
-	connection.Read(signal)
-
-	if string(signal) != c.PROCEED_PROTOCOL {
-		fmt.Printf("Signal: %s\n", string(signal))
-		fmt.Println("Error on client")
+		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
 

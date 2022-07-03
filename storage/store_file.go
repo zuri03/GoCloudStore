@@ -18,13 +18,30 @@ type FileMetaData struct {
 }
 
 func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
+	fmt.Println("In store file handler")
+	encoder, _ := newEncoderDecorder(connection)
 	meta, err := decodeMetaData(frame)
 	if err != nil {
+		if err != io.EOF {
+			sendErrorFrame(encoder, err.Error())
+		}
 		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
 	fmt.Printf("Get meta => %s \n size => %d\n", meta.FileName, meta.Size)
+
+	if err := sendProceed(encoder); err != nil {
+		if err != io.EOF {
+			sendErrorFrame(encoder, err.Error())
+		}
+		fmt.Printf("Error sending proceed: %s\n", err.Error())
+		return
+	}
+
 	if err := storeFileDataFromClient(meta, connection); err != nil {
+		if err != io.EOF {
+			sendErrorFrame(encoder, err.Error())
+		}
 		fmt.Printf("Error storing file data: %s\n", err.Error())
 		return
 	}

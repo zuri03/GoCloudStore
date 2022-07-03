@@ -14,11 +14,31 @@ import (
 	"github.com/zuri03/GoCloudStore/records"
 )
 
-func makeEncoder(connection net.Conn) *gob.Encoder {
+func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	gob.Register(new(c.ProtocolFrame))
 	gob.Register(new(FileMetaData))
 
-	return gob.NewEncoder(connection)
+	return gob.NewEncoder(connection), gob.NewDecoder(connection)
+}
+
+//This function forces the client to wait for the server to send a message letting
+//the client know it is ready to move to the next step of the process
+func waitForProceed(decoder *gob.Decoder) error {
+	var frame c.ProtocolFrame
+	if err := decoder.Decode(&frame); err != nil {
+		return err
+	}
+
+	if frame.Type == c.ERROR_FRAME {
+		return fmt.Errorf("Error on server: %s\n", string(frame.Data))
+	}
+
+	if frame.Type != c.PROCEED_FRAME {
+		return fmt.Errorf("Unexpected frame got: %d\n", frame.Type)
+	}
+
+	fmt.Printf("Got proceed frame => %d\n", frame.Type)
+	return nil
 }
 
 func sendMetaDataToServer(frameType c.FrameType, meta FileMetaData, encoder *gob.Encoder) error {

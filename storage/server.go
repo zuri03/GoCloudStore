@@ -50,6 +50,7 @@ func handleConnection(connection net.Conn) {
 	fmt.Printf("Frame type => %d\n", metaFrame.Type)
 	switch metaFrame.Type {
 	case c.GET_FRAME:
+		sendFileHandler(connection, metaFrame)
 	case c.SEND_FRAME:
 		storeFileHandler(connection, metaFrame)
 	case c.DELETE_FRAME:
