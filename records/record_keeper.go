@@ -46,6 +46,8 @@ func (keeper *RecordKeeper) GetRecord(key string, username string, password stri
 	}
 	if record.Owner != user {
 		for _, allowedUser := range record.AllowedUsers {
+			fmt.Printf("Does %s equal %s\n", user, allowedUser)
+			fmt.Printf("Result %t\n", allowedUser == user)
 			if allowedUser == user {
 				return &record, nil
 			}

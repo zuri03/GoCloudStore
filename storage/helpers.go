@@ -68,7 +68,7 @@ func openFile(directoryName string, fileName string) (*os.File, error) {
 	var file *os.File
 	if _, err := os.Stat(directoryName); err != nil {
 		if os.IsNotExist(err) {
-			if err := os.Mkdir(directoryName, 0644); err != nil {
+			if err := os.Mkdir(directoryName, 0777); err != nil {
 				return nil, err
 			}
 		} else {
@@ -76,7 +76,7 @@ func openFile(directoryName string, fileName string) (*os.File, error) {
 		}
 	}
 
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0700)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return nil, err
 	}
