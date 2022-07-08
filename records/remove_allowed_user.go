@@ -22,7 +22,7 @@ func (handler *RemoveUserHandler) ServeHTTP(writer http.ResponseWriter, req *htt
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if key == "" || password == "" || username == "" || removedUser == "" {
+	if removedUser == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Key, Username, password or allowed user missing from request"))
 		return

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func InitServer(keeper *RecordKeeper) {
+func InitServer(keeper *RecordKeeper, users *UserClient) {
 	fmt.Println("CREATING SERVER")
 	getHandler := GetHandler{Keeper: keeper}
 	createHandler := PostHandler{Keeper: keeper}
@@ -16,6 +16,14 @@ func InitServer(keeper *RecordKeeper) {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/record", func(writer http.ResponseWriter, req *http.Request) {
+		if hasParams := checkParams(writer, req); !hasParams {
+			return
+		}
+
+		if authenticated, err := authenticate(users, writer, req); !authenticated || err != nil {
+			return
+		}
+
 		switch req.Method {
 		case http.MethodPost:
 			createHandler.ServeHTTP(writer, req)
@@ -30,7 +38,14 @@ func InitServer(keeper *RecordKeeper) {
 	})
 
 	router.HandleFunc("/record/allowedUsers", func(writer http.ResponseWriter, req *http.Request) {
-		fmt.Println("IN ROUTER")
+		if hasParams := checkParams(writer, req); !hasParams {
+			return
+		}
+
+		if authenticated, err := authenticate(users, writer, req); !authenticated || err != nil {
+			return
+		}
+
 		switch req.Method {
 		case http.MethodPut:
 			addUserHandler.ServeHTTP(writer, req)

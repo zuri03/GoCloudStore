@@ -20,12 +20,6 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if key == "" || password == "" || username == "" {
-		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write([]byte("Key, Username or password missing from request"))
-		return
-	}
-
 	record, err := handler.Keeper.GetRecord(key, username, password)
 	if err != nil {
 		if err.Error() == "Unathorized" {

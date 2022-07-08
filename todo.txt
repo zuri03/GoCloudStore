@@ -49,3 +49,4 @@ Improve communication protocol
 
 Future Plans:
     Make desktop app that uses the client to send data to server
+    May combine the user and record keeper service

@@ -7,6 +7,7 @@ import (
 
 type AddUserHandler struct {
 	Keeper *RecordKeeper
+	Users  UserClient
 }
 
 func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -22,7 +23,7 @@ func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.R
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if key == "" || password == "" || username == "" || allowedUser == "" {
+	if allowedUser == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Key, Username, password or allowed user missing from request"))
 		return
