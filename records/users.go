@@ -16,6 +16,10 @@ type User struct {
 
 type Users map[string]User
 
+func (u *Users) New() map[string]User {
+	return make(map[string]User)
+}
+
 func (u *Users) create(username string, password string) (*User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

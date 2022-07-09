@@ -6,7 +6,7 @@ import (
 
 func createUesr(username string, password string, metaClient *MetaDataClient) (string, string, error) {
 
-	err := metaClient.create(username, password)
+	err := metaClient.createUser(username, password)
 	if err != nil {
 		fmt.Printf("Error retreiving meta data from server: %s\n", err.Error())
 		return "", "", nil

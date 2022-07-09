@@ -8,10 +8,6 @@ import (
 	"unicode"
 )
 
-func authenticate(username string, password string) error {
-	return nil
-}
-
 func cleanUserInput(r rune) bool {
 	if unicode.IsGraphic(r) {
 		return false
@@ -64,7 +60,7 @@ func HandleSession(client *MetaDataClient) {
 	}
 	password = strings.TrimFunc(password, cleanUserInput)
 
-	if err := authenticate(username, password); err != nil {
+	if exists, err := client.authenticate(username, password); !exists {
 		fmt.Printf("User %s does not exist. Would you like to create a new user?\n", username)
 		fmt.Printf("Yes(Y) or NO(N):")
 
@@ -76,11 +72,14 @@ func HandleSession(client *MetaDataClient) {
 		response = strings.TrimFunc(response, cleanUserInput)
 
 		if strings.ToLower(response) == "y" {
-			if err := client.create(username, password); err != nil {
+			if err := client.createUser(username, password); err != nil {
 				fmt.Printf("Error creating user: %s\n", err.Error())
 				return
 			}
 		}
+	} else if err != nil {
+		fmt.Printf("Error authorizing user: %s\n", err.Error())
+		return
 	}
 
 	for {

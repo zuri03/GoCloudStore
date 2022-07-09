@@ -68,6 +68,26 @@ type MetaDataClient struct {
 }
 
 //Meta data server functions
+//If there is ever an error just return true so that the session hanlder does not assume the user does not exist
+func (c *MetaDataClient) authenticate(username string, password string) (bool, error) {
+	url := fmt.Sprintf("http://localhost:8080/auth?username=%s&password=%s", username, password)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return true, err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return true, err
+	}
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func (c *MetaDataClient) getFileRecord(username string, password string, key string) (*records.Record, error) {
 
 	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
@@ -95,7 +115,7 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 	return &record, nil
 }
 
-func (c *MetaDataClient) create(username string, password string) error {
+func (c *MetaDataClient) createUser(username string, password string) error {
 
 	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("POST", url, nil)

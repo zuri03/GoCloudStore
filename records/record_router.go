@@ -2,11 +2,10 @@ package records
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
-func InitServer(keeper *RecordKeeper, users *Users) {
+func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	fmt.Println("CREATING SERVER")
 	getHandler := GetHandler{Keeper: keeper}
 	createHandler := PostHandler{Keeper: keeper}
@@ -57,13 +56,5 @@ func InitServer(keeper *RecordKeeper, users *Users) {
 		}
 	})
 
-	fmt.Println("STARTING LISTENER")
-	err := http.ListenAndServe(":8080", router)
-	if err != nil {
-		log.Fatalf("Error occured initializing server: %s\n", err.Error())
-		return
-	}
-	fmt.Printf("Listening on port 8080 \n")
-
-	fmt.Println("INIT SERVER RETURNING")
+	return router
 }
