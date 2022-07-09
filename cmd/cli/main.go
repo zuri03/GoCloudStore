@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/zuri03/GoCloudStore/cli"
 )
@@ -16,13 +18,12 @@ func main() {
 	}
 
 	firstArg := args[0]
-
+	metadataClient := cli.MetaDataClient{Client: http.Client{Timeout: time.Duration(5) * time.Second}}
 	if firstArg == "cli" {
-		cli.HandleCliSession()
+		cli.HandleSession(&metadataClient)
 		return
 	} else {
-		cli.ExecuteSingleCommand(args)
-		//HandleFileTransfer();
+		cli.HandleOneTime(&metadataClient, args)
 		return
 	}
 }

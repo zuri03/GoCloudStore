@@ -95,6 +95,26 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 	return &record, nil
 }
 
+func (c *MetaDataClient) create(username string, password string) error {
+
+	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
+	request, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error has occured while getting record:")
+	}
+
+	return nil
+}
+
 func (c *MetaDataClient) deleteFileRecord(username string, password string, key string) error {
 
 	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
@@ -106,6 +126,10 @@ func (c *MetaDataClient) deleteFileRecord(username string, password string, key 
 	resp, err := c.Client.Do(request)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("unauthorized")
 	}
 
 	var record records.Record
@@ -143,6 +167,10 @@ func (c *MetaDataClient) createFileRecord(username string, password string, key 
 		return err
 	}
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("unauthorized")
+	}
+
 	if resp.StatusCode != 200 {
 		errorMessage, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -167,7 +195,12 @@ func (c *MetaDataClient) addAllowedUser(username string, password string, key st
 	}
 
 	resp, err := c.Client.Do(request)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
+
+		if resp.StatusCode == http.StatusUnauthorized {
+			return fmt.Errorf("unauthorized")
+		}
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
@@ -191,7 +224,12 @@ func (c *MetaDataClient) removeAllowedUser(username string, password string, key
 	}
 
 	resp, err := c.Client.Do(request)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
+
+		if resp.StatusCode == http.StatusUnauthorized {
+			return fmt.Errorf("unauthorized")
+		}
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
