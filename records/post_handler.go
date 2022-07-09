@@ -17,15 +17,14 @@ type CreateReqest struct {
 
 type PostHandler struct {
 	Keeper *RecordKeeper
+	Users  *Users
 }
 
 func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	fmt.Printf("Body => %s\n", string(body))
 	if err != nil {
-
 		writer.WriteHeader(http.StatusInternalServerError)
-		writer.Write([]byte("INTERNAL SERVER ERROR"))
 		return
 	}
 
@@ -37,8 +36,12 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		writer.Write([]byte("Incorrect json formatting"))
 		return
 	}
-
-	record, err := handler.Keeper.SetRecord(request.Key, request.Username, request.Password, request.Size, request.FileName)
+	owner, err := handler.Users.get(request.Username, request.Password)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	record, err := handler.Keeper.SetRecord(request.Key, owner.Id, request.Size, request.FileName)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte(fmt.Sprintf("record %s alread exists", request.Key)))

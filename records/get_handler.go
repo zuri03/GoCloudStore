@@ -8,6 +8,7 @@ import (
 
 type GetHandler struct {
 	Keeper *RecordKeeper
+	Users  *Users
 }
 
 func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -20,7 +21,13 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	record, err := handler.Keeper.GetRecord(key, username, password)
+	owner, err := handler.Users.get(username, password)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	record, err := handler.Keeper.GetRecord(key, owner.Id)
 	if err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)

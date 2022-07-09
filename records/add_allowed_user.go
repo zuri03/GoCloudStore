@@ -3,11 +3,12 @@ package records
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type AddUserHandler struct {
 	Keeper *RecordKeeper
-	Users  UserClient
+	Users  *Users
 }
 
 func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -29,7 +30,27 @@ func (handler *AddUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err := handler.Keeper.AddAllowedUser(key, username, password, allowedUser); err != nil {
+	allowedUserCreds := strings.Split(allowedUser, ":")
+
+	owner, err := handler.Users.get(username, password)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	allowed, err := handler.Users.get(allowedUserCreds[0], allowedUserCreds[1])
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if allowed == nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(fmt.Sprintf("Cannot find user: %s", allowedUserCreds[0])))
+		return
+	}
+
+	if err := handler.Keeper.AddAllowedUser(key, owner.Id, allowed.Id); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
 			writer.Write([]byte(fmt.Sprintf("%s is not athorized to add allowed users to this record", username)))

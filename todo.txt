@@ -42,6 +42,8 @@ Use Bufio for sending files in loop
 
 setup timeouts with connections
 
+improve error handling for record keeper
+
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take
     - instead create an object representing a single message

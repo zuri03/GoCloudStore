@@ -4,12 +4,12 @@ import (
 	"net/http"
 )
 
-func authenticate(u *UserClient, writer http.ResponseWriter, req *http.Request) (bool, error) {
+func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) (bool, error) {
 
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
-	if exists, err := u.Exists(username, password); err != nil {
+	if exists, err := u.exists(username, password); err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return false, err
 	} else if !exists {

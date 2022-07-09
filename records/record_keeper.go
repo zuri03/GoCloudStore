@@ -34,34 +34,32 @@ func InitRecordKeeper() RecordKeeper {
 	}
 }
 
-func (keeper *RecordKeeper) GetRecord(key string, username string, password string) (*Record, error) {
+func (keeper *RecordKeeper) GetRecord(key string, id string) (*Record, error) {
 	record, ok := keeper.records[key]
 	if !ok {
 		return nil, fmt.Errorf("Not Found")
 	}
 
-	user := fmt.Sprintf("%s:%s", username, password)
-	if record.Owner == user {
+	if record.Owner == id {
 		return &record, nil
 	}
-	if record.Owner != user {
+
+	if record.Owner != id {
 		for _, allowedUser := range record.AllowedUsers {
-			fmt.Printf("Does %s equal %s\n", user, allowedUser)
-			fmt.Printf("Result %t\n", allowedUser == user)
-			if allowedUser == user {
+			if allowedUser == id {
 				return &record, nil
 			}
 		}
 	}
-	return nil, fmt.Errorf("Unathorized")
+	return nil, fmt.Errorf("Unauthorized")
 }
 
-func (keeper *RecordKeeper) SetRecord(key string, username string, password string, size int64, name string) (*Record, error) {
+func (keeper *RecordKeeper) SetRecord(key string, id string, size int64, name string) (*Record, error) {
 	_, ok := keeper.records[key]
 	if ok {
 		return nil, fmt.Errorf("Record %s already exists", key)
 	}
-	owner := fmt.Sprintf("%s:%s", username, password)
+
 	now := time.Now()
 	creationTime := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
 		now.Year(), now.Month(), now.Day(),
@@ -71,65 +69,61 @@ func (keeper *RecordKeeper) SetRecord(key string, username string, password stri
 			Size: size,
 			Name: name,
 		},
-		Location:     fmt.Sprintf("%s/%s", username, name), //Ex: user/foo.txt
+		Location:     fmt.Sprintf("%s/%s", id, name), //Ex: user/foo.txt
 		CreatedAt:    creationTime,
 		IsPublic:     false,
-		Owner:        owner,
+		Owner:        id,
 		AllowedUsers: make([]string, 0),
 	}
 	keeper.records[key] = record
 	return &record, nil
 }
 
-func (keeper *RecordKeeper) RemoveRecord(key string, username string, password string) error {
+func (keeper *RecordKeeper) RemoveRecord(key string, id string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Not found")
 	}
 
-	user := fmt.Sprintf("%s:%s", username, password)
-	if record.Owner != user {
+	if record.Owner != id {
 		return fmt.Errorf("Unathorized")
 	}
 	delete(keeper.records, key)
 	return nil
 }
 
-func (keeper *RecordKeeper) AddAllowedUser(key string, ownerUsername string, ownerPassword, username string) error {
+func (keeper *RecordKeeper) AddAllowedUser(key string, ownerId string, allowedId string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
 
-	owner := fmt.Sprintf("%s:%s", ownerUsername, ownerPassword)
-	if record.Owner != owner {
+	if record.Owner != ownerId {
 		return fmt.Errorf("Unathorized")
 	}
 
-	for i, c := range record.AllowedUsers {
-		fmt.Printf("%d => %s\n", i, c)
+	if record.AllowedUsers == nil {
+		record.AllowedUsers = []string{allowedId}
+	} else {
+		record.AllowedUsers = append(record.AllowedUsers, allowedId)
 	}
-	fmt.Println("After")
-	record.AllowedUsers = append(record.AllowedUsers, username)
-	for i, c := range record.AllowedUsers {
-		fmt.Printf("%d => %s\n", i, c)
-	}
+
 	keeper.records[key] = record
 	return nil
 }
 
-func (keeper *RecordKeeper) RemoveAllowedUser(key string, ownerUsername string, ownerPassword string, user string) error {
+func (keeper *RecordKeeper) RemoveAllowedUser(key string, ownerId string, removedId string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Record %s does not exist", key)
 	}
 
-	index, err := findItemIndex(user, record.AllowedUsers)
+	index, err := findItemIndex(removedId, record.AllowedUsers)
 	if err != nil {
-		return fmt.Errorf("User %s is not in the allowed list", user)
+		return fmt.Errorf("User %s is not in the allowed list", removedId)
 	}
 
-	if fmt.Sprintf("%s:%s", ownerUsername, ownerPassword) != record.Owner {
+	if ownerId != record.Owner {
 		return fmt.Errorf("Unathorized")
 	}
 

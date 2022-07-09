@@ -7,6 +7,7 @@ import (
 
 type DeleteHandler struct {
 	Keeper *RecordKeeper
+	Users  *Users
 }
 
 func (handler *DeleteHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -20,7 +21,13 @@ func (handler *DeleteHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
-	if err := handler.Keeper.RemoveRecord(key, username, password); err != nil {
+	owner, err := handler.Users.get(username, password)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := handler.Keeper.RemoveRecord(key, owner.Id); err != nil {
 		if err.Error() == "Unathorized" {
 			writer.WriteHeader(http.StatusUnauthorized)
 			writer.Write([]byte(fmt.Sprintf("%s is not athorized to delete this record", username)))

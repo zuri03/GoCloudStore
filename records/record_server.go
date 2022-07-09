@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func InitServer(keeper *RecordKeeper, users *UserClient) {
+func InitServer(keeper *RecordKeeper, users *Users) {
 	fmt.Println("CREATING SERVER")
 	getHandler := GetHandler{Keeper: keeper}
 	createHandler := PostHandler{Keeper: keeper}
