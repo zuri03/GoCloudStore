@@ -44,7 +44,7 @@ func getFileCommand(username string, password string, input []string, metaClient
 			return
 		}
 	*/
-	fmt.Printf("SUCCESSFULLY RETREIVED FILE FROM SERVER")
+	fmt.Println("Successfully retreived file from server")
 }
 
 //uses a connection object to retrieve byte data from a storage server and store it in a file

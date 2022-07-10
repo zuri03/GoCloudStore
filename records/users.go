@@ -15,6 +15,7 @@ type User struct {
 	CreationDate string `json:"creationDate"`
 }
 
+//For now the username will serve as the key until persistant storage is added
 type Users struct {
 	userList map[string]User
 }
@@ -26,6 +27,11 @@ func NewUsers() *Users {
 }
 
 func (u *Users) create(username string, password string) (*User, error) {
+
+	if _, ok := u.userList[username]; ok {
+		return nil, fmt.Errorf("User %s already exists\n", username)
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -39,30 +45,20 @@ func (u *Users) create(username string, password string) (*User, error) {
 		Password:     hash,
 		CreationDate: now,
 	}
-	key := fmt.Sprintf("%s:%s", username, string(hash))
-	u.userList[key] = user
+	fmt.Printf("Created user => %s\n", username)
+	u.userList[username] = user
 	return &user, nil
 }
 
 func (u *Users) exists(username string, password string) (bool, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return true, err
-	}
-	key := fmt.Sprintf("%s:%s", username, hash)
-	fmt.Printf("Searching exist with key: %s\n", key)
-	_, ok := u.userList[key]
+	fmt.Printf("Searching exist with key: %s\n", username)
+	_, ok := u.userList[username]
 	return ok, nil
 }
 
 func (u *Users) get(username string, password string) (*User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-	key := fmt.Sprintf("%s:%s", username, hash)
-	fmt.Printf("Searching with key: %s\n", key)
-	user, ok := u.userList[key]
+	fmt.Printf("Searching with key: %s\n", username)
+	user, ok := u.userList[username]
 	if !ok {
 		return nil, nil
 	}

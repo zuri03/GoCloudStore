@@ -39,7 +39,7 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 		}
 	})
 
-	router.HandleFunc("/record/allowedUsers", func(writer http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/record/allowedUser", func(writer http.ResponseWriter, req *http.Request) {
 		if hasParams := checkParamsRecords(writer, req); !hasParams {
 			return
 		}
@@ -59,7 +59,7 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 		}
 	})
 
-	router.HandleFunc("/users", func(writer http.ResponseWriter, req *http.Request) {
+	router.HandleFunc("/user", func(writer http.ResponseWriter, req *http.Request) {
 		if hasParams := checkParamsUsers(writer, req); !hasParams {
 			return
 		}

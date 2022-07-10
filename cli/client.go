@@ -108,8 +108,11 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error has occured while getting record: %s\n", string(body))
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusForbidden {
+			return nil, fmt.Errorf("%s is not allowed to view %s\n", username, key)
+		}
+		return nil, fmt.Errorf(string(body))
 	}
 
 	json.Unmarshal(body, &record)
@@ -118,7 +121,7 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 
 func (c *MetaDataClient) createUser(username string, password string) error {
 
-	url := fmt.Sprintf("http://localhost:8080/users?username=%s&password=%s", username, password)
+	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -176,9 +179,10 @@ func (c *MetaDataClient) createFileRecord(username string, password string, key 
 		FileName: fileName,
 		Size:     fileSize,
 	}
-
+	//need to include necessary params to pass params check middleware
+	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
 	recordBytes, _ := json.Marshal(record)
-	request, err := http.NewRequest("POST", "http://localhost:8080/record", bytes.NewBuffer(recordBytes))
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(recordBytes))
 	if err != nil {
 		return err
 	}
@@ -197,7 +201,7 @@ func (c *MetaDataClient) createFileRecord(username string, password string, key 
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("Error has occured while creating record: %s\n", string(errorMessage))
+		return fmt.Errorf("Error: record server returned error: %d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	return nil
@@ -222,11 +226,7 @@ func (c *MetaDataClient) addAllowedUser(username string, password string, key st
 			return fmt.Errorf("unauthorized")
 		}
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("Error has occured while giving user access to record: %s\n", string(body))
+		return fmt.Errorf("Error has occured while giving user access to record: %d\n", resp.StatusCode)
 	}
 
 	return nil

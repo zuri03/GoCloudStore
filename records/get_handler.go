@@ -30,12 +30,18 @@ func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, req *http.Reque
 	record, err := handler.Keeper.GetRecord(key, owner.Id)
 	if err != nil {
 		if err.Error() == "Unathorized" {
-			writer.WriteHeader(http.StatusUnauthorized)
+			writer.WriteHeader(http.StatusForbidden)
 			writer.Write([]byte(fmt.Sprintf("%s is not athorized to view this record", username)))
 		} else {
-			writer.WriteHeader(http.StatusNotFound)
-			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
+			writer.WriteHeader(http.StatusInternalServerError)
+			writer.Write([]byte("Internal Server Error"))
 		}
+		return
+	}
+
+	if record.Owner == "" {
+		writer.WriteHeader(http.StatusNotFound)
+		writer.Write([]byte(fmt.Sprintf("Error %s not found", key)))
 		return
 	}
 

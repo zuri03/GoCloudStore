@@ -83,6 +83,9 @@ func HandleSession(client *MetaDataClient) {
 				fmt.Printf("Error creating user: %s\n", err.Error())
 				return
 			}
+		} else {
+			fmt.Println("Exiting...")
+			return
 		}
 	} else if err != nil {
 		fmt.Printf("Error authorizing user: %s\n", err.Error())
@@ -127,6 +130,8 @@ func executeCommand(metadataClient *MetaDataClient, command string, username str
 	case "quit":
 		fmt.Println("Exiting...")
 		return true, nil
+	default:
+		fmt.Println("Unrecognized Command")
 	}
 
 	return false, nil

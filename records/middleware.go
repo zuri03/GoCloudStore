@@ -1,7 +1,9 @@
 package records
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 )
 
 func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) (bool, error) {
@@ -26,8 +28,19 @@ func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
 	key := req.FormValue("key")
 
 	if key == "" || password == "" || username == "" {
+		missing := []string{}
+		if key == "" {
+			missing = append(missing, "key")
+		}
+		if password == "" {
+			missing = append(missing, "password")
+		}
+		if username == "" {
+			missing = append(missing, "username")
+		}
 		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write([]byte("Key, Username or password missing from request"))
+		writer.Write([]byte(fmt.Sprintf("%s missing from request", strings.Join(missing, ","))))
+
 		return false
 	}
 	return true
@@ -38,8 +51,16 @@ func checkParamsUsers(writer http.ResponseWriter, req *http.Request) bool {
 	password := req.FormValue("password")
 
 	if password == "" || username == "" {
+		missing := []string{}
+		if password == "" {
+			missing = append(missing, "password")
+		}
+		if username == "" {
+			missing = append(missing, "username")
+		}
 		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write([]byte("Key, Username or password missing from request"))
+		writer.Write([]byte(fmt.Sprintf("%s missing from request", strings.Join(missing, ","))))
+
 		return false
 	}
 	return true
