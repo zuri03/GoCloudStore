@@ -35,6 +35,13 @@ func HandleOneTime(client *MetaDataClient, input []string) {
 	username := input[1]
 	password := input[2]
 
+	if strings.ToLower(command) == "create" {
+		if err := client.createUser(username, password); err != nil {
+			fmt.Printf("Error creating user: %s\n", err.Error())
+			return
+		}
+	}
+
 	if _, err := executeCommand(client, command, username, password, input[3:]); err != nil {
 		fmt.Print(err.Error())
 	}

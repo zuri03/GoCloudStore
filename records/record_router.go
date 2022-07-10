@@ -15,7 +15,7 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/record", func(writer http.ResponseWriter, req *http.Request) {
-		if hasParams := checkParams(writer, req); !hasParams {
+		if hasParams := checkParamsRecords(writer, req); !hasParams {
 			return
 		}
 
@@ -37,7 +37,7 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	})
 
 	router.HandleFunc("/record/allowedUsers", func(writer http.ResponseWriter, req *http.Request) {
-		if hasParams := checkParams(writer, req); !hasParams {
+		if hasParams := checkParamsRecords(writer, req); !hasParams {
 			return
 		}
 
@@ -49,6 +49,21 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 		case http.MethodPut:
 			addUserHandler.ServeHTTP(writer, req)
 		case http.MethodDelete:
+			removeUserHandler.ServeHTTP(writer, req)
+		default:
+			writer.WriteHeader(http.StatusMethodNotAllowed)
+			writer.Write([]byte("Method not allowed"))
+		}
+	})
+
+	router.HandleFunc("/users", func(writer http.ResponseWriter, req *http.Request) {
+		if hasParams := checkParamsUsers(writer, req); !hasParams {
+			return
+		}
+		switch req.Method {
+		case http.MethodPost:
+			addUserHandler.ServeHTTP(writer, req)
+		case http.MethodGet:
 			removeUserHandler.ServeHTTP(writer, req)
 		default:
 			writer.WriteHeader(http.StatusMethodNotAllowed)

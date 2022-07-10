@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"time"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
@@ -38,32 +37,33 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return
 	}
 
-	//TODO: The address of the datanode must come from the record server
-	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
-	defer connection.Close()
+	/*
+		//TODO: The address of the datanode must come from the record server
+		connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
+		defer connection.Close()
 
-	encoder, decoder := newEncoderDecorder(connection)
-	meta := FileMetaData{
-		Username: username,
-		FileName: fileInfo.Name(),
-		Size:     fileInfo.Size(),
-	}
+		encoder, decoder := newEncoderDecorder(connection)
+		meta := FileMetaData{
+			Username: username,
+			FileName: fileInfo.Name(),
+			Size:     fileInfo.Size(),
+		}
 
-	if err := sendMetaDataToServer(c.SEND_FRAME, meta, encoder); err != nil {
-		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
-		return
-	}
+		if err := sendMetaDataToServer(c.SEND_FRAME, meta, encoder); err != nil {
+			fmt.Printf("Error sending meta data to server: %s\n", err.Error())
+			return
+		}
 
-	if err := waitForProceed(decoder); err != nil {
-		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
-		return
-	}
+		if err := waitForProceed(decoder); err != nil {
+			fmt.Printf("Error waiting for proceed: %s\n", err.Error())
+			return
+		}
 
-	if err := sendFileDataToServer(file, meta, connection); err != nil {
-		fmt.Printf("Error sending file data to server: %s\n", err.Error())
-		return
-	}
-
+		if err := sendFileDataToServer(file, meta, connection); err != nil {
+			fmt.Printf("Error sending file data to server: %s\n", err.Error())
+			return
+		}
+	*/
 	fmt.Println("Successfully sent file to server")
 }
 

@@ -20,12 +20,24 @@ func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) (bool
 	return true, nil
 }
 
-func checkParams(writer http.ResponseWriter, req *http.Request) bool {
+func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	key := req.FormValue("key")
 
 	if key == "" || password == "" || username == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Key, Username or password missing from request"))
+		return false
+	}
+	return true
+}
+
+func checkParamsUsers(writer http.ResponseWriter, req *http.Request) bool {
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+
+	if password == "" || username == "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte("Key, Username or password missing from request"))
 		return false

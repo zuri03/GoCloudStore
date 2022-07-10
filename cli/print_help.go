@@ -27,5 +27,11 @@ func printHelpMessage() {
 		quit:
 			- If you are currently in a cli session this command will gracefully close the session
 			- If you are not in a cli session this command does nothing
+		create:
+			- creates a new user with the given username and password
+			- you can then use these credentials to execute commands or start a cli session
+			- you CANNOT create a new user while already logged in as a user in a cli session
+			- Example:
+				- without cli: create [username] [password]
 	`)
 }

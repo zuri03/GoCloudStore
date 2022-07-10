@@ -8,10 +8,10 @@ import (
 )
 
 type User struct {
-	Id           string
-	Username     string
-	Password     []byte
-	CreationDate string
+	Id           string `json:"id"`
+	Username     string `json:"username"`
+	Password     []byte `json:"password"`
+	CreationDate string `json:"creationDate"`
 }
 
 type Users map[string]User
