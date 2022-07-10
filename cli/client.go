@@ -81,7 +81,8 @@ func (c *MetaDataClient) authenticate(username string, password string) (bool, e
 		return true, err
 	}
 
-	if resp.StatusCode != http.StatusUnauthorized {
+	fmt.Printf("auth response => %d\n", resp.StatusCode)
+	if resp.StatusCode == http.StatusUnauthorized {
 		return false, nil
 	}
 
@@ -117,7 +118,7 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 
 func (c *MetaDataClient) createUser(username string, password string) error {
 
-	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
+	url := fmt.Sprintf("http://localhost:8080/users?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -129,7 +130,7 @@ func (c *MetaDataClient) createUser(username string, password string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error has occured while getting record:")
+		return fmt.Errorf("Error has occured while creating user: %d\n", resp.StatusCode)
 	}
 
 	return nil

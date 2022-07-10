@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("CREATING META DATA SERVER")
 	keeper := records.InitRecordKeeper()
 	fmt.Println("CREATED META DATA SERVER")
-	users := new(records.Users)
+	users := records.NewUsers()
 	router := records.Router(&keeper, users)
 
 	server := &http.Server{

@@ -20,7 +20,7 @@ func (handler *GetUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.R
 		return
 	}
 
-	if user.Id == "" {
+	if user == nil {
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte(fmt.Sprintf("User %s not found", username)))
 		return

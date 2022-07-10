@@ -7,11 +7,14 @@ import (
 
 func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	fmt.Println("CREATING SERVER")
-	getHandler := GetHandler{Keeper: keeper}
-	createHandler := PostHandler{Keeper: keeper}
-	deleteHandler := DeleteHandler{Keeper: keeper}
-	addUserHandler := AddUserHandler{Keeper: keeper}
-	removeUserHandler := RemoveUserHandler{Keeper: keeper}
+	getHandler := GetHandler{Keeper: keeper, Users: users}
+	createHandler := PostHandler{Keeper: keeper, Users: users}
+	deleteHandler := DeleteHandler{Keeper: keeper, Users: users}
+	addUserHandler := AddUserHandler{Keeper: keeper, Users: users}
+	removeUserHandler := RemoveUserHandler{Keeper: keeper, Users: users}
+	createUserHandler := CreateHandler{Users: users}
+	getUserHandler := GetUserHandler{Users: users}
+	authHandler := AuthHandler{Users: users}
 	router := http.NewServeMux()
 
 	router.HandleFunc("/record", func(writer http.ResponseWriter, req *http.Request) {
@@ -62,13 +65,17 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 		}
 		switch req.Method {
 		case http.MethodPost:
-			addUserHandler.ServeHTTP(writer, req)
+			createUserHandler.ServeHTTP(writer, req)
 		case http.MethodGet:
-			removeUserHandler.ServeHTTP(writer, req)
+			getUserHandler.ServeHTTP(writer, req)
 		default:
 			writer.WriteHeader(http.StatusMethodNotAllowed)
 			writer.Write([]byte("Method not allowed"))
 		}
+	})
+
+	router.HandleFunc("/auth", func(writer http.ResponseWriter, req *http.Request) {
+		authHandler.ServeHTTP(writer, req)
 	})
 
 	return router
