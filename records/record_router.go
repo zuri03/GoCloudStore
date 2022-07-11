@@ -18,20 +18,34 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/record", func(writer http.ResponseWriter, req *http.Request) {
-		if hasParams := checkParamsRecords(writer, req); !hasParams {
+		if !checkParamsRecords(writer, req) {
 			return
 		}
 
-		if authenticated, err := authenticate(users, writer, req); !authenticated || err != nil {
+		if !authenticate(users, writer, req) {
+			return
+		}
+
+		//For create request the pipeline ends here the request has passed all of the checks
+		if req.Method == http.MethodPost {
+			createHandler.ServeHTTP(writer, req)
+			return
+		}
+
+		if !resourceExists(keeper, writer, req) {
 			return
 		}
 
 		switch req.Method {
-		case http.MethodPost:
-			createHandler.ServeHTTP(writer, req)
 		case http.MethodGet:
+			if !canView(users, keeper, writer, req) {
+				return
+			}
 			getHandler.ServeHTTP(writer, req)
 		case http.MethodDelete:
+			if !checkOwner(users, keeper, writer, req) {
+				return
+			}
 			deleteHandler.ServeHTTP(writer, req)
 		default:
 			writer.WriteHeader(http.StatusMethodNotAllowed)
@@ -40,11 +54,20 @@ func Router(keeper *RecordKeeper, users *Users) *http.ServeMux {
 	})
 
 	router.HandleFunc("/record/allowedUser", func(writer http.ResponseWriter, req *http.Request) {
-		if hasParams := checkParamsRecords(writer, req); !hasParams {
+		//Middleware pipeline
+		if !checkParamsRecords(writer, req) {
 			return
 		}
 
-		if authenticated, err := authenticate(users, writer, req); !authenticated || err != nil {
+		if !authenticate(users, writer, req) {
+			return
+		}
+
+		if !resourceExists(keeper, writer, req) {
+			return
+		}
+
+		if !checkOwner(users, keeper, writer, req) {
 			return
 		}
 

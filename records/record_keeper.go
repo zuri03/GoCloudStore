@@ -34,7 +34,7 @@ func InitRecordKeeper() RecordKeeper {
 	}
 }
 
-func (keeper *RecordKeeper) GetRecord(key string, id string) (*Record, error) {
+func (keeper *RecordKeeper) Get(key string, id string) (*Record, error) {
 	record, ok := keeper.records[key]
 	if !ok {
 		return nil, fmt.Errorf("Not Found")
@@ -54,7 +54,7 @@ func (keeper *RecordKeeper) GetRecord(key string, id string) (*Record, error) {
 	return nil, fmt.Errorf("Unauthorized")
 }
 
-func (keeper *RecordKeeper) SetRecord(key string, id string, size int64, name string) (*Record, error) {
+func (keeper *RecordKeeper) New(key string, id string, size int64, name string) (*Record, error) {
 	_, ok := keeper.records[key]
 	if ok {
 		return nil, fmt.Errorf("Record %s already exists", key)
@@ -79,7 +79,7 @@ func (keeper *RecordKeeper) SetRecord(key string, id string, size int64, name st
 	return &record, nil
 }
 
-func (keeper *RecordKeeper) RemoveRecord(key string, id string) error {
+func (keeper *RecordKeeper) Remove(key string, id string) error {
 	record, ok := keeper.records[key]
 	if !ok {
 		return fmt.Errorf("Not found")
@@ -131,6 +131,42 @@ func (keeper *RecordKeeper) RemoveAllowedUser(key string, ownerId string, remove
 	record.AllowedUsers = record.AllowedUsers[:len(record.AllowedUsers)-1]
 	keeper.records[key] = record
 	return nil
+}
+
+func (keeper *RecordKeeper) Exists(key string) bool {
+	_, ok := keeper.records[key]
+	return ok
+}
+
+func (keeper *RecordKeeper) Authorized(key string, id string) (bool, error) {
+	record, ok := keeper.records[key]
+	if !ok {
+		return false, fmt.Errorf("%s not found \n", key)
+	}
+
+	if record.Owner == id {
+		return true, nil
+	}
+
+	for _, user := range record.AllowedUsers {
+		if id == user {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (keeper *RecordKeeper) IsOnwer(key string, id string) (bool, error) {
+	record, ok := keeper.records[key]
+	if !ok {
+		return false, fmt.Errorf("%s not found \n", key)
+	}
+
+	if record.Owner == id {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func findItemIndex(item string, arr []string) (int, error) {

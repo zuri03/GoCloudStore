@@ -23,18 +23,14 @@ func (handler *DeleteHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 
 	owner, err := handler.Users.get(username, password)
 	if err != nil {
+		fmt.Printf("Middleware did not catch error: %s\n", err.Error())
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err := handler.Keeper.RemoveRecord(key, owner.Id); err != nil {
-		if err.Error() == "Unathorized" {
-			writer.WriteHeader(http.StatusUnauthorized)
-			writer.Write([]byte(fmt.Sprintf("%s is not athorized to delete this record", username)))
-		} else {
-			writer.WriteHeader(http.StatusNotFound)
-			writer.Write([]byte(fmt.Sprintf("Error: record %s not found", key)))
-		}
+	if err := handler.Keeper.Remove(key, owner.Id); err != nil {
+		fmt.Printf("Middleware did not catch error: %s\n", err.Error())
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

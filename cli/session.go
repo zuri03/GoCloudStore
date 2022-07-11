@@ -113,11 +113,12 @@ func HandleSession(client *MetaDataClient) {
 }
 
 func executeCommand(metadataClient *MetaDataClient, command string, username string, password string, input []string) (bool, error) {
-
+	fmt.Printf("Command => %s\n", command)
 	switch strings.ToLower(command) {
 	case "help":
 		printHelpMessage()
 	case "allow":
+		fmt.Println("EXECUTING ALLOW")
 		addAllowedUserCommand(username, password, input, metadataClient)
 	case "remove":
 		removeUserAccessCommand(username, password, input, metadataClient)

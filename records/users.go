@@ -26,7 +26,7 @@ func NewUsers() *Users {
 	}
 }
 
-func (u *Users) create(username string, password string) (*User, error) {
+func (u *Users) new(username string, password string) (*User, error) {
 
 	if _, ok := u.userList[username]; ok {
 		return nil, fmt.Errorf("User %s already exists\n", username)

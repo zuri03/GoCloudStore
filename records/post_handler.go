@@ -41,7 +41,7 @@ func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	record, err := handler.Keeper.SetRecord(request.Key, owner.Id, request.Size, request.FileName)
+	record, err := handler.Keeper.New(request.Key, owner.Id, request.Size, request.FileName)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		writer.Write([]byte(fmt.Sprintf("record %s alread exists", request.Key)))

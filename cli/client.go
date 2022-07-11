@@ -109,6 +109,7 @@ func (c *MetaDataClient) getFileRecord(username string, password string, key str
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Server return error => %d\n", resp.StatusCode)
 		if resp.StatusCode == http.StatusForbidden {
 			return nil, fmt.Errorf("%s is not allowed to view %s\n", username, key)
 		}
@@ -208,7 +209,7 @@ func (c *MetaDataClient) createFileRecord(username string, password string, key 
 }
 
 func (c *MetaDataClient) addAllowedUser(username string, password string, key string, allowedUser string) error {
-	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?allowedUser=%s&username=%s&password=%s&key=%s",
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?allowedUser=%s&username=%s&password=%s&key=%s",
 		allowedUser,
 		username,
 		password,
@@ -233,7 +234,7 @@ func (c *MetaDataClient) addAllowedUser(username string, password string, key st
 }
 
 func (c *MetaDataClient) removeAllowedUser(username string, password string, key string, removedUser string) error {
-	url := fmt.Sprintf("http://localhost:8080/record/allowedUsers?removedUser=%s&username=%s&password=%s&key=%s",
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?removedUser=%s&username=%s&password=%s&key=%s",
 		removedUser,
 		username,
 		password,

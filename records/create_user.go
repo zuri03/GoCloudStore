@@ -13,7 +13,7 @@ func (handler *CreateHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
-	user, err := handler.Users.create(username, password)
+	user, err := handler.Users.new(username, password)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
