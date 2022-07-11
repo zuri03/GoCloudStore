@@ -49,6 +49,7 @@ Improve communication protocol
     - instead create an object representing a single message
     - this object will be gob encoded by the entity and decoded by the other
 
+
 Future Plans:
     Make desktop app that uses the client to send data to server
     May combine the user and record keeper service
