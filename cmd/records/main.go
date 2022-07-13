@@ -9,14 +9,19 @@ import (
 	"time"
 
 	"github.com/zuri03/GoCloudStore/records"
+	"github.com/zuri03/GoCloudStore/records/db"
 )
 
 func main() {
 	fmt.Println("CREATING META DATA SERVER")
 	keeper := records.InitRecordKeeper()
-	fmt.Println("CREATED META DATA SERVER")
-	users := records.NewUsers()
-	router := records.Router(&keeper, users)
+
+	fmt.Println("CREATING MONGO CLIENT")
+	mongo, err := db.New()
+	if err != nil {
+		fmt.Printf("ERROR CONNECTING TO MONGO: %s\n", err.Error())
+	}
+	router := records.Router(&keeper, mongo)
 
 	server := &http.Server{
 		Addr:        ":8080",
