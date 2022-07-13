@@ -20,7 +20,9 @@ func main() {
 	mongo, err := db.New()
 	if err != nil {
 		fmt.Printf("ERROR CONNECTING TO MONGO: %s\n", err.Error())
+		return
 	}
+	fmt.Println("CONNECTED TO MONGO")
 	router := records.Router(&keeper, mongo)
 
 	server := &http.Server{

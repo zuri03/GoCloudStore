@@ -2,6 +2,7 @@ package records
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,7 +28,7 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		if err := handler.CreateUser(username, password); err != nil {
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		}
-
+		fmt.Println("SUCCESSFULLY CREATED USER")
 		return
 	}
 	if !checkParamsId(writer, req) {

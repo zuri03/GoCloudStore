@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,10 +13,10 @@ import (
 )
 
 type User struct {
-	Id           string `bson:"_id"`
-	Username     string `bson:"username"`
-	Password     []byte `bson:"password"`
-	CreationDate string `bson:"creationDate"`
+	Id           string `bson:"_id" json:"id"`
+	Username     string `bson:"username" json:"username"`
+	Password     []byte `bson:"password" json:"password"`
+	CreationDate string `bson:"creationDate" json:"createdAt"`
 }
 
 type Mongo struct {
@@ -24,13 +26,16 @@ type Mongo struct {
 }
 
 func New() (*Mongo, error) {
-	ctx := context.TODO()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
+		fmt.Printf("Error connecting to mongo: %s\n", err.Error())
 		return nil, err
 	}
 
 	if err := client.Ping(ctx, nil); err != nil {
+		fmt.Printf("Error pinging mongo %s\n", err.Error())
 		return nil, err
 	}
 
