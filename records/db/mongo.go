@@ -26,7 +26,8 @@ type Mongo struct {
 }
 
 func New() (*Mongo, error) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
+	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
@@ -41,6 +42,16 @@ func New() (*Mongo, error) {
 
 	collection := client.Database("cloudStore").Collection("user")
 	return &Mongo{client: client, users: collection}, nil
+}
+
+func (m *Mongo) GetUser(id string) (*User, error) {
+	filter := bson.D{primitive.E{Key: "_id", Value: id}}
+	singleResult := m.users.FindOne(m.ctx, filter)
+	user := &User{}
+	if err := singleResult.Decode(user); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (m *Mongo) CreateUser(user *User) error {

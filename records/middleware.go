@@ -115,6 +115,7 @@ func checkParamsUsername(writer http.ResponseWriter, req *http.Request) bool {
 
 func checkParamsId(writer http.ResponseWriter, req *http.Request) bool {
 	id := req.FormValue("id")
+
 	if id == "" {
 		http.Error(writer, "Error: Id is mssing", http.StatusBadRequest)
 		return false

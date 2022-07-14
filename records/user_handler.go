@@ -17,6 +17,7 @@ type UserHandler struct {
 }
 
 func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	encoder := json.NewEncoder(writer)
 	if req.Method == http.MethodPost {
 		if !checkParamsUsername(writer, req) {
 			return
@@ -25,12 +26,25 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 
-		if err := handler.CreateUser(username, password); err != nil {
+		id, err := handler.CreateUser(username, password)
+
+		if err != nil {
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
-		fmt.Println("SUCCESSFULLY CREATED USER")
-		return
+
+		user, err := handler.GetUser(id)
+		if err != nil {
+			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if err := encoder.Encode(*user); err != nil {
+			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
+
 	if !checkParamsId(writer, req) {
 		return
 	}
@@ -48,23 +62,23 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	jsonBytes, err := json.Marshal(*user)
-	if err != nil {
-		http.Error(writer, "Internal Server Error, unable to marshal user", http.StatusInternalServerError)
+	if err := encoder.Encode(*user); err != nil {
+		fmt.Printf("Error encoding json: %s\n", err.Error())
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-
-	writer.Write(jsonBytes)
 }
 
-func (handler *UserHandler) CreateUser(username, password string) error {
+func (handler *UserHandler) CreateUser(username, password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	now := time.Now().Format("2006-01-02 03:04:05")
 	id := uuid.New()
+
+	fmt.Printf("CREATED ID => %s\n", id.String())
 
 	user := db.User{
 		Id:           id.String(),
@@ -74,9 +88,14 @@ func (handler *UserHandler) CreateUser(username, password string) error {
 	}
 
 	err = handler.users.CreateUser(&user)
-	return nil
+	return id.String(), nil
 }
 
 func (handler *UserHandler) GetUser(id string) (*db.User, error) {
-	return &db.User{}, nil
+	user, err := handler.users.GetUser(id)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Get user result => %+v", *user)
+	return user, nil
 }
