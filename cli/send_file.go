@@ -17,7 +17,7 @@ type FileMetaData struct {
 	Username string
 }
 
-func sendFileCommand(username string, password string, input []string, metaClient *MetaDataClient) {
+func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
@@ -31,9 +31,7 @@ func sendFileCommand(username string, password string, input []string, metaClien
 		return
 	}
 
-	fmt.Printf("Sending file with info => %s, %s\n", username, password)
-
-	err = metaClient.createFileRecord(username, password, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+	err = metaClient.createFileRecord(owner, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 	if err != nil {
 		fmt.Printf("Error sending creating file record: %s\n", err.Error())
 		return

@@ -11,8 +11,11 @@ import (
 	"net/http"
 
 	c "github.com/zuri03/GoCloudStore/common"
-	"github.com/zuri03/GoCloudStore/records"
 )
+
+type AuthenticationResponse struct {
+	Id string `json:"id"`
+}
 
 func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	gob.Register(new(c.ProtocolFrame))
@@ -69,55 +72,33 @@ type MetaDataClient struct {
 
 //Meta data server functions
 //If there is ever an error just return true so that the session hanlder does not assume the user does not exist
-func (c *MetaDataClient) authenticate(username string, password string) (bool, error) {
+func (c *MetaDataClient) authenticate(username string, password string) (string, bool, error) {
 	url := fmt.Sprintf("http://localhost:8080/auth?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return true, err
+		return "", false, err
 	}
 
 	resp, err := c.Client.Do(request)
 	if err != nil {
-		return true, err
+		return "", false, err
 	}
 
-	fmt.Printf("auth response => %d\n", resp.StatusCode)
 	if resp.StatusCode == http.StatusUnauthorized {
-		return false, nil
+		return "", false, fmt.Errorf("Server returned error: %d\n", resp.StatusCode)
 	}
 
-	return true, nil
-}
-
-func (c *MetaDataClient) getFileRecord(username string, password string, key string) (*records.Record, error) {
-
-	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
-	request, err := http.NewRequest("GET", url, nil)
+	var id AuthenticationResponse
+	responseBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", false, err
 	}
 
-	resp, err := c.Client.Do(request)
-	if err != nil {
-		return nil, err
+	if err = json.Unmarshal(responseBytes, id); err != nil {
+		return "", false, err
 	}
 
-	var record records.Record
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Server return error => %d\n", resp.StatusCode)
-		if resp.StatusCode == http.StatusForbidden {
-			return nil, fmt.Errorf("%s is not allowed to view %s\n", username, key)
-		}
-		return nil, fmt.Errorf(string(body))
-	}
-
-	json.Unmarshal(body, &record)
-	return &record, nil
+	return id.Id, id.Id == "", nil
 }
 
 func (c *MetaDataClient) createUser(username string, password string) error {
@@ -140,9 +121,49 @@ func (c *MetaDataClient) createUser(username string, password string) error {
 	return nil
 }
 
-func (c *MetaDataClient) deleteFileRecord(username string, password string, key string) error {
+type Record struct {
+	MetaData     *FileMetaData `json:"file"`
+	Location     string        `json:"location"`
+	CreatedAt    string        `json:"createdAt"`
+	IsPublic     bool          `json:"isPublic"`
+	Owner        string        `json:"owner"`
+	AllowedUsers []string      `json:"allowedUsers"`
+}
 
-	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
+func (c *MetaDataClient) getFileRecord(owner string, key string) (*Record, error) {
+
+	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	var record Record
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Server return error => %d\n", resp.StatusCode)
+		if resp.StatusCode == http.StatusForbidden {
+			return nil, fmt.Errorf("%s is not allowed to view %s\n", owner, key)
+		}
+		return nil, fmt.Errorf(string(body))
+	}
+
+	json.Unmarshal(body, &record)
+	return &record, nil
+}
+
+func (c *MetaDataClient) deleteFileRecord(owner, key string) error {
+
+	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -157,7 +178,7 @@ func (c *MetaDataClient) deleteFileRecord(username string, password string, key 
 		return fmt.Errorf("unauthorized")
 	}
 
-	var record records.Record
+	var record Record
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -171,17 +192,23 @@ func (c *MetaDataClient) deleteFileRecord(username string, password string, key 
 	return nil
 }
 
-func (c *MetaDataClient) createFileRecord(username string, password string, key string, fileName string, fileSize int64) error {
+type Request struct {
+	Owner    string `json:"owner"`
+	Key      string `json:"key"`
+	FileName string `json:"name"`
+	Size     int    `json:"size"`
+}
 
-	record := records.CreateReqest{
-		Username: username,
-		Password: password,
+func (c *MetaDataClient) createFileRecord(owner, key, fileName string, fileSize int64) error {
+
+	record := Request{
+		Owner:    owner,
 		Key:      key,
 		FileName: fileName,
-		Size:     fileSize,
+		Size:     int(fileSize),
 	}
 	//need to include necessary params to pass params check middleware
-	url := fmt.Sprintf("http://localhost:8080/record?username=%s&password=%s&key=%s", username, password, key)
+	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
 	recordBytes, _ := json.Marshal(record)
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(recordBytes))
 	if err != nil {
@@ -208,12 +235,8 @@ func (c *MetaDataClient) createFileRecord(username string, password string, key 
 	return nil
 }
 
-func (c *MetaDataClient) addAllowedUser(username string, password string, key string, allowedUser string) error {
-	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?allowedUser=%s&username=%s&password=%s&key=%s",
-		allowedUser,
-		username,
-		password,
-		key)
+func (c *MetaDataClient) addAllowedUser(owner, key, allowedUser string) error {
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?allowedUser=%s&owner=%s&key=%s", allowedUser, owner, key)
 
 	request, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
@@ -233,12 +256,8 @@ func (c *MetaDataClient) addAllowedUser(username string, password string, key st
 	return nil
 }
 
-func (c *MetaDataClient) removeAllowedUser(username string, password string, key string, removedUser string) error {
-	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?removedUser=%s&username=%s&password=%s&key=%s",
-		removedUser,
-		username,
-		password,
-		key)
+func (c *MetaDataClient) removeAllowedUser(owner, key string, removedUser string) error {
+	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?removedUser=%s&owner=%s&key=%s", removedUser, owner, key)
 
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {

@@ -13,9 +13,9 @@ import (
 //Opens and closes connections and calls the file retreival functions
 //in the correct order
 //Handles any errors that may occur by notifying the user
-func getFileCommand(username string, password string, input []string, metaClient *MetaDataClient) {
+func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	key := input[0]
-	record, err := metaClient.getFileRecord(username, password, key)
+	record, err := metaClient.getFileRecord(owner, key)
 	if err != nil {
 		fmt.Printf("Error getting file record: %s\n", err.Error())
 		return

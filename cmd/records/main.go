@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/zuri03/GoCloudStore/records"
@@ -23,7 +24,9 @@ func main() {
 		return
 	}
 	fmt.Println("CONNECTED TO MONGO")
-	router := records.Router(&keeper, mongo)
+
+	tracker := new(sync.WaitGroup)
+	router := records.Router(&keeper, mongo, tracker)
 
 	server := &http.Server{
 		Addr:        ":8080",
@@ -43,5 +46,8 @@ func main() {
 	signal.Notify(signaler, os.Kill)
 
 	<-signaler
+
+	tracker.Wait()
+
 	fmt.Println("SHUT DOWN")
 }

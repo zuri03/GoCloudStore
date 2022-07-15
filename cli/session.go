@@ -42,7 +42,18 @@ func HandleOneTime(client *MetaDataClient, input []string) {
 		}
 	}
 
-	if _, err := executeCommand(client, command, username, password, input[3:]); err != nil {
+	id, exists, err := client.authenticate(username, password)
+	if err != nil {
+		fmt.Printf("Error authenticating user: %s\n", err.Error())
+		return
+	}
+
+	if !exists {
+		fmt.Println("User does not exist")
+		return
+	}
+
+	if _, err := executeCommand(client, command, id, input[3:]); err != nil {
 		fmt.Print(err.Error())
 	}
 }
@@ -66,8 +77,14 @@ func HandleSession(client *MetaDataClient) {
 		return
 	}
 	password = strings.TrimFunc(password, cleanUserInput)
+	id, exists, err := client.authenticate(username, password)
 
-	if exists, err := client.authenticate(username, password); !exists {
+	if err != nil {
+		fmt.Printf("Error authorizing user: %s\n", err.Error())
+		return
+	}
+
+	if !exists {
 		fmt.Printf("User %s does not exist. Would you like to create a new user?\n", username)
 		fmt.Printf("Yes(Y) or NO(N):")
 
@@ -87,9 +104,6 @@ func HandleSession(client *MetaDataClient) {
 			fmt.Println("Exiting...")
 			return
 		}
-	} else if err != nil {
-		fmt.Printf("Error authorizing user: %s\n", err.Error())
-		return
 	}
 
 	for {
@@ -103,7 +117,7 @@ func HandleSession(client *MetaDataClient) {
 		//Trim the two invisible characters at the end
 		str = str[:len(str)-2]
 		input := strings.Split(str, " ")
-		if quit, err := executeCommand(client, input[0], username, password, input[1:]); err != nil || quit {
+		if quit, err := executeCommand(client, input[0], id, input[1:]); err != nil || quit {
 			fmt.Println(err.Error())
 			break
 		}
@@ -112,22 +126,22 @@ func HandleSession(client *MetaDataClient) {
 	fmt.Printf("Closing connection")
 }
 
-func executeCommand(metadataClient *MetaDataClient, command string, username string, password string, input []string) (bool, error) {
+func executeCommand(metadataClient *MetaDataClient, command string, owner string, input []string) (bool, error) {
 	fmt.Printf("Command => %s\n", command)
 	switch strings.ToLower(command) {
 	case "help":
 		printHelpMessage()
 	case "allow":
 		fmt.Println("EXECUTING ALLOW")
-		addAllowedUserCommand(username, password, input, metadataClient)
+		addAllowedUserCommand(owner, input, metadataClient)
 	case "remove":
-		removeUserAccessCommand(username, password, input, metadataClient)
+		removeUserAccessCommand(owner, input, metadataClient)
 	case "send":
-		sendFileCommand(username, password, input, metadataClient)
+		sendFileCommand(owner, input, metadataClient)
 	case "get":
-		getFileCommand(username, password, input, metadataClient)
+		getFileCommand(owner, input, metadataClient)
 	case "delete":
-		deleteFile(username, password, input, metadataClient)
+		deleteFile(owner, input, metadataClient)
 	case "quit":
 		fmt.Println("Exiting...")
 		return true, nil

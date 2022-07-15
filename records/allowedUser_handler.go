@@ -2,16 +2,21 @@ package records
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/zuri03/GoCloudStore/records/db"
 )
 
 type AllowedUserHandler struct {
-	Keeper *RecordKeeper
-	Users  *db.Mongo
+	Keeper         *RecordKeeper
+	Users          *db.Mongo
+	routineTracker *sync.WaitGroup
 }
 
 func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	handler.routineTracker.Add(1)
+	defer handler.routineTracker.Done()
+
 	//Middleware pipeline
 	if !checkParamsRecords(writer, req) {
 		return

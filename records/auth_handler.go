@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/zuri03/GoCloudStore/records/db"
 	"golang.org/x/crypto/bcrypt"
@@ -14,10 +15,14 @@ type Response struct {
 }
 
 type AuthHandler struct {
-	users *db.Mongo
+	users          *db.Mongo
+	routineTracker *sync.WaitGroup
 }
 
 func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	handler.routineTracker.Add(1)
+	defer handler.routineTracker.Done()
+
 	if !checkParamsUsername(writer, req) {
 		return
 	}

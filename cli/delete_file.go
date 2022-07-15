@@ -4,16 +4,16 @@ import (
 	"fmt"
 )
 
-func deleteFile(username string, password string, input []string, metaClient *MetaDataClient) {
+func deleteFile(owner string, input []string, metaClient *MetaDataClient) {
 	key := input[0]
 
-	_, err := metaClient.getFileRecord(username, password, key)
+	_, err := metaClient.getFileRecord(owner, key)
 	if err != nil {
 		fmt.Printf("Error retreiving meta data from server: %s\n", err.Error())
 		return
 	}
 
-	err = metaClient.deleteFileRecord(username, password, key)
+	err = metaClient.deleteFileRecord(owner, key)
 	if err != nil {
 		fmt.Printf("Error deleting meta data from server: %s\n", err.Error())
 		return

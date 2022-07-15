@@ -71,5 +71,12 @@ func (m *Mongo) SearchUser(username, password string) ([]*User, error) {
 		return nil, err
 	}
 
+	fmt.Printf("Results => %+v\n", results)
+	fmt.Println("pretty print")
+
+	for _, c := range results {
+		fmt.Printf("result => %+v\n", c)
+	}
+
 	return results, nil
 }

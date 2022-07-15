@@ -2,16 +2,28 @@ package records
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/zuri03/GoCloudStore/records/db"
 )
 
 type RecordHandler struct {
-	Keeper *RecordKeeper
-	Users  *db.Mongo
+	Keeper         *RecordKeeper
+	Users          *db.Mongo
+	routineTracker *sync.WaitGroup
+}
+
+type Request struct {
+	Owner    string `json:"owner"`
+	Key      string `json:"key"`
+	FileName string `json:"name"`
+	Size     int    `json:"size"`
 }
 
 func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	handler.routineTracker.Add(1)
+	defer handler.routineTracker.Done()
+
 	if !checkParamsRecords(writer, req) {
 		return
 	}

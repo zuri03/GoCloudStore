@@ -18,7 +18,7 @@ type Record struct {
 	Location     string   `json:"location"`
 	CreatedAt    string   `json:"createdAt"`
 	IsPublic     bool     `json:"isPublic"`
-	Owner        string   `json:"owner"` //For now Onwer is just username:password
+	Owner        string   `json:"owner"`
 	AllowedUsers []string `json:"allowedUsers"`
 }
 

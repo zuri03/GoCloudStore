@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/zuri03/GoCloudStore/records/db"
@@ -13,12 +14,17 @@ import (
 )
 
 type UserHandler struct {
-	users *db.Mongo
+	users          *db.Mongo
+	routineTracker *sync.WaitGroup
 }
 
 func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	handler.routineTracker.Add(1)
+	defer handler.routineTracker.Done()
+
 	encoder := json.NewEncoder(writer)
 	if req.Method == http.MethodPost {
+
 		if !checkParamsUsername(writer, req) {
 			return
 		}
@@ -43,6 +49,8 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
+
+		return
 	}
 
 	if !checkParamsId(writer, req) {
@@ -77,8 +85,6 @@ func (handler *UserHandler) CreateUser(username, password string) (string, error
 
 	now := time.Now().Format("2006-01-02 03:04:05")
 	id := uuid.New()
-
-	fmt.Printf("CREATED ID => %s\n", id.String())
 
 	user := db.User{
 		Id:           id.String(),
