@@ -20,9 +20,10 @@ type User struct {
 }
 
 type Mongo struct {
-	client *mongo.Client
-	users  *mongo.Collection
-	ctx    context.Context
+	client  *mongo.Client
+	users   *mongo.Collection
+	records *mongo.Collection
+	ctx     context.Context
 }
 
 func New() (*Mongo, error) {
@@ -40,13 +41,14 @@ func New() (*Mongo, error) {
 		return nil, err
 	}
 
-	collection := client.Database("cloudStore").Collection("user")
-	return &Mongo{client: client, users: collection}, nil
+	users := client.Database("cloudStore").Collection("user")
+	records := client.Database("cloudStore").Collection("records")
+	return &Mongo{client: client, users: users, records: records}, nil
 }
 
-func (m *Mongo) GetUser(id string) (*User, error) {
+func (mongo *Mongo) GetUser(id string) (*User, error) {
 	filter := bson.D{primitive.E{Key: "_id", Value: id}}
-	singleResult := m.users.FindOne(m.ctx, filter)
+	singleResult := mongo.users.FindOne(mongo.ctx, filter)
 	user := &User{}
 	if err := singleResult.Decode(user); err != nil {
 		return nil, err
@@ -54,29 +56,27 @@ func (m *Mongo) GetUser(id string) (*User, error) {
 	return user, nil
 }
 
-func (m *Mongo) CreateUser(user *User) error {
-	_, err := m.users.InsertOne(m.ctx, user)
+func (mongo *Mongo) CreateUser(user *User) error {
+	_, err := mongo.users.InsertOne(mongo.ctx, user)
 	return err
 }
 
-func (m *Mongo) SearchUser(username, password string) ([]*User, error) {
+func (mongo *Mongo) SearchUser(username, password string) ([]*User, error) {
 	filter := bson.D{primitive.E{Key: "username", Value: username}}
-	cursor, err := m.users.Find(m.ctx, filter)
+	cursor, err := mongo.users.Find(mongo.ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
 	var results []*User
-	if err = cursor.All(m.ctx, &results); err != nil {
+	if err = cursor.All(mongo.ctx, &results); err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("Results => %+v\n", results)
-	fmt.Println("pretty print")
-
-	for _, c := range results {
-		fmt.Printf("result => %+v\n", c)
-	}
-
 	return results, nil
+}
+
+func (m *Mongo) CreateRecord() (string, error) {
+	fmt.Println("CREATED RECORD")
+	return "", nil
 }

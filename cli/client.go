@@ -84,7 +84,8 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 		return "", false, err
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
+	fmt.Printf("Status code => %d\n", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
 		return "", false, fmt.Errorf("Server returned error: %d\n", resp.StatusCode)
 	}
 
@@ -93,12 +94,12 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 	if err != nil {
 		return "", false, err
 	}
-
-	if err = json.Unmarshal(responseBytes, id); err != nil {
+	fmt.Printf("response => %s\n", string(responseBytes))
+	if err = json.Unmarshal(responseBytes, &id); err != nil {
 		return "", false, err
 	}
 
-	return id.Id, id.Id == "", nil
+	return id.Id, id.Id != "", nil
 }
 
 func (c *MetaDataClient) createUser(username string, password string) error {

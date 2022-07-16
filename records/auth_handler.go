@@ -20,6 +20,7 @@ type AuthHandler struct {
 }
 
 func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	fmt.Println("IN AUTH HANDLER")
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
@@ -34,6 +35,7 @@ func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 }
 
 func (handler *AuthHandler) Authenticate(username, password string, writer http.ResponseWriter) {
+	fmt.Println("In auth method")
 	potentialUsers, err := handler.users.SearchUser(username, password)
 	if err != nil {
 		fmt.Printf("Error on user search: %s\n", err.Error())
@@ -51,8 +53,12 @@ func (handler *AuthHandler) Authenticate(username, password string, writer http.
 				http.Error(writer, "Internal Server Error: error creating json", http.StatusInternalServerError)
 			}
 			writer.Write(jsonBytes)
+			return
 		}
 	}
 
+	fmt.Println("Returining not found")
+	jsonBytes, err := json.Marshal(Response{Id: ""})
 	writer.WriteHeader(http.StatusNotFound)
+	writer.Write(jsonBytes)
 }

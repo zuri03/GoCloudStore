@@ -99,6 +99,9 @@ func checkParamsUsername(writer http.ResponseWriter, req *http.Request) bool {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 
+	fmt.Println("CHECKING USERNAME/PASS")
+	fmt.Printf("Username => %s | Pass => %s\n", username, password)
+
 	if password == "" || username == "" {
 		missing := []string{}
 		if password == "" {

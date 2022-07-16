@@ -1,6 +1,7 @@
 package records
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -59,7 +60,7 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 }
 
 func (handler *RecordHandler) CreateRecord(id, key string, writer http.ResponseWriter) {
-
+	fmt.Println("Created Record")
 }
 
 func (handler *RecordHandler) GetRecord(key string, writer http.ResponseWriter) {

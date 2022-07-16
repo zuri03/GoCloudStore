@@ -78,7 +78,7 @@ func HandleSession(client *MetaDataClient) {
 	}
 	password = strings.TrimFunc(password, cleanUserInput)
 	id, exists, err := client.authenticate(username, password)
-
+	fmt.Printf("Session => id=%s, exist=%t", id, exists)
 	if err != nil {
 		fmt.Printf("Error authorizing user: %s\n", err.Error())
 		return
