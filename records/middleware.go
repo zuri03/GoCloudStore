@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 /*
@@ -33,7 +34,7 @@ func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) bool 
 */
 
 //Checks if a user can view a given record this is for get requests
-func canView(id string, record Record, writer http.ResponseWriter) bool {
+func canView(id string, record common.Record, writer http.ResponseWriter) bool {
 	fmt.Printf("Checking if %s is owner %s\n", id, record.Owner)
 	if record.Owner == id {
 		fmt.Println("Found match in owner")
@@ -51,7 +52,7 @@ func canView(id string, record Record, writer http.ResponseWriter) bool {
 }
 
 //Checks if the user is the owner of the record
-func checkOwner(id string, record Record, writer http.ResponseWriter) bool {
+func checkOwner(id string, record common.Record, writer http.ResponseWriter) bool {
 	fmt.Println("CHECKING OWNER")
 	if id != record.Owner {
 		fmt.Printf("Owner %s does not match user %s\n", record.Owner, id)
@@ -62,18 +63,18 @@ func checkOwner(id string, record Record, writer http.ResponseWriter) bool {
 	return true
 }
 
-func resourceExists(id, key string, db Mongo, writer http.ResponseWriter) (Record, bool) {
+func resourceExists(key string, db Mongo, writer http.ResponseWriter) (common.Record, bool) {
 	record, err := db.GetRecord(key)
 	if err != nil {
 		fmt.Printf("Error in checking resource: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
-		return Record{}, false
+		return common.Record{}, false
 	}
 
 	if record.Key == "" {
 		message := fmt.Sprintf("Unable to find record %s", key)
 		http.Error(writer, message, http.StatusNotFound)
-		return Record{}, false
+		return common.Record{}, false
 	}
 
 	return *record, true
@@ -133,14 +134,27 @@ func checkParamsId(writer http.ResponseWriter, req *http.Request) bool {
 }
 
 func checkParamsAllowedUser(writer http.ResponseWriter, req *http.Request) bool {
-	user := req.FormValue("user")
 
-	if user == "" {
-		http.Error(writer, "Missing user parameter", http.StatusBadRequest)
+	user := req.FormValue("user")
+	owner := req.FormValue("owner")
+	key := req.FormValue("key")
+
+	if user == "" || owner == "" || key == "" {
+		missing := []string{}
+		if user == "" {
+			missing = append(missing, "user")
+		}
+		if owner == "" {
+			missing = append(missing, "owner")
+		}
+		if key == "" {
+			missing = append(missing, "key")
+		}
+		http.Error(writer, fmt.Sprintf("%s missing from request", strings.Join(missing, ",")), http.StatusBadRequest)
 		return false
 	}
 
-	return validateId(user, writer)
+	return validateId(user, writer) && validateId(owner, writer)
 }
 
 func validateId(id string, writer http.ResponseWriter) bool {

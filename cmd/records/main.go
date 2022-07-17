@@ -15,7 +15,6 @@ import (
 
 func main() {
 	fmt.Println("CREATING META DATA SERVER")
-	keeper := records.InitRecordKeeper()
 
 	fmt.Println("CREATING MONGO CLIENT")
 	mongo, err := db.New()
@@ -26,7 +25,7 @@ func main() {
 	fmt.Println("CONNECTED TO MONGO")
 
 	tracker := new(sync.WaitGroup)
-	router := records.Router(&keeper, mongo, tracker)
+	router := records.Router(mongo, tracker)
 
 	server := &http.Server{
 		Addr:        ":8080",

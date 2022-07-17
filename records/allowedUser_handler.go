@@ -1,6 +1,7 @@
 package records
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 )
@@ -14,11 +15,6 @@ func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *ht
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
-	//Middleware pipeline
-	if !checkParamsRecords(writer, req) {
-		return
-	}
-
 	if !checkParamsAllowedUser(writer, req) {
 		return
 	}
@@ -31,29 +27,38 @@ func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *ht
 	key := req.FormValue("key")
 	user := req.FormValue("user")
 
-	if !resourceExists(key, handler.Keeper, writer) {
+	record, ok := resourceExists(key, handler.dbClient, writer)
+	if !ok {
 		return
 	}
 
-	if !checkOwner(owner, key, handler.Keeper, writer) {
+	if !checkOwner(owner, record, writer) {
 		return
 	}
 
 	switch req.Method {
 	case http.MethodPut:
-		handler.Add(owner, user, key, writer)
+		handler.Add(key, user, writer)
 	case http.MethodDelete:
-		handler.Remove(owner, user, key, writer)
+		handler.Remove(key, user, writer)
 	default:
 		writer.WriteHeader(http.StatusMethodNotAllowed)
 		writer.Write([]byte("Method not allowed"))
 	}
 }
 
-func (handler *AllowedUserHandler) Add(owner, user, id string, writer http.ResponseWriter) {
-
+func (handler *AllowedUserHandler) Add(key, user string, writer http.ResponseWriter) {
+	if err := handler.dbClient.AddAllowedUser(key, user); err != nil {
+		fmt.Printf("Error adding allowed user: %s\n", err.Error())
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
-func (handler *AllowedUserHandler) Remove(owner, user, id string, writer http.ResponseWriter) {
-
+func (handler *AllowedUserHandler) Remove(key, user string, writer http.ResponseWriter) {
+	if err := handler.dbClient.RemoveAllowedUser(key, user); err != nil {
+		fmt.Printf("Error adding allowed user: %s\n", err.Error())
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

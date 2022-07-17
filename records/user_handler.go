@@ -9,14 +9,9 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-)
 
-type User struct {
-	Id           string `json:"id"`
-	Username     string `json:"username"`
-	Password     []byte `json:"password"`
-	CreationDate string `json:"createdAt"`
-}
+	"github.com/zuri03/GoCloudStore/common"
+)
 
 type UserHandler struct {
 	dbClient       Mongo
@@ -91,7 +86,7 @@ func (handler *UserHandler) CreateUser(username, password string) (string, error
 	now := time.Now().Format("2006-01-02 03:04:05")
 	id := uuid.New()
 
-	user := User{
+	user := common.User{
 		Id:           id.String(),
 		Username:     username,
 		Password:     hash,
@@ -102,7 +97,7 @@ func (handler *UserHandler) CreateUser(username, password string) (string, error
 	return id.String(), nil
 }
 
-func (handler *UserHandler) GetUser(id string) (*User, error) {
+func (handler *UserHandler) GetUser(id string) (*common.User, error) {
 	user, err := handler.dbClient.GetUser(id)
 	if err != nil {
 		return nil, err

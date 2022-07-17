@@ -3,18 +3,20 @@ package records
 import (
 	"net/http"
 	"sync"
+
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 type Mongo interface {
-	GetUser(id string) (*User, error)
-	CreateUser(user *User) error
-	SearchUser(username, password string) ([]*User, error)
+	GetUser(id string) (*common.User, error)
+	CreateUser(user *common.User) error
+	SearchUser(username, password string) ([]*common.User, error)
 
-	GetRecord(key string) (*Record, error)
-	CreateRecord(record Record) error
+	GetRecord(key string) (*common.Record, error)
+	CreateRecord(record common.Record) error
 	DeleteRecord(key string) error
-	AllowedUser(key, id, user string) error
-	RemoveAllowedUser(key, id, user string) error
+	AddAllowedUser(key, user string) error
+	RemoveAllowedUser(key, user string) error
 }
 
 func Router(mongo Mongo, tracker *sync.WaitGroup) *http.ServeMux {

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 type RecordHandler struct {
@@ -19,17 +21,6 @@ type Request struct {
 	Key      string `json:"key"`
 	FileName string `json:"name"`
 	Size     int    `json:"size"`
-}
-
-type Record struct {
-	Key          string   `json:"key"`
-	Size         int64    `json:"size"`
-	Name         string   `json:"name"`
-	Location     string   `json:"location"`
-	CreatedAt    string   `json:"createdAt"`
-	IsPublic     bool     `json:"isPublic"`
-	Owner        string   `json:"owner"`
-	AllowedUsers []string `json:"allowedUsers"`
 }
 
 //refactor this handler
@@ -62,7 +53,7 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	id := req.FormValue("id")
 	key := req.FormValue("key")
 
-	record, ok := resourceExists(id, key, handler.dbClient, writer)
+	record, ok := resourceExists(key, handler.dbClient, writer)
 	if !ok {
 		return
 	}
@@ -88,7 +79,7 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 	location := fmt.Sprintf("%s/%s", request.Owner, request.FileName)
 	currentTime := time.Now().Format("2006-01-02 03:04:05")
 
-	newRecord := Record{
+	newRecord := common.Record{
 		Size:         int64(request.Size),
 		Name:         request.FileName,
 		Location:     location,
@@ -112,7 +103,7 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 	writer.Write(jsonBytes)
 }
 
-func (handler *RecordHandler) GetRecord(record Record, writer http.ResponseWriter) {
+func (handler *RecordHandler) GetRecord(record common.Record, writer http.ResponseWriter) {
 	jsonBytes, err := json.Marshal(record)
 	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
