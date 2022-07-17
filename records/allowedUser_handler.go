@@ -3,13 +3,10 @@ package records
 import (
 	"net/http"
 	"sync"
-
-	"github.com/zuri03/GoCloudStore/records/db"
 )
 
 type AllowedUserHandler struct {
-	Keeper         *RecordKeeper
-	Users          *db.Mongo
+	dbClient       Mongo
 	routineTracker *sync.WaitGroup
 }
 

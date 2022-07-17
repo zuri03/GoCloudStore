@@ -1,19 +1,3 @@
-
-refactor communication protocol
-    - Use structs and gob encoding instead
-
-Use mongodb? to add persistance to file meta data
-
-Add users service:
-    this service will be a rest api that provides persistant storage for user objects
-    hash [username:password] and use resulting hash as id  
-        this means that no two users can have the same username and password
-    use struct to store user info
-        id: hash(username:password)
-        username: string
-        password: hash(password)
-        creationDate: date 
-
 Set up kubernetes
 
 set up go tests
@@ -24,9 +8,7 @@ set up tls for each of the rest apis
 
 come up with a better name for allowedUsers
     allowed users is a list of users that are allowed to retrieve a file despite not being the owner
-
-Implement more coordination between client and storage sever
-    messages back and forth in order to coordinate their actions and ensure their is no failure from the other side
+    PrivlidgedUser?
 
 Determine how allowed system works
     for now allowed users is simply a slice of usernames

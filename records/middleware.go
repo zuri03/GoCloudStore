@@ -33,49 +33,55 @@ func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) bool 
 */
 
 //Checks if a user can view a given record this is for get requests
-func canView(id string, key string, r *RecordKeeper, writer http.ResponseWriter) bool {
-	authorized, err := r.Authorized(key, id)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		return false
+func canView(id string, record Record, writer http.ResponseWriter) bool {
+	fmt.Printf("Checking if %s is owner %s\n", id, record.Owner)
+	if record.Owner == id {
+		fmt.Println("Found match in owner")
+		return true
 	}
 
-	if !authorized {
-		writer.WriteHeader(http.StatusForbidden)
-		return false
+	for _, allowedUser := range record.AllowedUsers {
+		fmt.Printf("%s == %s\n", id, allowedUser)
+		if id == allowedUser {
+			return true
+		}
 	}
 
-	return true
+	return false
 }
 
 //Checks if the user is the owner of the record
-func checkOwner(id, key string, r *RecordKeeper, writer http.ResponseWriter) bool {
-	isOnwer, err := r.IsOnwer(key, id)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+func checkOwner(id string, record Record, writer http.ResponseWriter) bool {
+	fmt.Println("CHECKING OWNER")
+	if id != record.Owner {
+		fmt.Printf("Owner %s does not match user %s\n", record.Owner, id)
+		http.Error(writer, "User is not authorized", http.StatusUnauthorized)
 		return false
 	}
-
-	if !isOnwer {
-		writer.WriteHeader(http.StatusForbidden)
-		return false
-	}
-
+	fmt.Println("Owner is user match")
 	return true
 }
 
-func resourceExists(key string, r *RecordKeeper, writer http.ResponseWriter) bool {
-	if !r.Exists(key) {
-		writer.WriteHeader(http.StatusNotFound)
-		return false
+func resourceExists(id, key string, db Mongo, writer http.ResponseWriter) (Record, bool) {
+	record, err := db.GetRecord(key)
+	if err != nil {
+		fmt.Printf("Error in checking resource: %s\n", err.Error())
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return Record{}, false
 	}
 
-	return true
+	if record.Key == "" {
+		message := fmt.Sprintf("Unable to find record %s", key)
+		http.Error(writer, message, http.StatusNotFound)
+		return Record{}, false
+	}
+
+	return *record, true
 }
 
 //Checks the request for all of the required params
 func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
-	id := req.FormValue("owner")
+	id := req.FormValue("id")
 	key := req.FormValue("key")
 
 	if key == "" {

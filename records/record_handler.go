@@ -1,16 +1,16 @@
 package records
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
-
-	"github.com/zuri03/GoCloudStore/records/db"
+	"time"
 )
 
 type RecordHandler struct {
-	Keeper         *RecordKeeper
-	Users          *db.Mongo
+	dbClient       Mongo
 	routineTracker *sync.WaitGroup
 }
 
@@ -21,34 +21,60 @@ type Request struct {
 	Size     int    `json:"size"`
 }
 
+type Record struct {
+	Key          string   `json:"key"`
+	Size         int64    `json:"size"`
+	Name         string   `json:"name"`
+	Location     string   `json:"location"`
+	CreatedAt    string   `json:"createdAt"`
+	IsPublic     bool     `json:"isPublic"`
+	Owner        string   `json:"owner"`
+	AllowedUsers []string `json:"allowedUsers"`
+}
+
+//refactor this handler
 func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
+
+	if req.Method == http.MethodPost {
+		var requestBody Request
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			http.Error(writer, "Unable to read request body", http.StatusBadRequest)
+			return
+		}
+
+		if err = json.Unmarshal(body, &requestBody); err != nil {
+			http.Error(writer, "Unable to read request body", http.StatusBadRequest)
+			return
+		}
+
+		handler.CreateRecord(requestBody, writer)
+		return
+	}
 
 	if !checkParamsRecords(writer, req) {
 		return
 	}
 
 	//autheticate the user here
-	owner := req.FormValue("owner")
+	id := req.FormValue("id")
 	key := req.FormValue("key")
-	if req.Method == http.MethodPost {
-		handler.CreateRecord(owner, key, writer)
-		return
-	}
 
-	if !resourceExists(key, handler.Keeper, writer) {
+	record, ok := resourceExists(id, key, handler.dbClient, writer)
+	if !ok {
 		return
 	}
 
 	switch req.Method {
 	case http.MethodGet:
-		if !canView(owner, key, handler.Keeper, writer) {
+		if !canView(id, record, writer) {
 			return
 		}
-		handler.GetRecord(key, writer)
+		handler.GetRecord(record, writer)
 	case http.MethodDelete:
-		if !checkOwner(owner, key, handler.Keeper, writer) {
+		if !checkOwner(id, record, writer) {
 			return
 		}
 		handler.DeleteRecord(key, writer)
@@ -56,17 +82,49 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		writer.WriteHeader(http.StatusMethodNotAllowed)
 		writer.Write([]byte("Method not allowed"))
 	}
-
 }
 
-func (handler *RecordHandler) CreateRecord(id, key string, writer http.ResponseWriter) {
-	fmt.Println("Created Record")
+func (handler *RecordHandler) CreateRecord(request Request, writer http.ResponseWriter) {
+	location := fmt.Sprintf("%s/%s", request.Owner, request.FileName)
+	currentTime := time.Now().Format("2006-01-02 03:04:05")
+
+	newRecord := Record{
+		Size:         int64(request.Size),
+		Name:         request.FileName,
+		Location:     location,
+		CreatedAt:    currentTime,
+		IsPublic:     false,
+		Owner:        request.Owner,
+		AllowedUsers: make([]string, 0),
+	}
+
+	if err := handler.dbClient.CreateRecord(newRecord); err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	jsonBytes, err := json.Marshal(newRecord)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Write(jsonBytes)
 }
 
-func (handler *RecordHandler) GetRecord(key string, writer http.ResponseWriter) {
+func (handler *RecordHandler) GetRecord(record Record, writer http.ResponseWriter) {
+	jsonBytes, err := json.Marshal(record)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
+	writer.Write(jsonBytes)
 }
 
 func (handler *RecordHandler) DeleteRecord(key string, writer http.ResponseWriter) {
-
+	if err := handler.dbClient.DeleteRecord(key); err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

@@ -7,14 +7,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zuri03/GoCloudStore/records/db"
-
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type User struct {
+	Id           string `json:"id"`
+	Username     string `json:"username"`
+	Password     []byte `json:"password"`
+	CreationDate string `json:"createdAt"`
+}
+
 type UserHandler struct {
-	users          *db.Mongo
+	dbClient       Mongo
 	routineTracker *sync.WaitGroup
 }
 
@@ -86,19 +91,19 @@ func (handler *UserHandler) CreateUser(username, password string) (string, error
 	now := time.Now().Format("2006-01-02 03:04:05")
 	id := uuid.New()
 
-	user := db.User{
+	user := User{
 		Id:           id.String(),
 		Username:     username,
 		Password:     hash,
 		CreationDate: now,
 	}
 
-	err = handler.users.CreateUser(&user)
+	err = handler.dbClient.CreateUser(&user)
 	return id.String(), nil
 }
 
-func (handler *UserHandler) GetUser(id string) (*db.User, error) {
-	user, err := handler.users.GetUser(id)
+func (handler *UserHandler) GetUser(id string) (*User, error) {
+	user, err := handler.dbClient.GetUser(id)
 	if err != nil {
 		return nil, err
 	}

@@ -3,18 +3,26 @@ package records
 import (
 	"net/http"
 	"sync"
-
-	"github.com/zuri03/GoCloudStore/records/db"
 )
 
-func Router(keeper *RecordKeeper, mongo *db.Mongo, tracker *sync.WaitGroup) *http.ServeMux {
+type Mongo interface {
+	GetUser(id string) (*User, error)
+	CreateUser(user *User) error
+	SearchUser(username, password string) ([]*User, error)
 
-	authHandler := AuthHandler{users: mongo, routineTracker: tracker}
-	userHandler := UserHandler{users: mongo, routineTracker: tracker}
-	allowedUserHanlder := AllowedUserHandler{
-		Keeper: keeper, Users: mongo, routineTracker: tracker}
-	recordHanlder := RecordHandler{
-		Keeper: keeper, Users: mongo, routineTracker: tracker}
+	GetRecord(key string) (*Record, error)
+	CreateRecord(record Record) error
+	DeleteRecord(key string) error
+	AllowedUser(key, id, user string) error
+	RemoveAllowedUser(key, id, user string) error
+}
+
+func Router(mongo Mongo, tracker *sync.WaitGroup) *http.ServeMux {
+
+	authHandler := AuthHandler{dbClient: mongo, routineTracker: tracker}
+	userHandler := UserHandler{dbClient: mongo, routineTracker: tracker}
+	allowedUserHanlder := AllowedUserHandler{dbClient: mongo, routineTracker: tracker}
+	recordHanlder := RecordHandler{dbClient: mongo, routineTracker: tracker}
 
 	router := http.NewServeMux()
 

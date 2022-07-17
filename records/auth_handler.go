@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/zuri03/GoCloudStore/records/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,7 +14,7 @@ type Response struct {
 }
 
 type AuthHandler struct {
-	users          *db.Mongo
+	dbClient       Mongo
 	routineTracker *sync.WaitGroup
 }
 
@@ -35,8 +34,7 @@ func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 }
 
 func (handler *AuthHandler) Authenticate(username, password string, writer http.ResponseWriter) {
-	fmt.Println("In auth method")
-	potentialUsers, err := handler.users.SearchUser(username, password)
+	potentialUsers, err := handler.dbClient.SearchUser(username, password)
 	if err != nil {
 		fmt.Printf("Error on user search: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error on database user search", http.StatusInternalServerError)
@@ -57,7 +55,6 @@ func (handler *AuthHandler) Authenticate(username, password string, writer http.
 		}
 	}
 
-	fmt.Println("Returining not found")
 	jsonBytes, err := json.Marshal(Response{Id: ""})
 	writer.WriteHeader(http.StatusNotFound)
 	writer.Write(jsonBytes)
