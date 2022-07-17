@@ -21,29 +21,27 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 	fmt.Printf("record => %+v\n", record)
-	/*
-		fmt.Printf("record => %+v\n", record)
-		//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
-		connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
-		defer connection.Close()
-		meta := FileMetaData{
-			Username: username,
-			FileName: record.MetaData.Name,
-			Size:     record.MetaData.Size,
-		}
-		encoder := gob.NewEncoder(connection)
-		if err := sendMetaDataToServer(c.GET_FRAME, meta, encoder); err != nil {
-			fmt.Printf("Error sending meta data: %s\n", err.Error())
-			return
-		}
+	fmt.Printf("record => %+v\n", record)
+	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
+	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
+	defer connection.Close()
+	meta := FileMetaData{
+		Username: username,
+		FileName: record.MetaData.Name,
+		Size:     record.MetaData.Size,
+	}
+	encoder := gob.NewEncoder(connection)
+	if err := sendMetaDataToServer(c.GET_FRAME, meta, encoder); err != nil {
+		fmt.Printf("Error sending meta data: %s\n", err.Error())
+		return
+	}
 
-		if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
-			connection); err != nil {
-			//Log error
-			fmt.Printf("Error retreiving file data: %s\n", err.Error())
-			return
-		}
-	*/
+	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
+		connection); err != nil {
+		//Log error
+		fmt.Printf("Error retreiving file data: %s\n", err.Error())
+		return
+	}
 	fmt.Println("Successfully retreived file from server")
 }
 

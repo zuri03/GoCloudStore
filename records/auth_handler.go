@@ -49,6 +49,7 @@ func (handler *AuthHandler) Authenticate(username, password string, writer http.
 			jsonBytes, err := json.Marshal(response)
 			if err != nil {
 				http.Error(writer, "Internal Server Error: error creating json", http.StatusInternalServerError)
+				return
 			}
 			writer.Write(jsonBytes)
 			return
