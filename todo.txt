@@ -30,6 +30,8 @@ make db structs thread safe
 
 setup authentication on mongo
 
+500 error is returned from records when trying to send the same file twice
+
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take
     - instead create an object representing a single message

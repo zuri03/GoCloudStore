@@ -32,6 +32,8 @@ func waitForProceed(decoder *gob.Decoder) error {
 		return err
 	}
 
+	fmt.Printf("Proceed received => %+v\n", frame)
+
 	if frame.Type == common.ERROR_FRAME {
 		return fmt.Errorf("Error on server: %s\n", string(frame.Data))
 	}
@@ -74,6 +76,7 @@ type MetaDataClient struct {
 //If there is ever an error just return true so that the session hanlder does not assume the user does not exist
 func (c *MetaDataClient) authenticate(username string, password string) (string, bool, error) {
 	url := fmt.Sprintf("http://localhost:8080/auth?username=%s&password=%s", username, password)
+	fmt.Printf("url => %s\n", url)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", false, err
@@ -102,24 +105,34 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 	return id.Id, id.Id != "", nil
 }
 
-func (c *MetaDataClient) createUser(username string, password string) error {
+func (c *MetaDataClient) createUser(username string, password string) (*common.User, error) {
 
 	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp, err := c.Client.Do(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error has occured while creating user: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("Error has occured while creating user: %d\n", resp.StatusCode)
 	}
 
-	return nil
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var user common.User
+	if err := json.Unmarshal(responseBody, &user); err != nil {
+		return nil, fmt.Errorf("Error unmarshaling response: %s\n", err.Error())
+	}
+
+	return &user, nil
 }
 
 func (c *MetaDataClient) getFileRecord(owner string, key string) (*common.Record, error) {

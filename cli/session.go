@@ -9,7 +9,7 @@ import (
 )
 
 func cleanUserInput(r rune) bool {
-	if unicode.IsGraphic(r) {
+	if unicode.IsGraphic(r) && !unicode.IsSpace(r) {
 		return false
 	}
 	return true
@@ -36,10 +36,12 @@ func HandleOneTime(client *MetaDataClient, input []string) {
 	password := input[2]
 
 	if strings.ToLower(command) == "create" {
-		if err := client.createUser(username, password); err != nil {
+		if _, err := client.createUser(username, password); err != nil {
 			fmt.Printf("Error creating user: %s\n", err.Error())
 			return
 		}
+
+		return
 	}
 
 	id, exists, err := client.authenticate(username, password)
@@ -76,9 +78,12 @@ func HandleSession(client *MetaDataClient) {
 		fmt.Printf("Internal Cli error: %s\n Exiting...", err.Error())
 		return
 	}
+
 	password = strings.TrimFunc(password, cleanUserInput)
+
+	fmt.Printf("userlen => %d\n passlen => %d\n", len(username), len(password))
+
 	id, exists, err := client.authenticate(username, password)
-	fmt.Printf("Session => id=%s, exist=%t", id, exists)
 	if err != nil {
 		fmt.Printf("Error authorizing user: %s\n", err.Error())
 		return
@@ -96,10 +101,12 @@ func HandleSession(client *MetaDataClient) {
 		response = strings.TrimFunc(response, cleanUserInput)
 
 		if strings.ToLower(response) == "y" {
-			if err := client.createUser(username, password); err != nil {
+			user, err := client.createUser(username, password)
+			if err != nil {
 				fmt.Printf("Error creating user: %s\n", err.Error())
 				return
 			}
+			id = user.Id
 		} else {
 			fmt.Println("Exiting...")
 			return

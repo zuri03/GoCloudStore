@@ -90,12 +90,14 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 	}
 
 	if err := handler.dbClient.CreateRecord(newRecord); err != nil {
+		fmt.Printf("Error creating record: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	jsonBytes, err := json.Marshal(newRecord)
 	if err != nil {
+		fmt.Printf("Error marshaling json: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -106,6 +108,7 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 func (handler *RecordHandler) GetRecord(record common.Record, writer http.ResponseWriter) {
 	jsonBytes, err := json.Marshal(record)
 	if err != nil {
+		fmt.Printf("Error marshaling json: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -115,6 +118,7 @@ func (handler *RecordHandler) GetRecord(record common.Record, writer http.Respon
 
 func (handler *RecordHandler) DeleteRecord(key string, writer http.ResponseWriter) {
 	if err := handler.dbClient.DeleteRecord(key); err != nil {
+		fmt.Printf("Error deleting record: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

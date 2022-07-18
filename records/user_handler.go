@@ -32,20 +32,14 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 
-		id, err := handler.CreateUser(username, password)
+		newUser, err := handler.CreateUser(username, password)
 
 		if err != nil {
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		user, err := handler.GetUser(id)
-		if err != nil {
-			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		if err := encoder.Encode(*user); err != nil {
+		if err := encoder.Encode(*newUser); err != nil {
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -77,10 +71,10 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	}
 }
 
-func (handler *UserHandler) CreateUser(username, password string) (string, error) {
+func (handler *UserHandler) CreateUser(username, password string) (*common.User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	now := time.Now().Format("2006-01-02 03:04:05")
@@ -94,7 +88,7 @@ func (handler *UserHandler) CreateUser(username, password string) (string, error
 	}
 
 	err = handler.dbClient.CreateUser(&user)
-	return id.String(), nil
+	return &user, nil
 }
 
 func (handler *UserHandler) GetUser(id string) (*common.User, error) {

@@ -65,6 +65,8 @@ func checkOwner(id string, record common.Record, writer http.ResponseWriter) boo
 
 func resourceExists(key string, db Mongo, writer http.ResponseWriter) (common.Record, bool) {
 	record, err := db.GetRecord(key)
+	//If the method returns an error then something serious has occured
+	//If the method cannot find the resource it returns an empty struct with a nil error
 	if err != nil {
 		fmt.Printf("Error in checking resource: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
