@@ -25,9 +25,9 @@ func deleteFileHandler(connection net.Conn) {
 	connection.Write([]byte(c.SUCCESS_PROTOCOL))
 }
 
-func deleteFileData(meta FileMetaData, connection net.Conn) error {
-	directoryName := meta.Username
-	filePath := fmt.Sprintf("%s/%s", directoryName, meta.FileName)
+func deleteFileData(meta c.FileMetaData, connection net.Conn) error {
+	directoryName := meta.Owner
+	filePath := fmt.Sprintf("%s/%s", directoryName, meta.Name)
 
 	if _, err := os.Stat(filePath); err != nil {
 		return err

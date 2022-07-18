@@ -9,24 +9,21 @@ services:
       context: .
       dockerfile: ./deployments/dev/Dockerfile.records
     ports:
-     - '8080:8080'
+     - "8080:8080"
+    depends_on:
+      - mongo
+    restart: unless-stopped
   storage:
     build: 
-      context: .z
+      context: .
       dockerfile: ./deployments/dev/Dockerfile.storage
     ports:
-      - '8000:8000'
-  users:
-    build:
-      context: .
-      dockerfile: ./deployments/dev/Dockerfile.users
-    ports:
-      - '9000:9000'
+      - "8000:8000"
   mongo:
     image: mongo:latest
     ports:
-      - '27017:27017'
-  redis:
-    image: redis:latest
+      - "27017:27017"
+  #redis:
+   # image: redis:latest
 
   

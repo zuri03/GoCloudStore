@@ -8,6 +8,12 @@ type ProtocolFrame struct {
 	Data          []byte
 }
 
+type FileMetaData struct {
+	Owner string
+	Name  string
+	Size  int64
+}
+
 type Record struct {
 	Key          string   `bson:"_id" json:"key"`
 	Size         int64    `bson:"size" json:"size"`

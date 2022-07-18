@@ -12,7 +12,7 @@ import (
 
 func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	gob.Register(new(c.ProtocolFrame))
-	gob.Register(new(FileMetaData))
+	gob.Register(new(c.FileMetaData))
 
 	return gob.NewEncoder(connection), gob.NewDecoder(connection)
 }
@@ -50,11 +50,11 @@ func sendErrorFrame(encoder *gob.Encoder, message string) error {
 	return nil
 }
 
-func decodeMetaData(frame c.ProtocolFrame) (FileMetaData, error) {
+func decodeMetaData(frame c.ProtocolFrame) (c.FileMetaData, error) {
 	fmt.Println("SENDING META DATA")
 	ioBuffer := new(bytes.Buffer)
 	ioBuffer.Write(frame.Data)
-	var meta FileMetaData
+	var meta c.FileMetaData
 	decoder := gob.NewDecoder(ioBuffer)
 	if err := decoder.Decode(&meta); err != nil {
 		return meta, err
@@ -76,7 +76,7 @@ func openFile(directoryName string, fileName string) (*os.File, error) {
 		}
 	}
 
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return nil, err
 	}

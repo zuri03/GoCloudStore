@@ -35,7 +35,7 @@ func InitializeListener() {
 
 func handleConnection(connection net.Conn) {
 	defer connection.Close()
-
+	fmt.Println("ACCEPTED A NEW CONNECTION")
 	decoder := gob.NewDecoder(connection)
 	encoder := gob.NewEncoder(connection)
 	metaFrame, err := acceptFrame(decoder)

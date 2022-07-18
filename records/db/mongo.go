@@ -18,10 +18,10 @@ type Mongo struct {
 }
 
 func New() (*Mongo, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
 	if err != nil {
 		fmt.Printf("Error connecting to mongo: %s\n", err.Error())
 		return nil, err

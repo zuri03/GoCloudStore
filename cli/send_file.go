@@ -6,16 +6,10 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"time"
 
-	c "github.com/zuri03/GoCloudStore/common"
+	"github.com/zuri03/GoCloudStore/common"
 )
-
-//Since fs.FileInfo cannot be encoded by
-type FileMetaData struct {
-	Size     int64
-	FileName string
-	Username string
-}
 
 func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	fileName := input[0]
@@ -37,39 +31,38 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	/*
-		//TODO: The address of the datanode must come from the record server
-		connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
-		defer connection.Close()
+	//TODO: The address of the datanode must come from the record server
+	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
+	defer connection.Close()
 
-		encoder, decoder := newEncoderDecorder(connection)
-		meta := FileMetaData{
-			Username: username,
-			FileName: fileInfo.Name(),
-			Size:     fileInfo.Size(),
-		}
+	encoder, decoder := newEncoderDecorder(connection)
+	meta := common.FileMetaData{
+		Owner: owner,
+		Name:  fileInfo.Name(),
+		Size:  fileInfo.Size(),
+	}
 
-		if err := sendMetaDataToServer(c.SEND_FRAME, meta, encoder); err != nil {
-			fmt.Printf("Error sending meta data to server: %s\n", err.Error())
-			return
-		}
+	if err := sendMetaDataToServer(common.SEND_FRAME, meta, encoder); err != nil {
+		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
+		return
+	}
 
-		if err := waitForProceed(decoder); err != nil {
-			fmt.Printf("Error waiting for proceed: %s\n", err.Error())
-			return
-		}
+	if err := waitForProceed(decoder); err != nil {
+		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
+		return
+	}
 
-		if err := sendFileDataToServer(file, meta, connection); err != nil {
-			fmt.Printf("Error sending file data to server: %s\n", err.Error())
-			return
-		}
-	*/
+	if err := sendFileDataToServer(file, meta, connection); err != nil {
+		fmt.Printf("Error sending file data to server: %s\n", err.Error())
+		return
+	}
+
 	fmt.Println("Successfully sent file to server")
 }
 
-func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn) error {
+func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn) error {
 
-	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
+	if meta.Size <= int64(common.MAX_CACHE_BUFFER_SIZE) {
 		fmt.Println("Sending file in one chunck")
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
@@ -82,7 +75,7 @@ func sendFileDataToServer(file *os.File, meta FileMetaData, connection net.Conn)
 		return nil
 	}
 
-	buffer := make([]byte, c.MAX_CACHE_BUFFER_SIZE)
+	buffer := make([]byte, common.MAX_CACHE_BUFFER_SIZE)
 
 	for {
 		numOfBytes, err := file.Read(buffer)

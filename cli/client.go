@@ -10,7 +10,7 @@ import (
 	"net"
 	"net/http"
 
-	c "github.com/zuri03/GoCloudStore/common"
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 type AuthenticationResponse struct {
@@ -18,8 +18,8 @@ type AuthenticationResponse struct {
 }
 
 func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
-	gob.Register(new(c.ProtocolFrame))
-	gob.Register(new(FileMetaData))
+	gob.Register(new(common.ProtocolFrame))
+	gob.Register(new(common.FileMetaData))
 
 	return gob.NewEncoder(connection), gob.NewDecoder(connection)
 }
@@ -27,16 +27,16 @@ func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 //This function forces the client to wait for the server to send a message letting
 //the client know it is ready to move to the next step of the process
 func waitForProceed(decoder *gob.Decoder) error {
-	var frame c.ProtocolFrame
+	var frame common.ProtocolFrame
 	if err := decoder.Decode(&frame); err != nil {
 		return err
 	}
 
-	if frame.Type == c.ERROR_FRAME {
+	if frame.Type == common.ERROR_FRAME {
 		return fmt.Errorf("Error on server: %s\n", string(frame.Data))
 	}
 
-	if frame.Type != c.PROCEED_FRAME {
+	if frame.Type != common.PROCEED_FRAME {
 		return fmt.Errorf("Unexpected frame got: %d\n", frame.Type)
 	}
 
@@ -44,14 +44,14 @@ func waitForProceed(decoder *gob.Decoder) error {
 	return nil
 }
 
-func sendMetaDataToServer(frameType c.FrameType, meta FileMetaData, encoder *gob.Encoder) error {
+func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, encoder *gob.Encoder) error {
 	metaBuffer := new(bytes.Buffer)
 	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
 		return err
 	}
 	fmt.Printf("encoding meta => %+v\n", meta)
 	fmt.Printf("encoding meta length=> %d\n", metaBuffer.Len())
-	frame := c.ProtocolFrame{
+	frame := common.ProtocolFrame{
 		Type:          frameType,
 		PayloadLength: int64(metaBuffer.Len()),
 		Data:          metaBuffer.Bytes(),
@@ -122,16 +122,7 @@ func (c *MetaDataClient) createUser(username string, password string) error {
 	return nil
 }
 
-type Record struct {
-	MetaData     *FileMetaData `json:"file"`
-	Location     string        `json:"location"`
-	CreatedAt    string        `json:"createdAt"`
-	IsPublic     bool          `json:"isPublic"`
-	Owner        string        `json:"owner"`
-	AllowedUsers []string      `json:"allowedUsers"`
-}
-
-func (c *MetaDataClient) getFileRecord(owner string, key string) (*Record, error) {
+func (c *MetaDataClient) getFileRecord(owner string, key string) (*common.Record, error) {
 
 	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
 	request, err := http.NewRequest("GET", url, nil)
@@ -144,7 +135,7 @@ func (c *MetaDataClient) getFileRecord(owner string, key string) (*Record, error
 		return nil, err
 	}
 
-	var record Record
+	var record common.Record
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -179,7 +170,7 @@ func (c *MetaDataClient) deleteFileRecord(owner, key string) error {
 		return fmt.Errorf("unauthorized")
 	}
 
-	var record Record
+	var record common.Record
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err

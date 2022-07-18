@@ -2,10 +2,12 @@ package cli
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"time"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
@@ -25,10 +27,10 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
-	meta := FileMetaData{
-		Username: username,
-		FileName: record.MetaData.Name,
-		Size:     record.MetaData.Size,
+	meta := c.FileMetaData{
+		Owner: owner,
+		Name:  record.Name,
+		Size:  record.Size,
 	}
 	encoder := gob.NewEncoder(connection)
 	if err := sendMetaDataToServer(c.GET_FRAME, meta, encoder); err != nil {
@@ -36,7 +38,7 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	if err := getFileDataFromServer(record.MetaData.Name, int(record.MetaData.Size),
+	if err := getFileDataFromServer(record.Name, int(record.Size),
 		connection); err != nil {
 		//Log error
 		fmt.Printf("Error retreiving file data: %s\n", err.Error())

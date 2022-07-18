@@ -1,9 +1,10 @@
 FROM golang:1.17 as builder
-WORKDIR /go/src/github.com/zuri03/GoCloudStore/
+WORKDIR /go/src
 
 COPY records ./records
 COPY common ./common
 COPY go.mod .
+COPY go.sum .
 COPY ./cmd/records/main.go .
 
 RUN CGO_ENABLED=0 go build -o  build/Records ./main.go
@@ -11,6 +12,6 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /go/src/github.com/zuri03/GoCloudStore/
-COPY --from=builder /go/src/github.com/zuri03/GoCloudStore/build/Records ./main
+COPY --from=builder /go/src/build/Records ./main
 EXPOSE 8080
 ENTRYPOINT [ "./main" ]

@@ -11,28 +11,26 @@ import (
 )
 
 //TODO: Implement connection reading with buffered io
-type FileMetaData struct {
-	Size     int64
-	FileName string
-	Username string
-}
-
 func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	fmt.Println("In store file handler")
 	encoder, _ := newEncoderDecorder(connection)
 	meta, err := decodeMetaData(frame)
 	if err != nil {
 		if err != io.EOF {
-			sendErrorFrame(encoder, err.Error())
+			if err := sendErrorFrame(encoder, err.Error()); err != nil {
+				fmt.Printf("Error sending error frame: %s\n", err.Error())
+			}
 		}
 		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
-	fmt.Printf("Get meta => %s \n size => %d\n", meta.FileName, meta.Size)
+	fmt.Printf("Get meta => %s \n size => %d owner => %s\n", meta.Name, meta.Size, meta.Owner)
 
 	if err := sendProceed(encoder); err != nil {
 		if err != io.EOF {
-			sendErrorFrame(encoder, err.Error())
+			if err := sendErrorFrame(encoder, err.Error()); err != nil {
+				fmt.Printf("Error sending error frame: %s\n", err.Error())
+			}
 		}
 		fmt.Printf("Error sending proceed: %s\n", err.Error())
 		return
@@ -40,7 +38,9 @@ func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 
 	if err := storeFileDataFromClient(meta, connection); err != nil {
 		if err != io.EOF {
-			sendErrorFrame(encoder, err.Error())
+			if err := sendErrorFrame(encoder, err.Error()); err != nil {
+				fmt.Printf("Error sending error frame: %s\n", err.Error())
+			}
 		}
 		fmt.Printf("Error storing file data: %s\n", err.Error())
 		return
@@ -49,20 +49,14 @@ func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	fmt.Println("Successfully store file")
 }
 
-func storeFileDataFromClient(meta FileMetaData, connection net.Conn) error {
+func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
 
-	file, err := openFile(meta.Username, meta.FileName)
+	file, err := openFile(meta.Owner, meta.Name)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	/*
-		In order to fix the EOF errors the client must wait before it begins to send file data
-		this write to the connection serves as a signal from the server to the client letting the client
-		know that the server is ready to begin receiving file data
-	*/
-	//connection.Write([]byte(c.PROCEED_PROTOCOL))
 	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
 		fmt.Println("storing file in one chunk")
 		buffer := make([]byte, meta.Size)

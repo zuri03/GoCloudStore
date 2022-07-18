@@ -20,10 +20,19 @@ func (mongo *Mongo) GetRecord(key string) (*common.Record, error) {
 }
 
 func (mongo *Mongo) CreateRecord(record common.Record) error {
+	_, err := mongo.records.InsertOne(mongo.ctx, record)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (mongo *Mongo) DeleteRecord(key string) error {
+	filter := bson.D{primitive.E{Key: "_id", Value: key}}
+	_, err := mongo.records.DeleteOne(mongo.ctx, filter)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

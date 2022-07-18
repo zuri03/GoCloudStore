@@ -5,32 +5,67 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
+	"os"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
 
 func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
-	_, _ = newEncoderDecorder(connection)
+	encoder, _ := newEncoderDecorder(connection)
 	meta, err := decodeMetaData(frame)
 	if err != nil {
 		fmt.Printf("Error decoding meta: %s\n", err.Error())
+		if err := sendErrorFrame(encoder, err.Error()); err != nil {
+			fmt.Printf("Error sending error frame: %s\n", err.Error())
+		}
 		return
 	}
 
-	if err := sendFileDataToClient(meta, connection); err != nil {
+	file, err := openFileForTransfer(meta)
+	if err != nil {
+		fmt.Printf("Error opening file: %s\n", err.Error())
+		if err := sendErrorFrame(encoder, err.Error()); err != nil {
+			fmt.Printf("Error sending error frame: %s\n", err.Error())
+		}
+		return
+	}
+	defer file.Close()
+
+	if err := sendFileDataToClient(file, meta, connection); err != nil {
 		fmt.Printf("Error while reading file data: %s\n", err.Error())
+		if err := sendErrorFrame(encoder, err.Error()); err != nil {
+			fmt.Printf("Error sending error frame: %s\n", err.Error())
+		}
 		return
 	}
 
 	fmt.Println("Successfully sent file data")
 }
 
-func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
-	file, err := openFile(meta.Username, meta.FileName)
-	if err != nil {
-		return err
+func openFileForTransfer(meta c.FileMetaData) (*os.File, error) {
+	directoryName := meta.Owner
+	filePath := fmt.Sprintf("%s/%s", directoryName, meta.Name)
+
+	var file *os.File
+	if _, err := os.Stat(directoryName); err != nil {
+		if os.IsNotExist(err) {
+			if err := os.Mkdir(directoryName, 0777); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
-	defer file.Close()
+
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Conn) error {
 
 	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
 		buffer := make([]byte, meta.Size)
@@ -71,8 +106,8 @@ func sendFileDataToClient(meta FileMetaData, connection net.Conn) error {
 	}
 }
 
-func acceptFileMetaData(connection net.Conn) (FileMetaData, error) {
-	meta := FileMetaData{}
+func acceptFileMetaData(connection net.Conn) (c.FileMetaData, error) {
+	meta := c.FileMetaData{}
 	decoder := gob.NewDecoder(connection)
 	fmt.Println("WAITING FOR GOB")
 	if err := decoder.Decode(&meta); err != nil {
