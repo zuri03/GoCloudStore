@@ -1,6 +1,6 @@
 package common
 
-type FrameType int8
+type FrameType uint8
 
 type ProtocolFrame struct {
 	Type          FrameType

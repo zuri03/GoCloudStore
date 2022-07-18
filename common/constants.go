@@ -23,16 +23,16 @@ const (
 	PROCEED_PROTOCOL string = "PRC"
 
 	//Used in situations for entities to express an internal error to the other entity it is connected to
-	ERROR_FRAME FrameType = -1
+	ERROR_FRAME FrameType = 0
 
 	//success message is used in situations where file data is not transferred E.g. file deletion
-	SUCCESS_FRAME FrameType = 0
+	SUCCESS_FRAME FrameType = 1
 
 	//Messages sent by the client to a storage server describing the desired operation
-	GET_FRAME    FrameType = 1
-	SEND_FRAME   FrameType = 2
-	DELETE_FRAME FrameType = 3
+	GET_FRAME    FrameType = 2
+	SEND_FRAME   FrameType = 3
+	DELETE_FRAME FrameType = 4
 
 	//Proceed is used in situations where the actions of the client and server need to be coordinated to ensure no error occurs
-	PROCEED_FRAME FrameType = 4
+	PROCEED_FRAME FrameType = 5
 )
