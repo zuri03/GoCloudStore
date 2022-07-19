@@ -4,15 +4,11 @@ set up go tests
 
 Reduce docker image size
 
-set up tls for each of the rest apis
+set up tls for each of the apis
 
 come up with a better name for allowedUsers
     allowed users is a list of users that are allowed to retrieve a file despite not being the owner
     PrivlidgedUser?
-
-Determine how allowed system works
-    for now allowed users is simply a slice of usernames
-    need to determine the best way to store users in this slice
 
 determine best numerical values for constants
 
@@ -27,17 +23,31 @@ setup timeouts with connections
 improve error handling for record keeper
 
 make db structs thread safe
-
+    http clients are already thread safe
+    
 setup authentication on mongo
 
 500 error is returned from records when trying to send the same file twice
+
+update storage's delete handler
 
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take
     - instead create an object representing a single message
     - this object will be gob encoded by the entity and decoded by the other
 
+Multiple data storage servers:
+    - currently I am using only a single storage server for development
+    - however, in the full project must be able to work with multiple data servers
+    - I will need to determine a way to get the ip's of all of the data servers
+    - When the user request to store a file in the system the meta server must reply with an ip of the data server that it will send its data to
+    - In order to make sure there is an even distribution among data servers we could use a hashring
+        - although this may be unnecessary since we do not expect the data servers to suddenly go offline 
+    - also need a way to determine the ip addresses of the data server so that the meta server can use them
 
+seperating the client and the cli:
+    - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
+    
 Future Plans:
     Make desktop app that uses the client to send data to server
-    May combine the user and record keeper service
+    Add data replication to storage servers

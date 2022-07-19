@@ -51,8 +51,7 @@ func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, 
 	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
 		return err
 	}
-	fmt.Printf("encoding meta => %+v\n", meta)
-	fmt.Printf("encoding meta length=> %d\n", metaBuffer.Len())
+
 	frame := common.ProtocolFrame{
 		Type:          frameType,
 		PayloadLength: int64(metaBuffer.Len()),
@@ -92,17 +91,17 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 		return "", false, fmt.Errorf("Server returned error: %d\n", resp.StatusCode)
 	}
 
-	var id AuthenticationResponse
+	var authResponse AuthenticationResponse
 	responseBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", false, err
 	}
 	fmt.Printf("response => %s\n", string(responseBytes))
-	if err = json.Unmarshal(responseBytes, &id); err != nil {
+	if err = json.Unmarshal(responseBytes, &authResponse); err != nil {
 		return "", false, err
 	}
 
-	return id.Id, id.Id != "", nil
+	return authResponse.Id, authResponse.Id != "", nil
 }
 
 func (c *MetaDataClient) createUser(username string, password string) (*common.User, error) {

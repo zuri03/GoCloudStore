@@ -36,6 +36,10 @@ func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) bool 
 //Checks if a user can view a given record this is for get requests
 func canView(id string, record common.Record, writer http.ResponseWriter) bool {
 	fmt.Printf("Checking if %s is owner %s\n", id, record.Owner)
+	if record.IsPublic {
+		return true
+	}
+
 	if record.Owner == id {
 		fmt.Println("Found match in owner")
 		return true
@@ -48,6 +52,7 @@ func canView(id string, record common.Record, writer http.ResponseWriter) bool {
 		}
 	}
 
+	http.Error(writer, fmt.Sprintf("%s is not allowed to view this record", id), http.StatusForbidden)
 	return false
 }
 
