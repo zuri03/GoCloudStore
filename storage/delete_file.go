@@ -2,30 +2,42 @@ package storage
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"os"
 
 	c "github.com/zuri03/GoCloudStore/common"
 )
 
-func deleteFileHandler(connection net.Conn) {
-	meta, err := acceptFileMetaData(connection)
+func deleteFileHandler(connection net.Conn, frame c.ProtocolFrame) {
+
+	fmt.Println("IN DELETE HANDLER")
+	encoder, _ := newEncoderDecorder(connection)
+	meta, err := decodeMetaData(frame)
 	if err != nil {
-		fmt.Printf("Error accepting file meta data: %s\n", err.Error())
-		connection.Write([]byte(c.ERROR_PROTOCOL))
+		if err != io.EOF {
+			if err := sendErrorFrame(encoder, err.Error()); err != nil {
+				fmt.Printf("Error sending error frame: %s\n", err.Error())
+			}
+		}
+		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
 
-	if err := deleteFileData(meta, connection); err != nil {
+	if err := deleteFileData(meta); err != nil {
+		if err := sendErrorFrame(encoder, err.Error()); err != nil {
+			fmt.Printf("Error sending error frame: %s\n", err.Error())
+		}
 		fmt.Printf("Error deleting file data: %s\n", err.Error())
-		connection.Write([]byte(c.ERROR_PROTOCOL))
 		return
 	}
 
-	connection.Write([]byte(c.SUCCESS_PROTOCOL))
+	if err := sendSuccessFrame(encoder); err != nil {
+		fmt.Printf("Error on success: %s\n", err.Error())
+	}
 }
 
-func deleteFileData(meta c.FileMetaData, connection net.Conn) error {
+func deleteFileData(meta c.FileMetaData) error {
 	directoryName := meta.Owner
 	filePath := fmt.Sprintf("%s/%s", directoryName, meta.Name)
 

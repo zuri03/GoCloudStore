@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"net"
 	"os"
 
@@ -37,6 +38,7 @@ func sendFrame(frameType c.FrameType, data []byte, encoder *gob.Encoder) error {
 	return nil
 }
 
+//Since success and error frames are the last frames sent we do not care about EOFs
 func sendErrorFrame(encoder *gob.Encoder, message string) error {
 	buffer := []byte(message)
 	frame := c.ProtocolFrame{
@@ -45,8 +47,28 @@ func sendErrorFrame(encoder *gob.Encoder, message string) error {
 		Data:          buffer,
 	}
 	if err := encoder.Encode(frame); err != nil {
-		return err
+		if err != io.EOF {
+			return err
+		}
+		fmt.Printf("EOF ERROR ON ERROR FRAME: %s\n", err.Error())
 	}
+	return nil
+}
+
+func sendSuccessFrame(encoder *gob.Encoder) error {
+	frame := c.ProtocolFrame{
+		Type:          c.SUCCESS_FRAME,
+		PayloadLength: 0,
+		Data:          nil,
+	}
+
+	if err := encoder.Encode(frame); err != nil {
+		if err != io.EOF {
+			return err
+		}
+		fmt.Printf("EOF ERROR ON SUCCESS FRAME: %s\n", err.Error())
+	}
+
 	return nil
 }
 

@@ -20,16 +20,12 @@ Use Bufio for sending files in loop
 
 setup timeouts with connections
 
-improve error handling for record keeper
-
 make db structs thread safe
     http clients are already thread safe
     
 setup authentication on mongo
 
 500 error is returned from records when trying to send the same file twice
-
-update storage's delete handler
 
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take
