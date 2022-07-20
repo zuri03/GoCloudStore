@@ -25,7 +25,13 @@ make db structs thread safe
     
 setup authentication on mongo
 
+improve design of records for better unit tests
+  - remove http response writing and request reading logic from middleware and handler funcitons
 500 error is returned from records when trying to send the same file twice
+
+refactor handlers for record server
+    - Remove http.Resposne Writer and http.request from the helper functions in the handlers
+    - only the handler can be resposnible for the 
 
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take

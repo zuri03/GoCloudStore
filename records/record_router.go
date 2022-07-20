@@ -21,7 +21,7 @@ type Mongo interface {
 
 func Router(mongo Mongo, tracker *sync.WaitGroup) *http.ServeMux {
 
-	authHandler := AuthHandler{dbClient: mongo, routineTracker: tracker}
+	authHandler := AuthHandler{dbClient: mongo, routineTracker: tracker, validateParams: checkParamsUsername}
 	userHandler := UserHandler{dbClient: mongo, routineTracker: tracker}
 	allowedUserHanlder := AllowedUserHandler{dbClient: mongo, routineTracker: tracker}
 	recordHanlder := RecordHandler{dbClient: mongo, routineTracker: tracker}

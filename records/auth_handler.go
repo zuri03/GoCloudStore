@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type ParamsMiddleware func(username, password string) error
+
 type Response struct {
 	Id string `json:"id"`
 }
@@ -16,19 +18,20 @@ type Response struct {
 type AuthHandler struct {
 	dbClient       Mongo
 	routineTracker *sync.WaitGroup
+	validateParams ParamsMiddleware
 }
 
 func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	fmt.Println("IN AUTH HANDLER")
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
-
-	if !checkParamsUsername(writer, req) {
-		return
-	}
-
 	username := req.FormValue("username")
 	password := req.FormValue("password")
+
+	if err := handler.validateParams(username, password); err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	handler.Authenticate(username, password, writer)
 }

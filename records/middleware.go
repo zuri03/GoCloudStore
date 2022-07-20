@@ -109,25 +109,20 @@ func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
 }
 
 //Checks request to the user endpoint for the required params
-func checkParamsUsername(writer http.ResponseWriter, req *http.Request) bool {
-	username := req.FormValue("username")
-	password := req.FormValue("password")
-
-	fmt.Println("CHECKING USERNAME/PASS")
-	fmt.Printf("Username => %s | Pass => %s\n", username, password)
-
-	if password == "" || username == "" {
-		missing := []string{}
-		if password == "" {
-			missing = append(missing, "password")
-		}
-		if username == "" {
-			missing = append(missing, "username")
-		}
-		http.Error(writer, fmt.Sprintf("%s missing from request", strings.Join(missing, ",")), http.StatusBadRequest)
-		return false
+func checkParamsUsername(username, password string) error {
+	if password != "" && username != "" {
+		return nil
 	}
-	return true
+
+	missing := []string{}
+	if password == "" {
+		missing = append(missing, "password")
+	}
+	if username == "" {
+		missing = append(missing, "username")
+	}
+
+	return fmt.Errorf("%s missing from request", strings.Join(missing, ","))
 }
 
 func checkParamsId(writer http.ResponseWriter, req *http.Request) bool {
