@@ -2,7 +2,6 @@ package records
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
@@ -34,63 +33,57 @@ func authenticate(u *Users, writer http.ResponseWriter, req *http.Request) bool 
 */
 
 //Checks if a user can view a given record this is for get requests
-func canView(id string, record common.Record, writer http.ResponseWriter) bool {
+func canView(id string, record common.Record) error {
 	fmt.Printf("Checking if %s is owner %s\n", id, record.Owner)
 	if record.IsPublic {
-		return true
+		return nil
 	}
 
 	if record.Owner == id {
 		fmt.Println("Found match in owner")
-		return true
+		return nil
 	}
 
 	for _, allowedUser := range record.AllowedUsers {
 		fmt.Printf("%s == %s\n", id, allowedUser)
 		if id == allowedUser {
-			return true
+			return nil
 		}
 	}
 
-	http.Error(writer, fmt.Sprintf("%s is not allowed to view this record", id), http.StatusForbidden)
-	return false
+	return fmt.Errorf("user is not allowed to view this record")
 }
 
 //Checks if the user is the owner of the record
-func checkOwner(id string, record common.Record, writer http.ResponseWriter) bool {
+func checkOwner(id string, record common.Record) error {
 	fmt.Println("CHECKING OWNER")
 	if id != record.Owner {
 		fmt.Printf("Owner %s does not match user %s\n", record.Owner, id)
-		http.Error(writer, "User is not authorized", http.StatusUnauthorized)
-		return false
+		return fmt.Errorf("User is not authorized")
 	}
 	fmt.Println("Owner is user match")
-	return true
+	return nil
 }
 
-func resourceExists(key string, db Mongo, writer http.ResponseWriter) (common.Record, bool) {
+func recordExists(key string, db recordDataBase) (common.Record, error) {
 	record, err := db.GetRecord(key)
 	//If the method returns an error then something serious has occured
 	//If the method cannot find the resource it returns an empty struct with a nil error
 	if err != nil {
 		fmt.Printf("Error in checking resource: %s\n", err.Error())
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
-		return common.Record{}, false
+		return common.Record{}, fmt.Errorf("Internal Server Error")
 	}
 
 	if record.Key == "" {
-		message := fmt.Sprintf("Unable to find record %s", key)
-		http.Error(writer, message, http.StatusNotFound)
-		return common.Record{}, false
+		fmt.Printf("Unable to find record %s", key)
+		return common.Record{}, nil
 	}
 
-	return *record, true
+	return *record, nil
 }
 
 //Checks the request for all of the required params
-func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
-	id := req.FormValue("id")
-	key := req.FormValue("key")
+func checkParamsRecords(id, key string) error {
 
 	if key == "" {
 		missing := []string{}
@@ -100,12 +93,9 @@ func checkParamsRecords(writer http.ResponseWriter, req *http.Request) bool {
 		if id == "" {
 			missing = append(missing, "id")
 		}
-		http.Error(writer, fmt.Sprintf("%s missing from request", strings.Join(missing, ",")), http.StatusBadRequest)
-
-		return false
 	}
 
-	return validateId(id, writer)
+	return validateId(id)
 }
 
 //Checks request to the user endpoint for the required params
@@ -125,21 +115,7 @@ func checkParamsUsername(username, password string) error {
 	return fmt.Errorf("%s missing from request", strings.Join(missing, ","))
 }
 
-func checkParamsId(writer http.ResponseWriter, req *http.Request) bool {
-	id := req.FormValue("id")
-
-	if id == "" {
-		http.Error(writer, "Error: Id is mssing", http.StatusBadRequest)
-		return false
-	}
-	return validateId(id, writer)
-}
-
-func checkParamsAllowedUser(writer http.ResponseWriter, req *http.Request) bool {
-
-	user := req.FormValue("user")
-	owner := req.FormValue("owner")
-	key := req.FormValue("key")
+func checkParamsAllowedUser(user, owner, key string) error {
 
 	if user == "" || owner == "" || key == "" {
 		missing := []string{}
@@ -152,23 +128,26 @@ func checkParamsAllowedUser(writer http.ResponseWriter, req *http.Request) bool 
 		if key == "" {
 			missing = append(missing, "key")
 		}
-		http.Error(writer, fmt.Sprintf("%s missing from request", strings.Join(missing, ",")), http.StatusBadRequest)
-		return false
+		return fmt.Errorf("%s missing from request", strings.Join(missing, ","))
+	}
+	if err := validateId(user); err != nil {
+		return err
+	}
+	if err := validateId(owner); err != nil {
+		return err
 	}
 
-	return validateId(user, writer) && validateId(owner, writer)
+	return nil
 }
 
-func validateId(id string, writer http.ResponseWriter) bool {
+func validateId(id string) error {
 	if id == "" {
-		http.Error(writer, "Request is missing id", http.StatusBadRequest)
-		return false
+		return fmt.Errorf("id is missing")
 	}
 
 	if _, err := uuid.Parse(id); err != nil {
-		http.Error(writer, "Unable to parse id", http.StatusBadRequest)
-		return false
+		return fmt.Errorf("id is not valid uuid")
 	}
 
-	return true
+	return nil
 }

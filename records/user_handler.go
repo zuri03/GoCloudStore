@@ -14,8 +14,10 @@ import (
 )
 
 type UserHandler struct {
-	dbClient       Mongo
-	routineTracker *sync.WaitGroup
+	dbClient         userDataBase
+	routineTracker   *sync.WaitGroup
+	paramsMiddleware func(username, password string) error
+	idMiddleware     func(id string) error
 }
 
 func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -25,15 +27,14 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 	encoder := json.NewEncoder(writer)
 	if req.Method == http.MethodPost {
 
-		if !checkParamsUsername(writer, req) {
-			return
-		}
-
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 
-		newUser, err := handler.CreateUser(username, password)
+		if err := handler.paramsMiddleware(username, password); err != nil {
+			return
+		}
 
+		newUser, err := handler.CreateUser(username, password)
 		if err != nil {
 			http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -47,16 +48,17 @@ func (handler *UserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if !checkParamsId(writer, req) {
-		return
-	}
-
 	if req.Method != http.MethodGet {
 		http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	id := req.FormValue("id")
+
+	if err := handler.idMiddleware(id); err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	user, err := handler.GetUser(id)
 	if err != nil {

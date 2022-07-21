@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("CONNECTED TO MONGO")
 
 	tracker := new(sync.WaitGroup)
-	router := records.Router(mongo, tracker)
+	router := records.Router(mongo, mongo, tracker)
 
 	server := &http.Server{
 		Addr:        ":8080",

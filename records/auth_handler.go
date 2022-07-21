@@ -16,7 +16,7 @@ type Response struct {
 }
 
 type AuthHandler struct {
-	dbClient       Mongo
+	dbClient       userDataBase
 	routineTracker *sync.WaitGroup
 	validateParams ParamsMiddleware
 }

@@ -4,18 +4,28 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 type AllowedUserHandler struct {
-	dbClient       Mongo
-	routineTracker *sync.WaitGroup
+	dbClient           recordDataBase
+	routineTracker     *sync.WaitGroup
+	paramsMiddleware   func(user, owner, key string) error
+	resourceMiddleware func(key string, db recordDataBase) (common.Record, error)
+	ownerMiddleware    func(id string, record common.Record) error
 }
 
 func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
-	if !checkParamsAllowedUser(writer, req) {
+	owner := req.FormValue("owner")
+	key := req.FormValue("key")
+	user := req.FormValue("user")
+
+	if err := handler.paramsMiddleware(user, owner, key); err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 	/*
@@ -23,16 +33,15 @@ func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *ht
 			return
 		}
 	*/
-	owner := req.FormValue("owner")
-	key := req.FormValue("key")
-	user := req.FormValue("user")
 
-	record, ok := resourceExists(key, handler.dbClient, writer)
-	if !ok {
+	record, err := handler.resourceMiddleware(key, handler.dbClient)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !checkOwner(owner, record, writer) {
+	if err := handler.ownerMiddleware(owner, record); err != nil {
+		http.Error(writer, err.Error(), http.StatusForbidden)
 		return
 	}
 

@@ -7,11 +7,13 @@ import (
 	"github.com/zuri03/GoCloudStore/common"
 )
 
-type Mongo interface {
+type userDataBase interface {
 	GetUser(id string) (*common.User, error)
 	CreateUser(user *common.User) error
 	SearchUser(username, password string) ([]*common.User, error)
+}
 
+type recordDataBase interface {
 	GetRecord(key string) (*common.Record, error)
 	CreateRecord(record common.Record) error
 	DeleteRecord(key string) error
@@ -19,12 +21,33 @@ type Mongo interface {
 	RemoveAllowedUser(key, user string) error
 }
 
-func Router(mongo Mongo, tracker *sync.WaitGroup) *http.ServeMux {
-
-	authHandler := AuthHandler{dbClient: mongo, routineTracker: tracker, validateParams: checkParamsUsername}
-	userHandler := UserHandler{dbClient: mongo, routineTracker: tracker}
-	allowedUserHanlder := AllowedUserHandler{dbClient: mongo, routineTracker: tracker}
-	recordHanlder := RecordHandler{dbClient: mongo, routineTracker: tracker}
+func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup) *http.ServeMux {
+	authHandler := AuthHandler{
+		dbClient:       userDB,
+		routineTracker: tracker,
+		validateParams: checkParamsUsername,
+	}
+	userHandler := UserHandler{
+		dbClient:         userDB,
+		routineTracker:   tracker,
+		paramsMiddleware: checkParamsUsername,
+		idMiddleware:     validateId,
+	}
+	allowedUserHanlder := AllowedUserHandler{
+		dbClient:           recordDB,
+		routineTracker:     tracker,
+		paramsMiddleware:   checkParamsAllowedUser,
+		resourceMiddleware: recordExists,
+		ownerMiddleware:    checkOwner,
+	}
+	recordHanlder := RecordHandler{
+		dbClient:                 recordDB,
+		routineTracker:           tracker,
+		paramsMiddleware:         checkParamsRecords,
+		resourseExistsMiddleware: recordExists,
+		canViewMiddleware:        canView,
+		checkOwnerMiddleware:     checkOwner,
+	}
 
 	router := http.NewServeMux()
 

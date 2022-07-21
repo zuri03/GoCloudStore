@@ -11,16 +11,20 @@ import (
 	"github.com/zuri03/GoCloudStore/common"
 )
 
-type RecordHandler struct {
-	dbClient       Mongo
-	routineTracker *sync.WaitGroup
-}
-
 type Request struct {
 	Owner    string `json:"owner"`
 	Key      string `json:"key"`
 	FileName string `json:"name"`
 	Size     int    `json:"size"`
+}
+
+type RecordHandler struct {
+	dbClient                 recordDataBase
+	routineTracker           *sync.WaitGroup
+	paramsMiddleware         func(id, key string) error
+	resourseExistsMiddleware func(key string, db recordDataBase) (common.Record, error)
+	canViewMiddleware        func(id string, record common.Record) error
+	checkOwnerMiddleware     func(id string, record common.Record) error
 }
 
 //refactor this handler
@@ -45,27 +49,30 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		return
 	}
 
-	if !checkParamsRecords(writer, req) {
-		return
-	}
-
 	//autheticate the user here
 	id := req.FormValue("id")
 	key := req.FormValue("key")
 
-	record, ok := resourceExists(key, handler.dbClient, writer)
-	if !ok {
+	if err := handler.paramsMiddleware(id, key); err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	record, err := handler.resourseExistsMiddleware(key, handler.dbClient)
+	if err != nil {
 		return
 	}
 
 	switch req.Method {
 	case http.MethodGet:
-		if !canView(id, record, writer) {
+		if err := handler.canViewMiddleware(id, record); err != nil {
+			http.Error(writer, err.Error(), http.StatusForbidden)
 			return
 		}
 		handler.GetRecord(record, writer)
 	case http.MethodDelete:
-		if !checkOwner(id, record, writer) {
+		if err := handler.checkOwnerMiddleware(id, record); err != nil {
+			http.Error(writer, err.Error(), http.StatusForbidden)
 			return
 		}
 		handler.DeleteRecord(key, writer)
