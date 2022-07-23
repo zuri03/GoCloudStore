@@ -22,7 +22,6 @@ type AuthHandler struct {
 }
 
 func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("IN AUTH HANDLER")
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 	username := req.FormValue("username")

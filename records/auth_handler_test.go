@@ -12,15 +12,6 @@ import (
 	"github.com/zuri03/GoCloudStore/common"
 )
 
-type scenario struct {
-	Name               string
-	username           string
-	password           string
-	ExpectedStatusCode int
-	ExpectedResult     string
-	Middleware         func(username, password string) error
-}
-
 type mockUserDB struct{}
 
 func (mock mockUserDB) GetUser(id string) (*common.User, error) {
@@ -38,7 +29,7 @@ func (mock mockUserDB) SearchUser(username, password string) ([]*common.User, er
 		return nil, nil
 	}
 	return []*common.User{
-		&common.User{
+		{
 			Id:       "id",
 			Username: "user",
 			Password: hashedPassword,
@@ -47,33 +38,42 @@ func (mock mockUserDB) SearchUser(username, password string) ([]*common.User, er
 }
 
 func TestServeHTTP(t *testing.T) {
+	type scenario struct {
+		Name               string
+		username           string
+		password           string
+		ExpectedStatusCode int
+		ExpectedResult     string
+		Middleware         func(username, password string) error
+	}
 
 	scenarios := []scenario{
-		scenario{
+		{
 			Name:               "Empty Credentials Tests",
 			username:           "",
 			password:           "",
 			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedResult:     "password, username missing from request\n",
 			Middleware: func(username, password string) error {
 				return fmt.Errorf("password, username missing from request")
 			},
 		},
-		scenario{
+		{
 			Name:               "Empty Password Test",
 			username:           "user",
 			password:           "",
 			ExpectedStatusCode: http.StatusBadRequest,
-			ExpectedResult:     "username missing from request",
+			ExpectedResult:     "username missing from request\n",
 			Middleware: func(username, password string) error {
 				return fmt.Errorf("username missing from request")
 			},
 		},
-		scenario{
+		{
 			Name:               "Success Test",
 			username:           "user",
 			password:           "pass",
-			ExpectedResult:     "username missing from request",
-			ExpectedStatusCode: http.StatusBadRequest,
+			ExpectedResult:     "{\"id\":\"id\"}",
+			ExpectedStatusCode: http.StatusOK,
 			Middleware: func(username, password string) error {
 				return nil
 			},
@@ -111,5 +111,4 @@ func TestServeHTTP(t *testing.T) {
 			}
 		})
 	}
-
 }
