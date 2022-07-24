@@ -1,56 +1,56 @@
-Set up kubernetes
+todo:
+    Set up kubernetes
 
-set up go tests
+    set up go tests
 
-Reduce docker image size
+    set up tls for each of the apis
 
-set up tls for each of the apis
+    Implement system logging
 
-come up with a better name for allowedUsers
-    allowed users is a list of users that are allowed to retrieve a file despite not being the owner
-    PrivlidgedUser?
-
-determine best numerical values for constants
-
-Implement system logging
-
-fix makefile
-
-Use Bufio for sending files in loop
-
-make db structs thread safe
-    http clients are already thread safe
-    
-setup authentication on mongo
-
-improve design of records for better unit tests
-  - remove http response writing and request reading logic from middleware and handler funcitons
-
-500 error is returned from records when trying to send the same file twice 
-
-remove common package
-
-use json encoder in each handler
-
-return json objects in post requests
-
-Improve communication protocol
-    - right now communication is handled by a series of signals that represent actions a client wishes to take
-    - instead create an object representing a single message
-    - this object will be gob encoded by the entity and decoded by the other
-
-Multiple data storage servers:
-    - currently I am using only a single storage server for development
-    - however, in the full project must be able to work with multiple data servers
-    - I will need to determine a way to get the ip's of all of the data servers
-    - When the user request to store a file in the system the meta server must reply with an ip of the data server that it will send its data to
-    - In order to make sure there is an even distribution among data servers we could use a hashring
-        - although this may be unnecessary since we do not expect the data servers to suddenly go offline 
-    - also need a way to determine the ip addresses of the data server so that the meta server can use them
-
-seperating the client and the cli:
-    - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
+    Use Bufio for sending files in loop
+        
+    setup authentication on mongo
     
 Future Plans:
     Make desktop app that uses the client to send data to server
-    Add data replication to storage servers
+    
+    Multiple data storage servers:
+        - currently I am using only a single storage server for development
+        - however, in the full project must be able to work with multiple data servers
+        - I will need to determine a way to get the ip's of all of the data servers
+        - When the user request to store a file in the system the meta server must reply with an ip of the data server that it will send its data to
+        - In order to make sure there is an even distribution among data servers we could use a hashring
+            - although this may be unnecessary since we do not expect the data servers to suddenly go offline 
+        - also need a way to determine the ip addresses of the data server so that the meta server can use them
+
+
+Bugs:
+    mongo is not creating collections
+
+    return message from record server letting client know the record exists
+
+    Makefile clean target is not working
+
+Improvements:
+    remove common package
+
+    use json encoder in each handler
+
+    return json objects in post requests
+
+    improve design of records for better unit tests
+        - remove http response writing and request reading logic from middleware and handler funcitons
+
+    make db structs thread safe
+        - http clients are already thread safe
+
+    come up with a better name for allowedUsers
+        allowed users is a list of users that are allowed to retrieve a file despite not being the owner
+        PrivlidgedUser?
+
+    Reduce docker image size
+
+    seperating the client and the cli:
+        - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
+
+    determine best numerical values for file transfer constant values

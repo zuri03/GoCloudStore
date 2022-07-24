@@ -32,6 +32,8 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
+	encoder := json.NewEncoder(writer)
+
 	if req.Method == http.MethodPost {
 		var requestBody Request
 		body, err := ioutil.ReadAll(req.Body)
@@ -42,6 +44,16 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 
 		if err = json.Unmarshal(body, &requestBody); err != nil {
 			http.Error(writer, "Unable to read request body", http.StatusBadRequest)
+			return
+		}
+
+		record, err := handler.resourseExistsMiddleware(requestBody.Key, handler.dbClient)
+		if err != nil {
+			return
+		}
+
+		if record.Key != "" {
+			encoder.Encode(record)
 			return
 		}
 
@@ -60,6 +72,12 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 
 	record, err := handler.resourseExistsMiddleware(key, handler.dbClient)
 	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if record.Key == "" {
+		http.Error(writer, fmt.Sprintf("Cannot find %s", key), http.StatusNotFound)
 		return
 	}
 

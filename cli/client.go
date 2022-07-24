@@ -75,7 +75,6 @@ type MetaDataClient struct {
 //If there is ever an error just return true so that the session hanlder does not assume the user does not exist
 func (c *MetaDataClient) authenticate(username string, password string) (string, bool, error) {
 	url := fmt.Sprintf("http://localhost:8080/auth?username=%s&password=%s", username, password)
-	fmt.Printf("url => %s\n", url)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", false, err
@@ -86,7 +85,6 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 		return "", false, err
 	}
 
-	fmt.Printf("Status code => %d\n", resp.StatusCode)
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
 		return "", false, fmt.Errorf("Server returned error: %d\n", resp.StatusCode)
 	}
@@ -96,7 +94,7 @@ func (c *MetaDataClient) authenticate(username string, password string) (string,
 	if err != nil {
 		return "", false, err
 	}
-	fmt.Printf("response => %s\n", string(responseBytes))
+
 	if err = json.Unmarshal(responseBytes, &authResponse); err != nil {
 		return "", false, err
 	}
@@ -136,7 +134,7 @@ func (c *MetaDataClient) createUser(username string, password string) (*common.U
 
 func (c *MetaDataClient) getFileRecord(owner string, key string) (*common.Record, error) {
 
-	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
+	url := fmt.Sprintf("http://localhost:8080/record?id=%s&key=%s", owner, key)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

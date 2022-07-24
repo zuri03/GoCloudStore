@@ -18,6 +18,11 @@ type recordDataBase interface {
 	CreateRecord(record common.Record) error
 	DeleteRecord(key string) error
 	ReplaceRecord(record *common.Record) error
+
+	/*
+		//For development
+		GetAllRecords() ([]*common.Record, error)
+	*/
 }
 
 func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup) *http.ServeMux {
@@ -48,6 +53,10 @@ func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGrou
 		checkOwnerMiddleware:     checkOwner,
 	}
 
+	type All struct {
+		db recordDataBase
+	}
+
 	router := http.NewServeMux()
 
 	router.HandleFunc("/record", recordHanlder.ServeHTTP)
@@ -57,6 +66,13 @@ func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGrou
 	router.HandleFunc("/user", userHandler.ServeHTTP)
 
 	router.HandleFunc("/auth", authHandler.ServeHTTP)
+	/*
+		//This handler is only for development
+		router.HandleFunc("/all", func(http.ResponseWriter, *http.Request) {
+			fmt.Println("In all hanlder")
+			records, err := db.
+		})
+	*/
 
 	return router
 }

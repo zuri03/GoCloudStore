@@ -81,8 +81,6 @@ func HandleSession(client *MetaDataClient) {
 
 	password = strings.TrimFunc(password, cleanUserInput)
 
-	fmt.Printf("userlen => %d\n passlen => %d\n", len(username), len(password))
-
 	id, exists, err := client.authenticate(username, password)
 	if err != nil {
 		fmt.Printf("Error authorizing user: %s\n", err.Error())
@@ -125,12 +123,14 @@ func HandleSession(client *MetaDataClient) {
 		str = str[:len(str)-2]
 		input := strings.Split(str, " ")
 		if quit, err := executeCommand(client, input[0], id, input[1:]); err != nil || quit {
-			fmt.Println(err.Error())
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 			break
 		}
 	}
 
-	fmt.Printf("Closing connection")
+	fmt.Printf("Exiting...")
 }
 
 func executeCommand(metadataClient *MetaDataClient, command string, owner string, input []string) (bool, error) {

@@ -12,7 +12,6 @@ import (
 )
 
 func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
-	fmt.Printf("owner => %s\n", owner)
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()

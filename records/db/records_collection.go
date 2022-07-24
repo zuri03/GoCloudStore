@@ -41,3 +41,22 @@ func (mongo *Mongo) ReplaceRecord(record *common.Record) error {
 	singleResult := mongo.records.FindOneAndReplace(mongo.ctx, filter, record)
 	return singleResult.Err()
 }
+
+func (mongo *Mongo) GetAllRecords() ([]*common.Record, error) {
+	filter := bson.D{{}}
+	manyResult, err := mongo.records.Find(mongo.ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	records := []*common.Record{}
+
+	for manyResult.Next(mongo.ctx) {
+		record := &common.Record{}
+		if err := manyResult.Decode(record); err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+	}
+
+	return records, nil
+}
