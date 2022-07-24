@@ -141,11 +141,9 @@ func (m mockDB) GetRecord(key string) (*common.Record, error) {
 	}
 }
 
-func (m mockDB) DeleteRecord(key string) error            { return nil }
-func (m mockDB) AddAllowedUser(key, user string) error    { return nil }
-func (m mockDB) CreateRecord(record common.Record) error  { return nil }
-func (m mockDB) RemoveAllowedUser(key, user string) error { return nil }
-
+func (m mockDB) DeleteRecord(key string) error             { return nil }
+func (m mockDB) CreateRecord(record common.Record) error   { return nil }
+func (m mockDB) ReplaceRecord(record *common.Record) error { return nil }
 func TestRecordExits(t *testing.T) {
 
 	mock := mockDB{}

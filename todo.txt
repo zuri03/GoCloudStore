@@ -18,8 +18,6 @@ fix makefile
 
 Use Bufio for sending files in loop
 
-setup timeouts with connections
-
 make db structs thread safe
     http clients are already thread safe
     
@@ -27,11 +25,14 @@ setup authentication on mongo
 
 improve design of records for better unit tests
   - remove http response writing and request reading logic from middleware and handler funcitons
-500 error is returned from records when trying to send the same file twice
 
-refactor handlers for record server
-    - Remove http.Resposne Writer and http.request from the helper functions in the handlers
-    - only the handler can be resposnible for the 
+500 error is returned from records when trying to send the same file twice 
+
+remove common package
+
+use json encoder in each handler
+
+return json objects in post requests
 
 Improve communication protocol
     - right now communication is handled by a series of signals that represent actions a client wishes to take

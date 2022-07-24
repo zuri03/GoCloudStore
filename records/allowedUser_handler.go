@@ -1,6 +1,7 @@
 package records
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -57,17 +58,44 @@ func (handler *AllowedUserHandler) ServeHTTP(writer http.ResponseWriter, req *ht
 }
 
 func (handler *AllowedUserHandler) Add(key, user string, writer http.ResponseWriter) {
-	if err := handler.dbClient.AddAllowedUser(key, user); err != nil {
-		fmt.Printf("Error adding allowed user: %s\n", err.Error())
+	record, err := handler.dbClient.GetRecord(key)
+	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
+	record.AllowedUsers = append(record.AllowedUsers, user)
+
+	if err := handler.dbClient.ReplaceRecord(record); err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	encoder := json.NewEncoder(writer)
+	encoder.Encode(record)
 }
 
 func (handler *AllowedUserHandler) Remove(key, user string, writer http.ResponseWriter) {
-	if err := handler.dbClient.RemoveAllowedUser(key, user); err != nil {
-		fmt.Printf("Error adding allowed user: %s\n", err.Error())
+	record, err := handler.dbClient.GetRecord(key)
+	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	findKeyIndex := func(rec *common.Record) int {
+		for idx, allowedUser := range rec.AllowedUsers {
+			if allowedUser == user {
+				return idx
+			}
+		}
+		return -1
+	}
+	userIndex := findKeyIndex(record)
+	if userIndex == -1 {
+		http.Error(writer, fmt.Sprintf("Cannot find %s in allowed users", user), http.StatusNotFound)
+		return
+	}
+	record.AllowedUsers = append(record.AllowedUsers[:userIndex], record.AllowedUsers[userIndex+1:]...)
+
+	encoder := json.NewEncoder(writer)
+	encoder.Encode(record)
 }

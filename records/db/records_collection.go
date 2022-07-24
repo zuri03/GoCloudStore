@@ -36,10 +36,8 @@ func (mongo *Mongo) DeleteRecord(key string) error {
 	return nil
 }
 
-func (mongo *Mongo) AddAllowedUser(key, user string) error {
-	return nil
-}
-
-func (mongo *Mongo) RemoveAllowedUser(key, user string) error {
-	return nil
+func (mongo *Mongo) ReplaceRecord(record *common.Record) error {
+	filter := bson.D{primitive.E{Key: "_id", Value: record.Key}}
+	singleResult := mongo.records.FindOneAndReplace(mongo.ctx, filter, record)
+	return singleResult.Err()
 }

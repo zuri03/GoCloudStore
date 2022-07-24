@@ -17,8 +17,7 @@ type recordDataBase interface {
 	GetRecord(key string) (*common.Record, error)
 	CreateRecord(record common.Record) error
 	DeleteRecord(key string) error
-	AddAllowedUser(key, user string) error
-	RemoveAllowedUser(key, user string) error
+	ReplaceRecord(record *common.Record) error
 }
 
 func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup) *http.ServeMux {
