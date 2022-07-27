@@ -6,6 +6,7 @@ import (
 	_ "go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/zuri03/GoCloudStore/common"
+	m "go.mongodb.org/mongo-driver/mongo"
 )
 
 //If you cannot find record return no error with an empty record
@@ -14,9 +15,12 @@ func (mongo *Mongo) GetRecord(key string) (*common.Record, error) {
 	singleResult := mongo.records.FindOne(mongo.ctx, filter)
 	record := &common.Record{}
 	if err := singleResult.Decode(record); err != nil {
+		if err == m.ErrNoDocuments {
+			return &common.Record{}, nil
+		}
 		return nil, err
 	}
-	return nil, nil
+	return record, nil
 }
 
 func (mongo *Mongo) CreateRecord(record common.Record) error {
@@ -40,23 +44,4 @@ func (mongo *Mongo) ReplaceRecord(record *common.Record) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: record.Key}}
 	singleResult := mongo.records.FindOneAndReplace(mongo.ctx, filter, record)
 	return singleResult.Err()
-}
-
-func (mongo *Mongo) GetAllRecords() ([]*common.Record, error) {
-	filter := bson.D{{}}
-	manyResult, err := mongo.records.Find(mongo.ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-	records := []*common.Record{}
-
-	for manyResult.Next(mongo.ctx) {
-		record := &common.Record{}
-		if err := manyResult.Decode(record); err != nil {
-			return nil, err
-		}
-		records = append(records, record)
-	}
-
-	return records, nil
 }

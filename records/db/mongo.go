@@ -32,7 +32,8 @@ func New() (*Mongo, error) {
 		return nil, err
 	}
 
-	users := client.Database("cloudStore").Collection("user")
 	records := client.Database("cloudStore").Collection("records")
+	users := client.Database("cloudStore").Collection("user")
+
 	return &Mongo{client: client, users: users, records: records}, nil
 }

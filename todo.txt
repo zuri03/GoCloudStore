@@ -25,7 +25,6 @@ Future Plans:
 
 
 Bugs:
-    mongo is not creating collections
 
     return message from record server letting client know the record exists
 
@@ -54,3 +53,6 @@ Improvements:
         - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
 
     determine best numerical values for file transfer constant values
+
+    fix server error responses
+        - server error responses should contain a message that is only meant for the user

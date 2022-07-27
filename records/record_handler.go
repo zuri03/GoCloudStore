@@ -32,9 +32,10 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
-	encoder := json.NewEncoder(writer)
+	fmt.Println("In record handler")
 
 	if req.Method == http.MethodPost {
+		fmt.Println("Creating record")
 		var requestBody Request
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -53,7 +54,7 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		}
 
 		if record.Key != "" {
-			encoder.Encode(record)
+			http.Error(writer, fmt.Sprintf("%s already exists", requestBody.Key), http.StatusConflict)
 			return
 		}
 

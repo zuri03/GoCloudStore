@@ -117,7 +117,11 @@ func (c *MetaDataClient) createUser(username string, password string) (*common.U
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Error has occured while creating user: %d\n", resp.StatusCode)
+		errorMessage, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
@@ -152,11 +156,11 @@ func (c *MetaDataClient) getFileRecord(owner string, key string) (*common.Record
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Server return error => %d\n", resp.StatusCode)
-		if resp.StatusCode == http.StatusForbidden {
-			return nil, fmt.Errorf("%s is not allowed to view %s\n", owner, key)
+		errorMessage, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf(string(body))
+		return nil, fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	json.Unmarshal(body, &record)
@@ -176,18 +180,18 @@ func (c *MetaDataClient) deleteFileRecord(owner, key string) error {
 		return err
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("unauthorized")
-	}
-
 	var record common.Record
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error has occured while deleting record: %s\n", string(body))
+	if resp.StatusCode != http.StatusOK {
+		errorMessage, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	json.Unmarshal(body, &record)
@@ -222,16 +226,12 @@ func (c *MetaDataClient) createFileRecord(owner, key, fileName string, fileSize 
 		return err
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("unauthorized")
-	}
-
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		errorMessage, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("Error: record server returned error: %d: %s\n", resp.StatusCode, string(errorMessage))
+		return fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	return nil
@@ -247,12 +247,11 @@ func (c *MetaDataClient) addAllowedUser(owner, key, allowedUser string) error {
 
 	resp, err := c.Client.Do(request)
 	if resp.StatusCode != http.StatusOK {
-
-		if resp.StatusCode == http.StatusUnauthorized {
-			return fmt.Errorf("unauthorized")
+		errorMessage, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
 		}
-
-		return fmt.Errorf("Error has occured while giving user access to record: %d\n", resp.StatusCode)
+		return fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	return nil
@@ -268,16 +267,11 @@ func (c *MetaDataClient) removeAllowedUser(owner, key string, removedUser string
 
 	resp, err := c.Client.Do(request)
 	if resp.StatusCode != http.StatusOK {
-
-		if resp.StatusCode == http.StatusUnauthorized {
-			return fmt.Errorf("unauthorized")
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
+		errorMessage, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("Error has occured while removing user: %s\n", string(body))
+		return fmt.Errorf("%d: %s\n", resp.StatusCode, string(errorMessage))
 	}
 
 	return nil
