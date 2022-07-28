@@ -1,15 +1,21 @@
 todo:
     Set up kubernetes
 
-    set up go tests
-
     set up tls for each of the apis
-
-    Implement system logging
 
     Use Bufio for sending files in loop
         
     setup authentication on mongo
+
+    change all references of allowedUser to PrivlidgedUser
+
+in development:
+    set up go tests
+
+    Implement system logging
+
+    fix server error responses
+        - server error responses should contain a message that is only meant for the user
     
 Future Plans:
     Make desktop app that uses the client to send data to server
@@ -23,11 +29,9 @@ Future Plans:
             - although this may be unnecessary since we do not expect the data servers to suddenly go offline 
         - also need a way to determine the ip addresses of the data server so that the meta server can use them
 
+    data replication
 
 Bugs:
-
-    return message from record server letting client know the record exists
-
     Makefile clean target is not working
 
 Improvements:
@@ -38,21 +42,13 @@ Improvements:
     return json objects in post requests
 
     improve design of records for better unit tests
-        - remove http response writing and request reading logic from middleware and handler funcitons
 
     make db structs thread safe
-        - http clients are already thread safe
-
-    come up with a better name for allowedUsers
-        allowed users is a list of users that are allowed to retrieve a file despite not being the owner
-        PrivlidgedUser?
 
     Reduce docker image size
+        - First need to research techniques and reduce docker images
 
     seperating the client and the cli:
         - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
 
     determine best numerical values for file transfer constant values
-
-    fix server error responses
-        - server error responses should contain a message that is only meant for the user

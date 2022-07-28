@@ -13,22 +13,32 @@ import (
 	"github.com/zuri03/GoCloudStore/records/db"
 )
 
-func main() {
-	fmt.Println("CREATING META DATA SERVER")
+const PORT = 8080
+const HOST = ""
 
-	fmt.Println("CREATING MONGO CLIENT")
+func main() {
+
+	logOutput, err := os.OpenFile("record-log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.SetOutput(logOutput)
+
+	log.Println("Connecting to mongodb..")
 	mongo, err := db.New()
 	if err != nil {
-		fmt.Printf("ERROR CONNECTING TO MONGO: %s\n", err.Error())
+		log.Fatalf("Error connecting to mongo: %s\n", err.Error())
 		return
 	}
-	fmt.Println("CONNECTED TO MONGO")
+	log.Println("Successfully connected to mongodb")
 
 	tracker := new(sync.WaitGroup)
 	router := records.Router(mongo, mongo, tracker)
 
+	address := fmt.Sprintf("%s:%d", HOST, PORT)
 	server := &http.Server{
-		Addr:        ":8080",
+		Addr:        address,
 		Handler:     router,
 		IdleTimeout: 60 * time.Second,
 	}
@@ -38,15 +48,18 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		
 	}()
-
+	log.Printf("Record server listening on port %d\n", PORT)
 	signaler := make(chan os.Signal)
 	signal.Notify(signaler, os.Interrupt)
 	signal.Notify(signaler, os.Kill)
 
 	<-signaler
 
+	log.Println("Shutdown signal received, waiting for go routines to finish...")
+
 	tracker.Wait()
 
-	fmt.Println("SHUT DOWN")
+	fmt.Println("Exiting...")
 }
