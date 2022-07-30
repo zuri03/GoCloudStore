@@ -34,6 +34,13 @@ Future Plans:
 Bugs:
     Makefile clean target is not working
 
+    when the storage server sends an error frame to the client while the clients 
+    expects file data the client will simply write the error frame bytes to the file
+        - likely fix: wrap each piece of file data in a frame so when the client reads file data is can check the frame type before deciding what to do next
+        
+    cli simply appends file data received from server   
+        - needs to be able to identify and append new additions not present in local version
+
 Improvements:
     remove common package
 
@@ -52,3 +59,5 @@ Improvements:
         - If I will implement an electron app for the system then I will need to seperate the cli logic from the client logic so that the client logic can be reused
 
     determine best numerical values for file transfer constant values
+
+    adjust permission bits for opening files

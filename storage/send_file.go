@@ -13,6 +13,7 @@ import (
 func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	encoder, _ := newEncoderDecorder(connection)
 	meta, err := decodeMetaData(frame)
+	fmt.Printf("Meta Data: %+v\n", meta)
 	if err != nil {
 		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		if err := sendErrorFrame(encoder, err.Error()); err != nil {
@@ -57,7 +58,7 @@ func openFileForTransfer(meta c.FileMetaData) (*os.File, error) {
 		}
 	}
 
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0777)
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0777)
 	if err != nil {
 		return nil, err
 	}

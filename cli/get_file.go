@@ -16,14 +16,12 @@ import (
 //in the correct order
 //Handles any errors that may occur by notifying the user
 func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
-	fmt.Printf("Owner => %s\n", owner)
 	key := input[0]
 	record, err := metaClient.getFileRecord(owner, key)
 	if err != nil {
 		fmt.Printf("Error getting file record: %s\n", err.Error())
 		return
 	}
-	fmt.Printf("record => %+v\n", record)
 	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()

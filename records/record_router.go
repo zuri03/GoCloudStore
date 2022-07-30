@@ -1,6 +1,7 @@
 package records
 
 import (
+	"log"
 	"net/http"
 	"sync"
 
@@ -25,7 +26,7 @@ type recordDataBase interface {
 	*/
 }
 
-func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup) *http.ServeMux {
+func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger) *http.ServeMux {
 	authHandler := AuthHandler{
 		dbClient:       userDB,
 		routineTracker: tracker,
@@ -51,10 +52,7 @@ func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGrou
 		resourseExistsMiddleware: recordExists,
 		canViewMiddleware:        canView,
 		checkOwnerMiddleware:     checkOwner,
-	}
-
-	type All struct {
-		db recordDataBase
+		logger:                   logger,
 	}
 
 	router := http.NewServeMux()
@@ -66,13 +64,6 @@ func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGrou
 	router.HandleFunc("/user", userHandler.ServeHTTP)
 
 	router.HandleFunc("/auth", authHandler.ServeHTTP)
-	/*
-		//This handler is only for development
-		router.HandleFunc("/all", func(http.ResponseWriter, *http.Request) {
-			fmt.Println("In all hanlder")
-			records, err := db.
-		})
-	*/
 
 	return router
 }

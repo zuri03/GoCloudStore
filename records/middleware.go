@@ -39,12 +39,10 @@ func canView(id string, record common.Record) error {
 	}
 
 	if record.Owner == id {
-		fmt.Println("Found match in owner")
 		return nil
 	}
 
 	for _, allowedUser := range record.AllowedUsers {
-		fmt.Printf("%s == %s\n", id, allowedUser)
 		if id == allowedUser {
 			return nil
 		}
@@ -66,12 +64,10 @@ func recordExists(key string, db recordDataBase) (common.Record, error) {
 	//If the method returns an error then something serious has occured
 	//If the method cannot find the resource it returns an empty struct with a nil error
 	if err != nil {
-		fmt.Printf("Error in checking resource: %s\n", err.Error())
 		return common.Record{}, fmt.Errorf("Internal Server Error")
 	}
 
 	if record.Key == "" {
-		fmt.Printf("Unable to find record %s", key)
 		return common.Record{}, nil
 	}
 

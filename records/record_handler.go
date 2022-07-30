@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -25,6 +26,7 @@ type RecordHandler struct {
 	resourseExistsMiddleware func(key string, db recordDataBase) (common.Record, error)
 	canViewMiddleware        func(id string, record common.Record) error
 	checkOwnerMiddleware     func(id string, record common.Record) error
+	logger                   *log.Logger
 }
 
 //refactor this handler
@@ -32,24 +34,27 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	handler.routineTracker.Add(1)
 	defer handler.routineTracker.Done()
 
-	fmt.Println("In record handler")
+	handler.logger.Printf("Record request received, method: %s\n", req.Method)
 
 	if req.Method == http.MethodPost {
-		fmt.Println("Creating record")
+		handler.logger.Println("Records Post request recieved")
 		var requestBody Request
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
+			handler.logger.Printf("Error reading body: %s\n", err.Error())
 			http.Error(writer, "Unable to read request body", http.StatusBadRequest)
 			return
 		}
 
 		if err = json.Unmarshal(body, &requestBody); err != nil {
+			handler.logger.Printf("Error unmarshaling json: %s\n", err.Error())
 			http.Error(writer, "Unable to read request body", http.StatusBadRequest)
 			return
 		}
 
 		record, err := handler.resourseExistsMiddleware(requestBody.Key, handler.dbClient)
 		if err != nil {
+			handler.logger.Printf("Error in resource middleware: %s\n", err.Error())
 			return
 		}
 
@@ -67,17 +72,20 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	key := req.FormValue("key")
 
 	if err := handler.paramsMiddleware(id, key); err != nil {
+		handler.logger.Printf("Error in params middleware: %s\n", err.Error())
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	record, err := handler.resourseExistsMiddleware(key, handler.dbClient)
 	if err != nil {
+		handler.logger.Printf("Error in resource middleware: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	if record.Key == "" {
+		handler.logger.Printf("Unable to find record: %s\n", key)
 		http.Error(writer, fmt.Sprintf("Cannot find %s", key), http.StatusNotFound)
 		return
 	}
@@ -106,6 +114,7 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 	currentTime := time.Now().Format("2006-01-02 03:04:05")
 
 	newRecord := common.Record{
+		Key:          request.Key,
 		Size:         int64(request.Size),
 		Name:         request.FileName,
 		Location:     location,
@@ -116,14 +125,14 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 	}
 
 	if err := handler.dbClient.CreateRecord(newRecord); err != nil {
-		fmt.Printf("Error creating record: %s\n", err.Error())
+		handler.logger.Printf("Error creating record: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	jsonBytes, err := json.Marshal(newRecord)
 	if err != nil {
-		fmt.Printf("Error marshaling json: %s\n", err.Error())
+		handler.logger.Printf("Error marshaling json: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -134,7 +143,7 @@ func (handler *RecordHandler) CreateRecord(request Request, writer http.Response
 func (handler *RecordHandler) GetRecord(record common.Record, writer http.ResponseWriter) {
 	jsonBytes, err := json.Marshal(record)
 	if err != nil {
-		fmt.Printf("Error marshaling json: %s\n", err.Error())
+		handler.logger.Printf("Error marshaling json: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -144,7 +153,7 @@ func (handler *RecordHandler) GetRecord(record common.Record, writer http.Respon
 
 func (handler *RecordHandler) DeleteRecord(key string, writer http.ResponseWriter) {
 	if err := handler.dbClient.DeleteRecord(key); err != nil {
-		fmt.Printf("Error deleting record: %s\n", err.Error())
+		handler.logger.Printf("Error deleting record: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

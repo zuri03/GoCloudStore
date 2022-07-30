@@ -13,6 +13,7 @@ import (
 	"github.com/zuri03/GoCloudStore/records/db"
 )
 
+//Port these over to an .env file
 const PORT = 8080
 const HOST = ""
 
@@ -23,18 +24,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.SetOutput(logOutput)
+	defer logOutput.Close()
 
-	log.Println("Connecting to mongodb..")
+	logger := log.New(logOutput, "", log.LstdFlags)
+
+	logger.Println("Connecting to mongodb..")
 	mongo, err := db.New()
 	if err != nil {
-		log.Fatalf("Error connecting to mongo: %s\n", err.Error())
+		logger.Fatalf("Error connecting to mongo: %s\n", err.Error())
 		return
 	}
-	log.Println("Successfully connected to mongodb")
+	logger.Println("Successfully connected to mongodb")
 
 	tracker := new(sync.WaitGroup)
-	router := records.Router(mongo, mongo, tracker)
+	router := records.Router(mongo, mongo, tracker, logger)
 
 	address := fmt.Sprintf("%s:%d", HOST, PORT)
 	server := &http.Server{
@@ -46,20 +49,20 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
-		
+
 	}()
-	log.Printf("Record server listening on port %d\n", PORT)
+	logger.Printf("Record server listening on port %d\n", PORT)
 	signaler := make(chan os.Signal)
 	signal.Notify(signaler, os.Interrupt)
 	signal.Notify(signaler, os.Kill)
 
 	<-signaler
 
-	log.Println("Shutdown signal received, waiting for go routines to finish...")
+	logger.Println("Shutdown signal received, waiting for go routines to finish...")
 
 	tracker.Wait()
 
-	fmt.Println("Exiting...")
+	logger.Println("Exiting...")
 }
