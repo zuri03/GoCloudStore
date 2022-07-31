@@ -53,7 +53,7 @@ func getFileDataFromServer(fileName string, fileSize int, connection net.Conn) e
 	}
 	defer file.Close()
 
-	if fileSize <= c.MAX_CACHE_BUFFER_SIZE {
+	if fileSize <= c.MAX_BUFFER_SIZE {
 		fmt.Println("Storing file in one chunk")
 		buffer := make([]byte, fileSize)
 		if _, err := connection.Read(buffer); err != nil {
@@ -96,7 +96,7 @@ func getFileDataFromServer(fileName string, fileSize int, connection net.Conn) e
 			return err
 		}
 
-		if fileDataCacheBuffer.Len() > c.MAX_CACHE_BUFFER_SIZE {
+		if fileDataCacheBuffer.Len() > c.MAX_BUFFER_SIZE {
 			writeBuffertoFile(fileDataCacheBuffer, file)
 		}
 	}

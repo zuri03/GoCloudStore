@@ -1,12 +1,12 @@
 package storage
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
 	"net"
-	"os"
 
+	"github.com/zuri03/GoCloudStore/common"
 	c "github.com/zuri03/GoCloudStore/common"
 )
 
@@ -24,7 +24,6 @@ func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 		fmt.Printf("Error decoding meta: %s\n", err.Error())
 		return
 	}
-	fmt.Printf("Get meta => %s \n size => %d owner => %s\n", meta.Name, meta.Size, meta.Owner)
 
 	if err := sendProceed(encoder); err != nil {
 		if err != io.EOF {
@@ -57,7 +56,7 @@ func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
 	}
 	defer file.Close()
 
-	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
+	if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
 		fmt.Println("storing file in one chunk")
 		buffer := make([]byte, meta.Size)
 		if _, err := connection.Read(buffer); err != nil {
@@ -69,20 +68,17 @@ func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
 		return nil
 	}
 
-	fileDataCacheBuffer := new(bytes.Buffer)
 	readBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
-	writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
-		file.Write(buffer.Bytes())
-		buffer.Reset()
-	}
+	bufferedWriter := bufio.NewWriterSize(file, common.MAX_BUFFER_SIZE)
 
 	for {
 		numOfBytes, err := connection.Read(readBuffer)
 		if err != nil {
 			if err == io.EOF {
 				if numOfBytes > 0 {
-					fileDataCacheBuffer.Write(readBuffer[:numOfBytes])
-					writeBuffertoFile(fileDataCacheBuffer, file)
+					if _, err := bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
+						return err
+					}
 				}
 				break
 			}
@@ -90,17 +86,8 @@ func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
 			return err
 		}
 
-		if numOfBytes == 0 {
-			fmt.Println("finished reading breaking")
-			break
-		}
-
-		if _, err = fileDataCacheBuffer.Write(readBuffer[:numOfBytes]); err != nil {
+		if _, err = bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
 			return err
-		}
-
-		if fileDataCacheBuffer.Len() > c.MAX_CACHE_BUFFER_SIZE {
-			writeBuffertoFile(fileDataCacheBuffer, file)
 		}
 	}
 	return nil

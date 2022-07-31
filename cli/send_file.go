@@ -54,7 +54,7 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	if err := waitForProceed(decoder); err != nil {
+	if err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
 		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
 		return
 	}
@@ -105,7 +105,7 @@ func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection ne
 			return err
 		}
 
-		if err := waitForProceed(decoder); err != nil {
+		if err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
 			return err
 		}
 	}

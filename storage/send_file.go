@@ -68,7 +68,7 @@ func openFileForTransfer(meta c.FileMetaData) (*os.File, error) {
 
 func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Conn) error {
 
-	if meta.Size <= int64(c.MAX_CACHE_BUFFER_SIZE) {
+	if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
 			return err
@@ -99,7 +99,7 @@ func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Con
 
 		bufferedConnWriter.Write(fileBuffer[:numOfBytes])
 
-		if bufferedConnWriter.Buffered() >= c.MAX_CACHE_BUFFER_SIZE {
+		if bufferedConnWriter.Buffered() >= c.MAX_BUFFER_SIZE {
 			if err := bufferedConnWriter.Flush(); err != nil {
 				return err
 			}

@@ -26,7 +26,7 @@ func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 
 //This function forces the client to wait for the server to send a message letting
 //the client know it is ready to move to the next step of the process
-func waitForProceed(decoder *gob.Decoder) error {
+func acceptFrame(decoder *gob.Decoder, acceptedTypes ...common.FrameType) error {
 	var frame common.ProtocolFrame
 	if err := decoder.Decode(&frame); err != nil {
 		return err
@@ -38,11 +38,13 @@ func waitForProceed(decoder *gob.Decoder) error {
 		return fmt.Errorf("Server Error: %s\n", string(frame.Data))
 	}
 
-	if frame.Type != common.PROCEED_FRAME {
-		return fmt.Errorf("Unexpected frame: %d\n", frame.Type)
+	for _, frameType := range acceptedTypes {
+		if frameType == frame.Type {
+			return nil
+		}
 	}
 
-	return nil
+	return fmt.Errorf("Unexpected frame: %d\n", frame.Type)
 }
 
 /*

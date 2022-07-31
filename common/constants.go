@@ -37,5 +37,5 @@ const (
 	PROCEED_FRAME FrameType = 5
 
 	//Frame type used to send file data
-	DATA_FRAME = 6
+	//DATA_FRAME = 6
 )
