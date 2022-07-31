@@ -5,8 +5,8 @@ location makes it easier to sychronize the value and name of each constant acros
 package common
 
 const (
-	MAX_CACHE_BUFFER_SIZE int = 2048 //Max amount of data that can be read to memory before it must be stored in a file
-	TEMP_BUFFER_SIZE      int = 1024
+	MAX_BUFFER_SIZE  int = 2048 //Max amount of data that can be read to memory before it must be stored in a file
+	TEMP_BUFFER_SIZE int = 1024
 
 	//Used in situations for entities to express an internal error to the other entity it is connected to
 	ERROR_PROTOCOL string = "ERR"
@@ -35,4 +35,7 @@ const (
 
 	//Proceed is used in situations where the actions of the client and server need to be coordinated to ensure no error occurs
 	PROCEED_FRAME FrameType = 5
+
+	//Frame type used to send file data
+	DATA_FRAME = 6
 )

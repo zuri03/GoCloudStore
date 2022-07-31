@@ -35,17 +35,27 @@ func waitForProceed(decoder *gob.Decoder) error {
 	fmt.Printf("Proceed received => %+v\n", frame)
 
 	if frame.Type == common.ERROR_FRAME {
-		return fmt.Errorf("Error on server: %s\n", string(frame.Data))
+		return fmt.Errorf("Server Error: %s\n", string(frame.Data))
 	}
 
 	if frame.Type != common.PROCEED_FRAME {
-		return fmt.Errorf("Unexpected frame got: %d\n", frame.Type)
+		return fmt.Errorf("Unexpected frame: %d\n", frame.Type)
 	}
 
-	fmt.Printf("Got proceed frame => %d\n", frame.Type)
 	return nil
 }
 
+/*
+func sendFileDataFrame(data []byte, encoder *gob.Encoder) error {
+	frame := common.ProtocolFrame{
+		Type:          common.DATA_FRAME,
+		PayloadLength: int64(len(data)),
+		Data:          data,
+	}
+
+	return encoder.Encode(frame)
+}
+*/
 func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, encoder *gob.Encoder) error {
 	metaBuffer := new(bytes.Buffer)
 	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
@@ -57,15 +67,21 @@ func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, 
 		PayloadLength: int64(metaBuffer.Len()),
 		Data:          metaBuffer.Bytes(),
 	}
-	fmt.Println("Encoded gob")
 
-	if err := encoder.Encode(frame); err != nil {
-		return err
+	return encoder.Encode(frame)
+}
+
+/*
+func listenForErrors(decoder *gob.Decoder, cancel context.CancelFunc) {
+	var frame *common.ProtocolFrame
+	if err := decoder.Decode(frame); err != nil {
+		fmt.Printf("Error decoding error frame %s\n", err.Error())
 	}
 
-	fmt.Println("SENT META DATA")
-	return nil
+	fmt.Printf("Server Error: %s\n", string(frame.Data))
+	cancel()
 }
+*/
 
 type MetaDataClient struct {
 	Client http.Client

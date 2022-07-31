@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"bufio"
+	"encoding/gob"
 	"fmt"
 	"io/fs"
 	"net"
@@ -36,12 +38,17 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	defer connection.Close()
 
 	encoder, decoder := newEncoderDecorder(connection)
+	/*
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+	*/
+
 	meta := common.FileMetaData{
 		Owner: owner,
 		Name:  fileInfo.Name(),
 		Size:  fileInfo.Size(),
 	}
-	fmt.Printf("param meta => %+v\n", meta)
+
 	if err := sendMetaDataToServer(common.SEND_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
 		return
@@ -52,7 +59,7 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	if err := sendFileDataToServer(file, meta, connection); err != nil {
+	if err := sendFileDataToServer(file, meta, connection, decoder); err != nil {
 		fmt.Printf("Error sending file data to server: %s\n", err.Error())
 		return
 	}
@@ -60,9 +67,9 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 	fmt.Println("Successfully sent file to server")
 }
 
-func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn) error {
+func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
 
-	if meta.Size <= int64(common.MAX_CACHE_BUFFER_SIZE) {
+	if meta.Size <= int64(common.MAX_BUFFER_SIZE) {
 		fmt.Println("Sending file in one chunck")
 		buffer := make([]byte, meta.Size)
 		if _, err := file.Read(buffer); err != nil {
@@ -72,18 +79,21 @@ func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection ne
 		if _, err := connection.Write(buffer); err != nil {
 			return err
 		}
+
 		return nil
 	}
 
-	buffer := make([]byte, common.MAX_CACHE_BUFFER_SIZE)
-
+	buffer := make([]byte, common.TEMP_BUFFER_SIZE)
+	bufferedWriter := bufio.NewWriterSize(connection, common.MAX_BUFFER_SIZE)
 	for {
 		numOfBytes, err := file.Read(buffer)
 
 		if err != nil {
 			if err.Error() == "EOF" {
 				if numOfBytes > 0 {
-					connection.Write(buffer[:numOfBytes])
+					if _, err := bufferedWriter.Write(buffer[:numOfBytes]); err != nil {
+						return err
+					}
 				}
 				return nil
 			} else {
@@ -91,7 +101,13 @@ func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection ne
 			}
 		}
 
-		connection.Write(buffer[:numOfBytes])
+		if _, err := bufferedWriter.Write(buffer[:numOfBytes]); err != nil {
+			return err
+		}
+
+		if err := waitForProceed(decoder); err != nil {
+			return err
+		}
 	}
 }
 
