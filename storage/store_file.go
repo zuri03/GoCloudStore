@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bufio"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"net"
@@ -35,7 +36,9 @@ func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 		return
 	}
 
-	if err := storeFileDataFromClient(meta, connection); err != nil {
+	fmt.Println("CLIENT READ PROCEED")
+
+	if err := storeFileDataFromClient(meta, connection, encoder); err != nil {
 		if err != io.EOF {
 			if err := sendErrorFrame(encoder, err.Error()); err != nil {
 				fmt.Printf("Error sending error frame: %s\n", err.Error())
@@ -48,28 +51,29 @@ func storeFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	fmt.Println("Successfully store file")
 }
 
-func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
+func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn, encoder *gob.Encoder) error {
 
 	file, err := openFile(meta.Owner, meta.Name)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
-	if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
-		fmt.Println("storing file in one chunk")
-		buffer := make([]byte, meta.Size)
-		if _, err := connection.Read(buffer); err != nil {
-			return err
-		}
-		if _, err := file.Write(buffer); err != nil {
-			return err
-		}
-		return nil
-	}
+	/*
+		if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
+			fmt.Println("storing file in one chunk")
+			buffer := make([]byte, meta.Size)
+			if _, err := connection.Read(buffer); err != nil {
+				return err
+			}
+			if _, err := file.Write(buffer); err != nil {
+				return err
+			}
+			return nil
+		}*/
 
 	readBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
 	bufferedWriter := bufio.NewWriterSize(file, common.MAX_BUFFER_SIZE)
+	defer bufferedWriter.Flush()
 
 	for {
 		numOfBytes, err := connection.Read(readBuffer)
@@ -82,13 +86,18 @@ func storeFileDataFromClient(meta c.FileMetaData, connection net.Conn) error {
 				}
 				break
 			}
-			fmt.Println("ERROR OCCURRED RETURING")
+
 			return err
 		}
 
 		if _, err = bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
 			return err
 		}
+
+		if err := sendProceed(encoder); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }

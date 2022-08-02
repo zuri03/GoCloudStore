@@ -13,9 +13,6 @@ in development:
     set up go tests
 
     Implement system logging
-
-    fix server error responses
-        - server error responses should contain a message that is only meant for the user
     
 Future Plans:
     Make desktop app that uses the client to send data to server
@@ -40,6 +37,8 @@ Bugs:
         
     cli simply appends file data received from server   
         - needs to be able to identify and append new additions not present in local version
+
+    server returns 400 error when space is added to username
 
 Improvements:
     remove common package

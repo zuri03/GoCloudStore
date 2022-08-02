@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"bufio"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"net"
 	"os"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
-	encoder, _ := newEncoderDecorder(connection)
+	encoder, decoder := newEncoderDecorder(connection)
 	meta, err := decodeMetaData(frame)
 	fmt.Printf("Meta Data: %+v\n", meta)
 	if err != nil {
@@ -32,7 +32,21 @@ func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	}
 	defer file.Close()
 
-	if err := sendFileDataToClient(file, meta, connection); err != nil {
+	/*
+		fmt.Println("SENDING PROCEED FRAME BEFORE FILE")
+		if err := sendFrame(c.PROCEED_FRAME, encoder); err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			return
+		}
+	*/
+
+	fmt.Println("WAITING FOR PROCEED BEFORE FILE")
+	if _, err := acceptFrame(decoder); err != nil {
+		fmt.Printf("Error waiting for proceed file: %s\n", err.Error())
+		return
+	}
+
+	if err := sendFileDataToClient(file, meta, connection, decoder); err != nil {
 		fmt.Printf("Error while reading file data: %s\n", err.Error())
 		if err := sendErrorFrame(encoder, err.Error()); err != nil {
 			fmt.Printf("Error sending error frame: %s\n", err.Error())
@@ -66,45 +80,50 @@ func openFileForTransfer(meta c.FileMetaData) (*os.File, error) {
 	return file, nil
 }
 
-func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Conn) error {
-
-	if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
-		buffer := make([]byte, meta.Size)
-		if _, err := file.Read(buffer); err != nil {
-			return err
+func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
+	/*
+		if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
+			buffer := make([]byte, meta.Size)
+			if _, err := file.Read(buffer); err != nil {
+				return err
+			}
+			if _, err := connection.Write(buffer); err != nil {
+				return err
+			}
+			return nil
 		}
-		if _, err := connection.Write(buffer); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	bufferedConnWriter := bufio.NewWriter(connection)
+	*/
 	fileBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
-	for {
+	totalBytesSent := 0
+	for totalBytesSent <= int(meta.Size) {
 		numOfBytes, err := file.Read(fileBuffer)
 		if err != nil {
-			if err.Error() == "EOF" {
+			if err == io.EOF {
 				if numOfBytes > 0 {
-					bufferedConnWriter.Write(fileBuffer[:numOfBytes])
-					if err := bufferedConnWriter.Flush(); err != nil {
-						return nil
+					if _, err := connection.Write(fileBuffer[:numOfBytes]); err != nil {
+						return err
 					}
 				}
-				return nil
+				break
 			} else {
 				return err
 			}
 		}
 
-		bufferedConnWriter.Write(fileBuffer[:numOfBytes])
-
-		if bufferedConnWriter.Buffered() >= c.MAX_BUFFER_SIZE {
-			if err := bufferedConnWriter.Flush(); err != nil {
-				return err
-			}
+		if _, err := connection.Write(fileBuffer[:numOfBytes]); err != nil {
+			return err
+		}
+		totalBytesSent += numOfBytes
+		fmt.Printf("Total Sent %d\n", totalBytesSent)
+		fmt.Println("WAITING FOR PROCEED FRAME")
+		if frame, err := acceptFrame(decoder); err != nil {
+			return err
+		} else if frame.Type != c.PROCEED_FRAME {
+			return fmt.Errorf("Error: %s\n", err.Error())
 		}
 	}
+
+	return nil
 }
 
 func acceptFileMetaData(connection net.Conn) (c.FileMetaData, error) {

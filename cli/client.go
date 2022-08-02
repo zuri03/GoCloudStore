@@ -17,34 +17,32 @@ type AuthenticationResponse struct {
 	Id string `json:"id"`
 }
 
-func newEncoderDecorder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
+func newEncoderDecoder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	gob.Register(new(common.ProtocolFrame))
 	gob.Register(new(common.FileMetaData))
 
 	return gob.NewEncoder(connection), gob.NewDecoder(connection)
 }
 
-//This function forces the client to wait for the server to send a message letting
-//the client know it is ready to move to the next step of the process
-func acceptFrame(decoder *gob.Decoder, acceptedTypes ...common.FrameType) error {
+func acceptFrame(decoder *gob.Decoder, acceptedTypes ...common.FrameType) (*common.ProtocolFrame, error) {
 	var frame common.ProtocolFrame
 	if err := decoder.Decode(&frame); err != nil {
-		return err
+		return nil, err
 	}
 
 	fmt.Printf("Proceed received => %+v\n", frame)
 
 	if frame.Type == common.ERROR_FRAME {
-		return fmt.Errorf("Server Error: %s\n", string(frame.Data))
+		return nil, fmt.Errorf("Server Error: %s\n", string(frame.Data))
 	}
 
 	for _, frameType := range acceptedTypes {
 		if frameType == frame.Type {
-			return nil
+			return &frame, nil
 		}
 	}
 
-	return fmt.Errorf("Unexpected frame: %d\n", frame.Type)
+	return nil, fmt.Errorf("Unexpected frame: %d\n", frame.Type)
 }
 
 /*
@@ -71,6 +69,30 @@ func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, 
 	}
 
 	return encoder.Encode(frame)
+}
+
+func sendFrame(frameType common.FrameType, encoder *gob.Encoder, data ...[]byte) error {
+
+	var frame common.ProtocolFrame
+	if len(data) > 0 {
+		frame = common.ProtocolFrame{
+			Type:          frameType,
+			PayloadLength: int64(len(data[0])),
+			Data:          data[0],
+		}
+	} else {
+		frame = common.ProtocolFrame{
+			Type:          frameType,
+			PayloadLength: 0,
+			Data:          nil,
+		}
+	}
+
+	if err := encoder.Encode(frame); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 /*

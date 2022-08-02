@@ -26,19 +26,34 @@ func acceptFrame(decoder *gob.Decoder) (c.ProtocolFrame, error) {
 	return frame, nil
 }
 
-func sendFrame(frameType c.FrameType, data []byte, encoder *gob.Encoder) error {
-	frame := c.ProtocolFrame{
-		Type:          frameType,
-		PayloadLength: int64(len(data)),
-		Data:          data,
+//A general method used from sending frames
+func sendFrame(frameType c.FrameType, encoder *gob.Encoder, data ...[]byte) error {
+	if len(data) == 0 {
+		frame := c.ProtocolFrame{
+			Type:          frameType,
+			PayloadLength: 0,
+			Data:          nil,
+		}
+
+		return encoder.Encode(frame)
 	}
-	if err := encoder.Encode(frame); err != nil {
-		return err
+
+	for _, payload := range data {
+		frame := c.ProtocolFrame{
+			Type:          frameType,
+			PayloadLength: int64(len(payload)),
+			Data:          payload,
+		}
+
+		if err := encoder.Encode(frame); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
-//Since success and error frames are the last frames sent we do not care about EOFs
+//A helper method to simplify the numerous attempts to send an error frame to the client
 func sendErrorFrame(encoder *gob.Encoder, message string) error {
 	buffer := []byte(message)
 	frame := c.ProtocolFrame{
@@ -73,7 +88,7 @@ func sendSuccessFrame(encoder *gob.Encoder) error {
 }
 
 func decodeMetaData(frame c.ProtocolFrame) (c.FileMetaData, error) {
-	fmt.Println("SENDING META DATA")
+	fmt.Println("DECODING META DATA")
 	ioBuffer := new(bytes.Buffer)
 	ioBuffer.Write(frame.Data)
 	var meta c.FileMetaData
