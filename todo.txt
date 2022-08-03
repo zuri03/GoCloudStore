@@ -60,3 +60,5 @@ Improvements:
     determine best numerical values for file transfer constant values
 
     adjust permission bits for opening files
+
+    create an internal package for common functionality between client and data server

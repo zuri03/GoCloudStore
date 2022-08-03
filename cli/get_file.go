@@ -22,7 +22,7 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		fmt.Printf("Error getting file record: %s\n", err.Error())
 		return
 	}
-	//connection, err := net.DialTCP("tcp", nil, dataNodeAddress)
+
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
 	defer connection.Close()
 	meta := c.FileMetaData{
@@ -30,30 +30,29 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		Name:  record.Name,
 		Size:  record.Size,
 	}
-	encoder, _ := newEncoderDecoder(connection)
+	encoder, decoder := newEncoderDecoder(connection)
 	if err := sendMetaDataToServer(c.GET_FRAME, meta, encoder); err != nil {
 		fmt.Printf("Error sending meta data: %s\n", err.Error())
 		return
 	}
 
-	/*
-		if _, err := acceptFrame(decoder, c.PROCEED_FRAME); err != nil {
-			fmt.Printf("Error waiting for proceed: %s\n", err.Error())
-			return
-		}
-	*/
+	fmt.Println("Waiting for proceed")
 
-	if err := sendFrame(c.PROCEED_FRAME, encoder); err != nil {
-		fmt.Printf("Error sending proceed %s\n", err.Error())
+	if _, err := acceptFrame(decoder, c.PROCEED_FRAME); err != nil {
+		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
 		return
 	}
 
-	if err := getFileDataFromServer(record.Name, int(record.Size),
-		connection, encoder); err != nil {
-		//Log error
-		fmt.Printf("Error retreiving file data: %s\n", err.Error())
+	if err := getFileDataFromServer(meta.Name, int(meta.Size), connection, encoder); err != nil {
+		fmt.Printf("%s\n", err.Error())
 		return
 	}
+
+	if err := sendFrame(c.SUCCESS_FRAME, encoder); err != nil {
+		fmt.Printf("Error on success: %s\n", err.Error())
+		return
+	}
+
 	fmt.Println("Successfully retreived file from server")
 }
 
@@ -65,54 +64,51 @@ func getFileDataFromServer(fileName string, fileSize int, connection net.Conn, e
 	}
 	defer file.Close()
 
-	/*
-		if fileSize <= c.MAX_BUFFER_SIZE {
-			fmt.Println("Storing file in one chunk")
-			buffer := make([]byte, fileSize)
-			if _, err := connection.Read(buffer); err != nil {
-				return err
-			}
-			if _, err := file.Write(buffer); err != nil {
-				return err
-			}
-			return nil
+	if fileSize <= c.MAX_BUFFER_SIZE {
+		fmt.Println("Storing file in one chunk")
+		buffer := make([]byte, fileSize)
+		numOfBytes, err := connection.Read(buffer)
+		if err != nil {
+			return err
 		}
-	*/
-	//fileDataCacheBuffer := new(bytes.Buffer)
-	/*
-		writeBuffertoFile := func(buffer *bytes.Buffer, file *os.File) {
-			file.Write(buffer.Bytes())
-			buffer.Reset()
+		if _, err := file.Write(buffer[:numOfBytes]); err != nil {
+			return err
 		}
-	*/
+		return nil
+	}
 
 	readBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
 	bufferedWriter := bufio.NewWriterSize(file, c.MAX_BUFFER_SIZE)
 	defer bufferedWriter.Flush()
 	fmt.Println("SENDING IN LOOP")
-	for {
+	totalBytes := 0
+	for totalBytes <= fileSize {
+		fmt.Println("READY TO READ")
 		numOfBytes, err := connection.Read(readBuffer)
-		if err != nil {
-			if err == io.EOF {
-				if numOfBytes > 0 {
-					if _, err := bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
-						return err
-					}
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		if numOfBytes == 0 || err == io.EOF {
+			fmt.Printf("GOT ALL OF THE BYTES BREAKING \n")
+			//Just in case there are some bytes left over
+			if numOfBytes != 0 {
+				if _, err := bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
+					fmt.Printf("Error writing to final file: %s\n", err.Error())
+					return err
 				}
-				break
 			}
-			fmt.Println("ERROR OCCURRED RETURING")
-			return err
+
+			break
 		}
 
+		fmt.Printf("read %d bytes from connection: %s\n", numOfBytes, string(readBuffer[:numOfBytes]))
 		if _, err := bufferedWriter.Write(readBuffer[:numOfBytes]); err != nil {
+			fmt.Printf("error writing to file: %s\n", err.Error())
 			return err
 		}
 
-		fmt.Println("SENDING PROCEED FRAME")
-		if err := sendFrame(c.PROCEED_FRAME, encoder); err != nil {
-			return err
-		}
+		totalBytes += numOfBytes
 	}
 
 	return nil

@@ -32,27 +32,34 @@ func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 	}
 	defer file.Close()
 
-	/*
-		fmt.Println("SENDING PROCEED FRAME BEFORE FILE")
-		if err := sendFrame(c.PROCEED_FRAME, encoder); err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			return
-		}
-	*/
+	fmt.Println("Sending proceed")
 
-	fmt.Println("WAITING FOR PROCEED BEFORE FILE")
-	if _, err := acceptFrame(decoder); err != nil {
-		fmt.Printf("Error waiting for proceed file: %s\n", err.Error())
+	if err := sendProceed(encoder); err != nil {
+		fmt.Printf("Error sending proceed: %s\n", err.Error())
 		return
 	}
 
 	if err := sendFileDataToClient(file, meta, connection, decoder); err != nil {
-		fmt.Printf("Error while reading file data: %s\n", err.Error())
-		if err := sendErrorFrame(encoder, err.Error()); err != nil {
-			fmt.Printf("Error sending error frame: %s\n", err.Error())
-		}
+		fmt.Printf("%s\n", err.Error())
 		return
 	}
+
+	buffer := make([]byte, 100)
+	num, err := connection.Read(buffer)
+	if err != nil {
+		fmt.Printf("Error on success: %s\n", err.Error())
+		fmt.Printf("Read %d bytes: %s\n", num, string(buffer[:num]))
+		return
+	}
+
+	fmt.Printf("Buffer: %d: %s\n", num, buffer[:num])
+
+	/*
+		if _, err := acceptFrame(decoder); err != nil {
+			fmt.Printf("Error waiting for success: %s\n", err.Error())
+			return
+		}
+	*/
 
 	fmt.Println("Successfully sent file data")
 }
@@ -81,46 +88,48 @@ func openFileForTransfer(meta c.FileMetaData) (*os.File, error) {
 }
 
 func sendFileDataToClient(file *os.File, meta c.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
-	/*
-		if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
-			buffer := make([]byte, meta.Size)
-			if _, err := file.Read(buffer); err != nil {
-				return err
-			}
-			if _, err := connection.Write(buffer); err != nil {
-				return err
-			}
-			return nil
+
+	if meta.Size <= int64(c.MAX_BUFFER_SIZE) {
+		fmt.Println("SENDING FILE IN ONE CHUNCK")
+		buffer := make([]byte, meta.Size)
+		if _, err := file.Read(buffer); err != nil {
+			return err
 		}
-	*/
+		if _, err := connection.Write(buffer); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	fileBuffer := make([]byte, c.TEMP_BUFFER_SIZE)
 	totalBytesSent := 0
 	for totalBytesSent <= int(meta.Size) {
 		numOfBytes, err := file.Read(fileBuffer)
-		if err != nil {
-			if err == io.EOF {
-				if numOfBytes > 0 {
-					if _, err := connection.Write(fileBuffer[:numOfBytes]); err != nil {
-						return err
-					}
-				}
-				break
-			} else {
-				return err
-			}
+		if err != nil && err != io.EOF {
+			return err
 		}
 
+		if numOfBytes == 0 || err == io.EOF {
+			fmt.Printf("GOT ALL OF THE BYTES BREAKING \n")
+			//Just in case there are some bytes left over
+			if numOfBytes != 0 {
+				if _, err := connection.Write(fileBuffer[:numOfBytes]); err != nil {
+					fmt.Printf("Error writing to final file: %s\n", err.Error())
+					return err
+				}
+			}
+
+			break
+		}
+
+		fmt.Printf("Sending %d bytes: %s\n", numOfBytes, string(fileBuffer[:numOfBytes]))
+
 		if _, err := connection.Write(fileBuffer[:numOfBytes]); err != nil {
+			fmt.Printf("Error while writing: %s\n", err.Error())
 			return err
 		}
+
 		totalBytesSent += numOfBytes
-		fmt.Printf("Total Sent %d\n", totalBytesSent)
-		fmt.Println("WAITING FOR PROCEED FRAME")
-		if frame, err := acceptFrame(decoder); err != nil {
-			return err
-		} else if frame.Type != c.PROCEED_FRAME {
-			return fmt.Errorf("Error: %s\n", err.Error())
-		}
 	}
 
 	return nil
