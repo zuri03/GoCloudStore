@@ -44,23 +44,6 @@ func sendFileHandler(connection net.Conn, frame c.ProtocolFrame) {
 		return
 	}
 
-	buffer := make([]byte, 100)
-	num, err := connection.Read(buffer)
-	if err != nil {
-		fmt.Printf("Error on success: %s\n", err.Error())
-		fmt.Printf("Read %d bytes: %s\n", num, string(buffer[:num]))
-		return
-	}
-
-	fmt.Printf("Buffer: %d: %s\n", num, buffer[:num])
-
-	/*
-		if _, err := acceptFrame(decoder); err != nil {
-			fmt.Printf("Error waiting for success: %s\n", err.Error())
-			return
-		}
-	*/
-
 	fmt.Println("Successfully sent file data")
 }
 

@@ -48,11 +48,6 @@ func getFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	if err := sendFrame(c.SUCCESS_FRAME, encoder); err != nil {
-		fmt.Printf("Error on success: %s\n", err.Error())
-		return
-	}
-
 	fmt.Println("Successfully retreived file from server")
 }
 
