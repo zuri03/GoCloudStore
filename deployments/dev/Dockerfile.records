@@ -3,13 +3,16 @@ WORKDIR /go/src
 
 COPY records ./records
 COPY common ./common
-COPY go.mod .
-COPY go.sum .
+COPY go.* .
 COPY ./cmd/records/main.go .
 
 RUN CGO_ENABLED=0 go build -o  build/Records ./main.go
+
 FROM alpine:latest  
 RUN apk --no-cache add ca-certificates
+
+#RUN useradd -c "Docker Image" records
+#USER records
 
 WORKDIR /go/src/github.com/zuri03/GoCloudStore/
 COPY --from=builder /go/src/build/Records ./main

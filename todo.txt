@@ -9,6 +9,9 @@ todo:
 
     change all references of allowedUser to PrivlidgedUser
 
+    Fault tolerance
+        records server sends health checks to each data server
+
 in development:
     set up go tests
 
