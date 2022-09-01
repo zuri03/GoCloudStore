@@ -19,11 +19,6 @@ type recordDataBase interface {
 	CreateRecord(record common.Record) error
 	DeleteRecord(key string) error
 	ReplaceRecord(record *common.Record) error
-
-	/*
-		//For development
-		GetAllRecords() ([]*common.Record, error)
-	*/
 }
 
 func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger) *http.ServeMux {

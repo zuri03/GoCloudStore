@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	//"github.com/zuri03/GoCloudStore/common"
 	"github.com/zuri03/GoCloudStore/records"
 	"github.com/zuri03/GoCloudStore/records/db"
 )
@@ -16,6 +17,53 @@ import (
 //Port these over to an .env file
 const PORT = 8080
 const HOST = ""
+
+//A temporary struct that allows me to remove the dependency on a mongodb instance and run the record server in a k8s service independently
+/*
+type DB struct{}
+
+func (d DB) GetUser(id string) (*common.User, error) {
+	return &common.User{
+		Id:           "id",
+		Username:     "username",
+		Password:     []byte("password"),
+		CreationDate: "",
+	}, nil
+}
+
+func (d DB) CreateUser(user *common.User) error {
+	return nil
+}
+
+func (d DB) SearchUser(username, password string) ([]*common.User, error) {
+	return []*common.User{
+		{
+			Id:           "id",
+			Username:     "username",
+			Password:     []byte("password"),
+			CreationDate: "",
+		},
+	}, nil
+}
+
+func (d DB) GetRecord(key string) (*common.Record, error) {
+	return &common.Record{
+		Key: key,
+	}, nil
+}
+
+func (d DB) CreateRecord(record common.Record) error {
+	return nil
+}
+
+func (d DB) DeleteRecord(key string) error {
+	return nil
+}
+
+func (d DB) ReplaceRecord(record *common.Record) error {
+	return nil
+}
+*/
 
 func main() {
 

@@ -21,6 +21,10 @@ func New() (*Mongo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
 	defer cancel()
 
+	//This line is used to connect to a mongodb k8s service
+	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
+
+	//This connection string is for docker compose		
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
 	if err != nil {
 		fmt.Printf("Error connecting to mongo: %s\n", err.Error())

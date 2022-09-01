@@ -55,14 +55,17 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 		record, err := handler.resourseExistsMiddleware(requestBody.Key, handler.dbClient)
 		if err != nil {
 			handler.logger.Printf("Error in resource middleware: %s\n", err.Error())
+			http.Error(writer, fmt.Sprintf("Internal Server Error"), http.StatusInternalServerError)
 			return
 		}
 
 		if record.Key != "" {
+			handler.logger.Printf("Record already exists: %v\n", record)
 			http.Error(writer, fmt.Sprintf("%s already exists", requestBody.Key), http.StatusConflict)
 			return
 		}
 
+		handler.logger.Printf("Post Request Successful")
 		handler.CreateRecord(requestBody, writer)
 		return
 	}
