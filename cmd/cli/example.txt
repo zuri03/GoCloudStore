@@ -1,0 +1,5 @@
+This is an example text file
+full of usless unnecessary text
+that I have not spell checked
+
+this file will be read by the programs

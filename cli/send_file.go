@@ -27,7 +27,14 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		return
 	}
 
-	err = metaClient.createFileRecord(owner, fileInfo.Name(), fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+	key := parseSendCommandInput(input[1:])
+
+	//If no key is found then the default behavior is to set the key to filename
+	if key == "" {
+		key = fileInfo.Name()
+	}
+
+	err = metaClient.createFileRecord(owner, key, fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 	if err != nil {
 		fmt.Printf("Error sending creating file record: %s\n", err.Error())
 		return
@@ -111,6 +118,23 @@ func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection ne
 	}
 }
 
+//This command parses any flags and returns the value assigned to that flag
+//Currently the only availabe flag is -k or key if there are anymore flags added in the future parse them with this function
+func parseSendCommandInput(input []string) string {
+	fmt.Printf("Parsing input\n")
+	key := ""
+
+	for idx, part := range input {
+		fmt.Printf("%d => %s\n", idx, part)
+		//If -k is found then the next element in the input array should be the key
+		if part == "-k" {
+			key = input[idx+1]
+		}
+	}
+	fmt.Printf("Key is now: %s\n", key)
+	return key
+}
+
 func getFileFromMemory(fileName string) (*os.File, fs.FileInfo, error) {
 	fileExtension := filepath.Ext(fileName)
 	if fileExtension != ".txt" && fileExtension != ".rtf" && fileExtension != ".pdf" {
@@ -119,7 +143,7 @@ func getFileFromMemory(fileName string) (*os.File, fs.FileInfo, error) {
 
 	fileMetaData, err := os.Stat(fileName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error getting file metadata => %s\n", err.Error())
+		return nil, nil, err
 	}
 
 	if fileMetaData.IsDir() {
@@ -128,7 +152,7 @@ func getFileFromMemory(fileName string) (*os.File, fs.FileInfo, error) {
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("File %s does not exist", fileName)
+		return nil, nil, err
 	}
 
 	return file, fileMetaData, nil

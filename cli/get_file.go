@@ -63,6 +63,7 @@ func getFileDataFromServer(fileName string, fileSize int, connection net.Conn, e
 		fmt.Println("Storing file in one chunk")
 		buffer := make([]byte, fileSize)
 		numOfBytes, err := connection.Read(buffer)
+		fmt.Printf("Buffer: %s\n", buffer)
 		if err != nil {
 			return err
 		}

@@ -12,6 +12,8 @@ todo:
     Fault tolerance
         records server sends health checks to each data server
 
+    create a makefile
+
 in development:
     set up go tests
 
@@ -42,6 +44,8 @@ Bugs:
         - needs to be able to identify and append new additions not present in local version
 
     server returns 400 error when space is added to username
+
+    sending files from server to client is unreliable (works sometimes doesn't work other times)
 
 Improvements:
     remove common package
