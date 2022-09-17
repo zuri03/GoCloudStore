@@ -2,7 +2,6 @@ package records
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -38,7 +37,6 @@ func (handler *AuthHandler) ServeHTTP(writer http.ResponseWriter, req *http.Requ
 func (handler *AuthHandler) Authenticate(username, password string, writer http.ResponseWriter) {
 	potentialUsers, err := handler.dbClient.SearchUser(username, password)
 	if err != nil {
-		fmt.Printf("Error on user search: %s\n", err.Error())
 		http.Error(writer, "Internal Server Error on database user search", http.StatusInternalServerError)
 		return
 	}

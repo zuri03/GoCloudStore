@@ -99,7 +99,6 @@ func main() {
 		if err != nil {
 			logger.Fatal(err)
 		}
-
 	}()
 	logger.Printf("Record server listening on port %d\n", PORT)
 	signaler := make(chan os.Signal)

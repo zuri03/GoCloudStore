@@ -30,8 +30,6 @@ func acceptFrame(decoder *gob.Decoder, acceptedTypes ...common.FrameType) (*comm
 		return nil, err
 	}
 
-	fmt.Printf("Proceed received => %+v\n", frame)
-
 	if frame.Type == common.ERROR_FRAME {
 		return nil, fmt.Errorf("Server Error: %s\n", string(frame.Data))
 	}
