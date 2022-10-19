@@ -1,6 +1,4 @@
 todo:
-    Set up kubernetes
-
     set up tls for each of the apis
 
     Use Bufio for sending files in loop
@@ -13,6 +11,9 @@ todo:
         records server sends health checks to each data server
 
     create a makefile
+
+    seperate user service from record keeper
+    
 
 in development:
     set up go tests

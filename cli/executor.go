@@ -18,6 +18,7 @@ func cleanUserInput(r rune) bool {
 func HandleOneTime(client *MetaDataClient, input []string) {
 	if len(input) == 0 {
 		fmt.Println("Error: No arguments found ")
+		printHelpMessage()
 		return
 	}
 

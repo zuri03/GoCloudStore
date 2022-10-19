@@ -37,7 +37,7 @@ func (handler *RecordHandler) ServeHTTP(writer http.ResponseWriter, req *http.Re
 	handler.logger.Printf("Record request received, method: %s\n", req.Method)
 
 	if req.Method == http.MethodPost {
-		handler.logger.Println("Records Post request recieved")
+		
 		var requestBody Request
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {

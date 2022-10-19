@@ -8,12 +8,6 @@ import (
 	"github.com/zuri03/GoCloudStore/common"
 )
 
-type userDataBase interface {
-	GetUser(id string) (*common.User, error)
-	CreateUser(user *common.User) error
-	SearchUser(username, password string) ([]*common.User, error)
-}
-
 type recordDataBase interface {
 	GetRecord(key string) (*common.Record, error)
 	CreateRecord(record common.Record) error
@@ -21,7 +15,7 @@ type recordDataBase interface {
 	ReplaceRecord(record *common.Record) error
 }
 
-func Router(userDB userDataBase, recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger) *http.ServeMux {
+func Router(recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger) *http.ServeMux {
 	authHandler := AuthHandler{
 		dbClient:       userDB,
 		routineTracker: tracker,
