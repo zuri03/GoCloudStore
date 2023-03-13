@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 //This struct will hold a set of values that remain constant throughout a single cli session
@@ -11,6 +12,7 @@ import (
 type Session struct {
 	Username string
 	Password string
+	Id       string
 }
 
 //Accepts an array of command line arguments and attempts to create a session object from it
@@ -27,8 +29,8 @@ func ParseArgsIntoStruct(commandLineArgs []string) *Session {
 	username := commandLineArgs[0]
 	password := commandLineArgs[1]
 
-	newSession.Username = username
-	newSession.Password = password
+	newSession.Username = strings.TrimFunc(username, CleanUserInput)
+	newSession.Password = strings.TrimFunc(password, CleanUserInput)
 
 	return &newSession
 }
