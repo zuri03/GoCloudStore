@@ -35,7 +35,7 @@ func main() {
 	session := cli.ParseArgsIntoStruct(args[2:])
 
 	if firstArg == "cli" {
-		cli.HandleSession(metadataClient)
+		cli.HandleSession(metadataClient, session)
 		return
 	} else {
 		cli.HandleOneTime(metadataClient, args, session)
