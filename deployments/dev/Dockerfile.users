@@ -1,0 +1,12 @@
+FROM goland:1.17 as build
+WORKDIR /go/src
+
+COPY user ./user
+COPY common ./common
+COPY go.* .
+COPY ./cmd/user/main.go .
+
+RUN CGO_ENABLED=0 go build -o build/user ./main.go
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates

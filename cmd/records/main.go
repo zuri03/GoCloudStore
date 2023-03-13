@@ -85,7 +85,7 @@ func main() {
 	logger.Println("Successfully connected to mongodb")
 
 	tracker := new(sync.WaitGroup)
-	router := records.Router(mongo, mongo, tracker, logger)
+	router := records.Router(mongo, tracker, logger)
 
 	address := fmt.Sprintf("%s:%d", HOST, PORT)
 	server := &http.Server{
@@ -100,6 +100,7 @@ func main() {
 			logger.Fatal(err)
 		}
 	}()
+
 	logger.Printf("Record server listening on port %d\n", PORT)
 	signaler := make(chan os.Signal)
 	signal.Notify(signaler, os.Interrupt)

@@ -13,6 +13,13 @@ todo:
     create a makefile
 
     seperate user service from record keeper
+
+    split user service into a user and authorization/authentication service
+
+    create authorization and authentication service
+
+    refactor cli 
+        use a background session struct to hold all user credential information so that it does not have to be supplied on every command
     
 
 in development:

@@ -1,9 +1,7 @@
-#Two services so far
-  #record keeper
-  #storage
-#docker compose is for devlopment purposes only until I learn to use kubernetes
 version: '3'
+
 services:
+
   records:
     image: record_server
     build: 
@@ -15,6 +13,7 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
+
   storage:
     build: 
       context: .
@@ -22,6 +21,7 @@ services:
     ports:
       - "8000:8000"
     container_name: storage
+
   mongo:
     image: mongo:latest
     environment:
