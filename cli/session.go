@@ -18,7 +18,7 @@ type Session struct {
 //Accepts an array of command line arguments and attempts to create a session object from it
 //This function will assume that the arguments are in this format [ <username>, <password> ]
 //If it is
-func ParseArgsIntoStruct(commandLineArgs []string) *Session {
+func ParseArgsIntoSession(commandLineArgs []string) *Session {
 	newSession := Session{}
 
 	if len(commandLineArgs) < 2 {

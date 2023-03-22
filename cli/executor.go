@@ -109,7 +109,6 @@ func executeCommand(metadataClient *MetaDataClient, command string, owner string
 	case "help":
 		printHelpMessage()
 	case "allow":
-		fmt.Println("EXECUTING ALLOW")
 		addAllowedUserCommand(owner, input, metadataClient)
 	case "remove":
 		removeUserAccessCommand(owner, input, metadataClient)
