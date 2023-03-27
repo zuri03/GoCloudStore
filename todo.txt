@@ -17,10 +17,10 @@ todo:
     split user service into a user and authorization/authentication service
 
     create authorization and authentication service
-
-    refactor cli 
-        use a background session struct to hold all user credential information so that it does not have to be supplied on every command
     
+    make sure the delete record handler only returns a status code
+    
+    set up testing environment full of test data
 
 in development:
     set up go tests
@@ -64,7 +64,7 @@ Improvements:
 
     improve design of records for better unit tests
 
-    make db structs thread safe
+    make db structs thread safe?
 
     Reduce docker image size
         - First need to research techniques and reduce docker images
