@@ -7,7 +7,19 @@ import (
 	"os"
 	"strings"
 	"unicode"
+
+	"github.com/zuri03/GoCloudStore/common"
 )
+
+type ServerClient interface {
+	AuthenticateUser(username string, password string) (string, bool, error)
+	CreateUser(username string, password string) (string, error)
+	GetFileRecord(owner string, key string) (*common.Record, error)
+	DeleteFileRecord(owner string, key string) error
+	CreateFileRecord(owner, key, fileName string, fileSize int64) error
+	AddAllowedUser(owner, key, allowedUser string) error
+	RemoveAllowedUser(owner, key string, removedUser string) error
+}
 
 func CleanUserInput(r rune) bool {
 	if unicode.IsGraphic(r) && !unicode.IsSpace(r) {
@@ -16,8 +28,8 @@ func CleanUserInput(r rune) bool {
 	return true
 }
 
-func authenticateSession(metadataClient *MetaDataClient, session *Session, commandLineReader *bufio.Reader) error {
-	id, exists, err := metadataClient.authenticate(session.Username, session.Password)
+func authenticateSession(serverClient ServerClient, session Session, commandLineReader *bufio.Reader) error {
+	id, exists, err := serverClient.AuthenticateUser(session.Username, session.Password)
 	if err != nil {
 		return err
 	}
@@ -33,12 +45,11 @@ func authenticateSession(metadataClient *MetaDataClient, session *Session, comma
 		response = strings.TrimFunc(response, CleanUserInput)
 
 		if strings.ToLower(response) == "y" {
-			user, err := metadataClient.createUser(session.Username, session.Password)
+			id, err = serverClient.CreateUser(session.Username, session.Password)
 			if err != nil {
 				fmt.Printf("Error creating user: %s\n", err.Error())
 				return err
 			}
-			id = user.Id
 		} else {
 			return errors.New("User credentials were incorrect\n")
 		}
@@ -49,7 +60,7 @@ func authenticateSession(metadataClient *MetaDataClient, session *Session, comma
 	return nil
 }
 
-func HandleOneTime(client *MetaDataClient, input []string, session *Session) {
+func HandleOneTime(serverClient ServerClient, input []string, session Session) {
 	if len(input) == 0 {
 		fmt.Println("Incorrect number of arguments")
 		printHelpMessage()
@@ -62,21 +73,21 @@ func HandleOneTime(client *MetaDataClient, input []string, session *Session) {
 		return
 	}
 
-	if err := authenticateSession(client, session, bufio.NewReader(os.Stdin)); err != nil {
+	if err := authenticateSession(serverClient, session, bufio.NewReader(os.Stdin)); err != nil {
 		fmt.Print(err.Error())
 		return
 	}
 
-	if _, err := executeCommand(client, command, session.Id, input[3:]); err != nil {
+	if _, err := executeCommand(serverClient, command, session.Id, input[3:]); err != nil {
 		fmt.Print(err.Error())
 	}
 }
 
-func HandleSession(client *MetaDataClient, session *Session) {
+func HandleSession(serverClient ServerClient, session Session) {
 
 	commandLineReader := bufio.NewReader(os.Stdin)
 
-	if err := authenticateSession(client, session, commandLineReader); err != nil {
+	if err := authenticateSession(serverClient, session, commandLineReader); err != nil {
 		fmt.Print(err.Error())
 		return
 	}
@@ -92,7 +103,7 @@ func HandleSession(client *MetaDataClient, session *Session) {
 		//Trim the two invisible characters at the end
 		str = str[:len(str)-2]
 		input := strings.Split(str, " ")
-		if quit, err := executeCommand(client, input[0], session.Id, input[1:]); err != nil || quit {
+		if quit, err := executeCommand(serverClient, input[0], session.Id, input[1:]); err != nil || quit {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -103,21 +114,21 @@ func HandleSession(client *MetaDataClient, session *Session) {
 	fmt.Printf("Exiting...")
 }
 
-func executeCommand(metadataClient *MetaDataClient, command string, owner string, input []string) (bool, error) {
+func executeCommand(serverClient ServerClient, command string, owner string, input []string) (bool, error) {
 	fmt.Printf("Command => %s\n", command)
 	switch strings.ToLower(command) {
 	case "help":
 		printHelpMessage()
 	case "allow":
-		addAllowedUserCommand(owner, input, metadataClient)
+		addAllowedUserCommand(owner, input, serverClient)
 	case "remove":
-		removeUserAccessCommand(owner, input, metadataClient)
+		removeUserAccessCommand(owner, input, serverClient)
 	case "send":
-		sendFileCommand(owner, input, metadataClient)
+		sendFileCommand(owner, input, serverClient)
 	case "get":
-		getFileCommand(owner, input, metadataClient)
+		getFileCommand(owner, input, serverClient)
 	case "delete":
-		deleteFile(owner, input, metadataClient)
+		deleteFile(owner, input, serverClient)
 	case "quit":
 		fmt.Println("Exiting...")
 		return true, nil
