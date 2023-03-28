@@ -3,10 +3,10 @@ package cli
 import "fmt"
 
 func removeUserAccessCommand(owner string, input []string,
-	metaClient *MetaDataClient) error {
+	serverClient ServerClient) error {
 	key := input[0]
 	removedUser := input[1]
-	if err := metaClient.removeAllowedUser(owner, key, removedUser); err != nil {
+	if err := serverClient.RemoveAllowedUser(owner, key, removedUser); err != nil {
 		return err
 	}
 	fmt.Printf("Successfully removed %s from allow list\n", removedUser)
