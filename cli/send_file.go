@@ -1,19 +1,13 @@
 package cli
 
 import (
-	"encoding/gob"
 	"fmt"
-	"io"
 	"io/fs"
-	"net"
 	"os"
 	"path/filepath"
-	"time"
-
-	"github.com/zuri03/GoCloudStore/common"
 )
 
-func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
+func sendFileCommand(owner string, input []string, serverClient ServerClient) {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
@@ -34,87 +28,14 @@ func sendFileCommand(owner string, input []string, metaClient *MetaDataClient) {
 		key = fileInfo.Name()
 	}
 
-	err = metaClient.createFileRecord(owner, key, fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
+	err = serverClient.CreateFileRecord(owner, key, fileInfo.Name(), fileInfo.Size()) //For now just leave the key as the file name
 	if err != nil {
 		fmt.Printf("Error sending creating file record: %s\n", err.Error())
 		return
 	}
 
-	//TODO: The address of the datanode must come from the record server
-	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
-	defer connection.Close()
-
-	encoder, decoder := newEncoderDecoder(connection)
-	/*
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-	*/
-
-	meta := common.FileMetaData{
-		Owner: owner,
-		Name:  fileInfo.Name(),
-		Size:  fileInfo.Size(),
-	}
-
-	if err := sendMetaDataToServer(common.SEND_FRAME, meta, encoder); err != nil {
-		fmt.Printf("Error sending meta data to server: %s\n", err.Error())
-		return
-	}
-
-	if _, err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
-		fmt.Printf("Error waiting for proceed: %s\n", err.Error())
-		return
-	}
-
-	if err := sendFileDataToServer(file, meta, connection, decoder); err != nil {
-		fmt.Printf("Error sending file data to server: %s\n", err.Error())
-		return
-	}
-
-	fmt.Println("Successfully sent file to server")
-}
-
-func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
-	/*
-		if meta.Size <= int64(common.MAX_BUFFER_SIZE) {
-			fmt.Println("Sending file in one chunck")
-			buffer := make([]byte, meta.Size)
-			if _, err := file.Read(buffer); err != nil {
-				return err
-			}
-
-			if _, err := connection.Write(buffer); err != nil {
-				return err
-			}
-
-			return nil
-		}
-	*/
-	fmt.Println("SENDING FILE DATA")
-	buffer := make([]byte, common.TEMP_BUFFER_SIZE)
-	for {
-		numOfBytes, err := file.Read(buffer)
-
-		if err != nil {
-			if err == io.EOF {
-				if numOfBytes > 0 {
-					if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
-						return err
-					}
-				}
-				return nil
-			} else {
-				return err
-			}
-		}
-
-		if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
-			return err
-		}
-		fmt.Println("WAITING FOR PROCEED")
-		if _, err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
-			return err
-		}
+	if err := serverClient.SendFile(owner, fileInfo); err != nil {
+		fmt.Println(err.Error())
 	}
 }
 

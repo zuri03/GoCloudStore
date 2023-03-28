@@ -2,104 +2,14 @@ package client
 
 import (
 	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"time"
 
 	"github.com/zuri03/GoCloudStore/common"
 )
-
-type FileServerclient struct {
-	Client http.Client
-}
-
-func NewFileServerClient() *FileServerclient {
-	return nil
-}
-
-func (client *FileServerclient) SendFile(filePath string) error {
-	return nil
-}
-
-/*
-*Retrieves a file from a server with ID fileId
-	- fileId: unique identifier of file that needs to be retrieved from server
-
-Returns:
-	- string: file path pointing to tmp file downloaded from the server and saved on this machine
-*/
-func (client *FileServerclient) GetFile(fileId string) (string, error) {
-	return "", nil
-}
-
-func newEncoderDecoder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
-	gob.Register(new(common.ProtocolFrame))
-	gob.Register(new(common.FileMetaData))
-
-	return gob.NewEncoder(connection), gob.NewDecoder(connection)
-}
-
-func (client *FileServerclient) sendFrame(frameType common.FrameType, encoder *gob.Encoder, data ...[]byte) error {
-
-	var frame common.ProtocolFrame
-	if len(data) > 0 {
-		frame = common.ProtocolFrame{
-			Type:          frameType,
-			PayloadLength: int64(len(data[0])),
-			Data:          data[0],
-		}
-	} else {
-		frame = common.ProtocolFrame{
-			Type:          frameType,
-			PayloadLength: 0,
-			Data:          nil,
-		}
-	}
-
-	if err := encoder.Encode(frame); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func acceptFrame(decoder *gob.Decoder, acceptedTypes ...common.FrameType) (*common.ProtocolFrame, error) {
-	var frame common.ProtocolFrame
-	if err := decoder.Decode(&frame); err != nil {
-		return nil, err
-	}
-
-	if frame.Type == common.ERROR_FRAME {
-		return nil, fmt.Errorf("Server Error: %s\n", string(frame.Data))
-	}
-
-	for _, frameType := range acceptedTypes {
-		if frameType == frame.Type {
-			return &frame, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Unexpected frame: %d\n", frame.Type)
-}
-
-func sendMetaDataToServer(frameType common.FrameType, meta common.FileMetaData, encoder *gob.Encoder) error {
-	metaBuffer := new(bytes.Buffer)
-	if err := gob.NewEncoder(metaBuffer).Encode(meta); err != nil {
-		return err
-	}
-
-	frame := common.ProtocolFrame{
-		Type:          frameType,
-		PayloadLength: int64(metaBuffer.Len()),
-		Data:          metaBuffer.Bytes(),
-	}
-
-	return encoder.Encode(frame)
-}
 
 type RecordServerclient struct {
 	HttpClient http.Client

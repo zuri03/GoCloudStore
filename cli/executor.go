@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"unicode"
@@ -19,6 +20,8 @@ type ServerClient interface {
 	CreateFileRecord(owner, key, fileName string, fileSize int64) error
 	AddAllowedUser(owner, key, allowedUser string) error
 	RemoveAllowedUser(owner, key string, removedUser string) error
+	SendFile(owner string, fileInfo fs.FileInfo) error
+	GetFile(owner string, record *common.Record) (string, error)
 }
 
 func CleanUserInput(r rune) bool {
