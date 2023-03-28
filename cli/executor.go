@@ -22,6 +22,7 @@ type ServerClient interface {
 	RemoveAllowedUser(owner, key string, removedUser string) error
 	SendFile(owner string, fileInfo fs.FileInfo) error
 	GetFile(owner string, record *common.Record) (string, error)
+	DeleteFile(owner string, record *common.Record) error
 }
 
 func CleanUserInput(r rune) bool {

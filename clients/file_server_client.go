@@ -30,6 +30,38 @@ func newEncoderDecoder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	return gob.NewEncoder(connection), gob.NewDecoder(connection)
 }
 
+func (client *FileServerclient) DeleteFile(owner string, record common.Record) error {
+	meta := common.FileMetaData{
+		Owner: owner,
+		Name:  record.Name,
+		Size:  record.Size,
+	}
+
+	connection, err := net.Dial("tcp", ":8000")
+	if err != nil {
+		return err
+	}
+	defer connection.Close()
+	encoder := gob.NewEncoder(connection)
+
+	if err := sendMetaDataToServer(common.DELETE_FRAME, meta, encoder); err != nil {
+		return err
+	}
+
+	signal := make([]byte, 3)
+	if _, err := connection.Read(signal); err != nil {
+		return err
+	}
+
+	if string(signal) != common.SUCCESS_PROTOCOL {
+		return err
+	}
+
+	fmt.Println("Successfully deleted file from server")
+
+	return nil
+}
+
 func (client *FileServerclient) SendFile(owner string, file *os.File, fileInfo fs.FileInfo) error {
 	//TODO: The address of the datanode must come from the record server
 	connection, err := net.DialTimeout("tcp", ":8000", time.Duration(10)*time.Second)
