@@ -12,7 +12,7 @@ import (
 	"github.com/zuri03/GoCloudStore/common"
 )
 
-type ServerClient interface {
+type RecordServerClient interface {
 	AuthenticateUser(username string, password string) (string, bool, error)
 	CreateUser(username string, password string) (string, error)
 	GetFileRecord(owner string, key string) (*common.Record, error)
@@ -20,7 +20,10 @@ type ServerClient interface {
 	CreateFileRecord(owner, key, fileName string, fileSize int64) error
 	AddAllowedUser(owner, key, allowedUser string) error
 	RemoveAllowedUser(owner, key string, removedUser string) error
-	SendFile(owner string, fileInfo fs.FileInfo) error
+}
+
+type FileServerClient interface {
+	SendFile(owner string, file *os.File, fileInfo fs.FileInfo) error
 	GetFile(owner string, record *common.Record) (string, error)
 	DeleteFile(owner string, record *common.Record) error
 }
@@ -32,7 +35,7 @@ func CleanUserInput(r rune) bool {
 	return true
 }
 
-func authenticateSession(serverClient ServerClient, session Session, commandLineReader *bufio.Reader) error {
+func authenticateSession(serverClient RecordServerClient, session Session, commandLineReader *bufio.Reader) error {
 	id, exists, err := serverClient.AuthenticateUser(session.Username, session.Password)
 	if err != nil {
 		return err
@@ -64,7 +67,7 @@ func authenticateSession(serverClient ServerClient, session Session, commandLine
 	return nil
 }
 
-func HandleOneTime(serverClient ServerClient, input []string, session Session) {
+func HandleOneTime(fileServerClient FileServerClient, serverClient RecordServerClient, input []string, session Session) {
 	if len(input) == 0 {
 		fmt.Println("Incorrect number of arguments")
 		printHelpMessage()
@@ -82,12 +85,12 @@ func HandleOneTime(serverClient ServerClient, input []string, session Session) {
 		return
 	}
 
-	if _, err := executeCommand(serverClient, command, session.Id, input[3:]); err != nil {
+	if _, err := executeCommand(fileServerClient, serverClient, command, session.Id, input[3:]); err != nil {
 		fmt.Print(err.Error())
 	}
 }
 
-func HandleSession(serverClient ServerClient, session Session) {
+func HandleSession(fileServerClient FileServerClient, serverClient RecordServerClient, session Session) {
 
 	commandLineReader := bufio.NewReader(os.Stdin)
 
@@ -107,7 +110,7 @@ func HandleSession(serverClient ServerClient, session Session) {
 		//Trim the two invisible characters at the end
 		str = str[:len(str)-2]
 		input := strings.Split(str, " ")
-		if quit, err := executeCommand(serverClient, input[0], session.Id, input[1:]); err != nil || quit {
+		if quit, err := executeCommand(fileServerClient, serverClient, input[0], session.Id, input[1:]); err != nil || quit {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -118,7 +121,7 @@ func HandleSession(serverClient ServerClient, session Session) {
 	fmt.Printf("Exiting...")
 }
 
-func executeCommand(serverClient ServerClient, command string, owner string, input []string) (bool, error) {
+func executeCommand(fileServerClient FileServerClient, serverClient RecordServerClient, command string, owner string, input []string) (bool, error) {
 	fmt.Printf("Command => %s\n", command)
 	switch strings.ToLower(command) {
 	case "help":
@@ -128,11 +131,11 @@ func executeCommand(serverClient ServerClient, command string, owner string, inp
 	case "remove":
 		removeUserAccessCommand(owner, input, serverClient)
 	case "send":
-		sendFileCommand(owner, input, serverClient)
+		sendFileCommand(owner, input, serverClient, fileServerClient)
 	case "get":
-		getFileCommand(owner, input, serverClient)
+		getFileCommand(owner, input, serverClient, fileServerClient)
 	case "delete":
-		deleteFile(owner, input, serverClient)
+		deleteFile(owner, input, serverClient, fileServerClient)
 	case "quit":
 		fmt.Println("Exiting...")
 		return true, nil

@@ -18,12 +18,12 @@ type Session struct {
 //Accepts an array of command line arguments and attempts to create a session object from it
 //This function will assume that the arguments are in this format [ <username>, <password> ]
 //If it is
-func ParseArgsIntoSession(commandLineArgs []string) *Session {
+func ParseArgsIntoSession(commandLineArgs []string) Session {
 	newSession := Session{}
 
 	if len(commandLineArgs) < 2 {
 		fillSessionStruct(&newSession)
-		return &newSession
+		return newSession
 	}
 
 	username := commandLineArgs[0]
@@ -32,7 +32,7 @@ func ParseArgsIntoSession(commandLineArgs []string) *Session {
 	newSession.Username = strings.TrimFunc(username, CleanUserInput)
 	newSession.Password = strings.TrimFunc(password, CleanUserInput)
 
-	return &newSession
+	return newSession
 }
 
 //Ask the user for any missing fields in the session struct

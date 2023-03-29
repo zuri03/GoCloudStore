@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"bufio"
@@ -30,7 +30,7 @@ func newEncoderDecoder(connection net.Conn) (*gob.Encoder, *gob.Decoder) {
 	return gob.NewEncoder(connection), gob.NewDecoder(connection)
 }
 
-func (client *FileServerclient) DeleteFile(owner string, record common.Record) error {
+func (client *FileServerclient) DeleteFile(owner string, record *common.Record) error {
 	meta := common.FileMetaData{
 		Owner: owner,
 		Name:  record.Name,
@@ -99,6 +99,50 @@ func (client *FileServerclient) SendFile(owner string, file *os.File, fileInfo f
 
 	fmt.Println("Successfully sent file to server")
 	return nil
+}
+
+func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
+	/*
+		if meta.Size <= int64(common.MAX_BUFFER_SIZE) {
+			fmt.Println("Sending file in one chunck")
+			buffer := make([]byte, meta.Size)
+			if _, err := file.Read(buffer); err != nil {
+				return err
+			}
+
+			if _, err := connection.Write(buffer); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	*/
+	fmt.Println("SENDING FILE DATA")
+	buffer := make([]byte, common.TEMP_BUFFER_SIZE)
+	for {
+		numOfBytes, err := file.Read(buffer)
+
+		if err != nil {
+			if err == io.EOF {
+				if numOfBytes > 0 {
+					if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
+						return err
+					}
+				}
+				return nil
+			} else {
+				return err
+			}
+		}
+
+		if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
+			return err
+		}
+		fmt.Println("WAITING FOR PROCEED")
+		if _, err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
+			return err
+		}
+	}
 }
 
 /*
@@ -195,50 +239,6 @@ func getFileDataFromServer(filePath string, fileSize int, connection net.Conn, e
 	}
 
 	return nil
-}
-
-func sendFileDataToServer(file *os.File, meta common.FileMetaData, connection net.Conn, decoder *gob.Decoder) error {
-	/*
-		if meta.Size <= int64(common.MAX_BUFFER_SIZE) {
-			fmt.Println("Sending file in one chunck")
-			buffer := make([]byte, meta.Size)
-			if _, err := file.Read(buffer); err != nil {
-				return err
-			}
-
-			if _, err := connection.Write(buffer); err != nil {
-				return err
-			}
-
-			return nil
-		}
-	*/
-	fmt.Println("SENDING FILE DATA")
-	buffer := make([]byte, common.TEMP_BUFFER_SIZE)
-	for {
-		numOfBytes, err := file.Read(buffer)
-
-		if err != nil {
-			if err == io.EOF {
-				if numOfBytes > 0 {
-					if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
-						return err
-					}
-				}
-				return nil
-			} else {
-				return err
-			}
-		}
-
-		if _, err := connection.Write(buffer[:numOfBytes]); err != nil {
-			return err
-		}
-		fmt.Println("WAITING FOR PROCEED")
-		if _, err := acceptFrame(decoder, common.PROCEED_FRAME); err != nil {
-			return err
-		}
-	}
 }
 
 func sendFrame(frameType common.FrameType, encoder *gob.Encoder, data ...[]byte) error {

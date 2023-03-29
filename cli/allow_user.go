@@ -3,7 +3,7 @@ package cli
 import "fmt"
 
 func addAllowedUserCommand(owner string, input []string,
-	serverClient ServerClient) {
+	serverClient RecordServerClient) {
 	key := input[0]
 	allowedUser := input[1]
 	if err := serverClient.AddAllowedUser(owner, key, allowedUser); err != nil {

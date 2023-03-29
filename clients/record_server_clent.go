@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ type RecordServerclient struct {
 	HttpClient http.Client
 }
 
-func NewRecordServerClient() *RecordServerclient {
+func NewRecordServerClient() RecordServerclient {
 
 	recordServerClient := RecordServerclient{
 		HttpClient: http.Client{
@@ -23,14 +23,14 @@ func NewRecordServerClient() *RecordServerclient {
 		},
 	}
 
-	return &recordServerClient
+	return recordServerClient
 }
 
 type AuthenticationResponse struct {
 	Id string `json:"id"`
 }
 
-func (recordServerClient *RecordServerclient) AuthenticateUser(username string, password string) (string, bool, error) {
+func (recordServerClient RecordServerclient) AuthenticateUser(username string, password string) (string, bool, error) {
 	url := fmt.Sprintf("http://localhost:8080/auth?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -46,7 +46,7 @@ func (recordServerClient *RecordServerclient) AuthenticateUser(username string, 
 }
 
 //returns ID of newly created user
-func (recordServerClient *RecordServerclient) CreateUser(username string, password string) (string, error) {
+func (recordServerClient RecordServerclient) CreateUser(username string, password string) (string, error) {
 	url := fmt.Sprintf("http://localhost:8080/user?username=%s&password=%s", username, password)
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
@@ -61,7 +61,7 @@ func (recordServerClient *RecordServerclient) CreateUser(username string, passwo
 	return user.Id, nil
 }
 
-func (recordServerClient *RecordServerclient) GetFileRecord(owner string, key string) (*common.Record, error) {
+func (recordServerClient RecordServerclient) GetFileRecord(owner string, key string) (*common.Record, error) {
 	url := fmt.Sprintf("http://localhost:8080/record?id=%s&key=%s", owner, key)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -78,7 +78,7 @@ func (recordServerClient *RecordServerclient) GetFileRecord(owner string, key st
 }
 
 //returns error in case file record was unable to be deleted
-func (recordServerClient *RecordServerclient) DeleteFileRecord(owner string, key string) error {
+func (recordServerClient RecordServerclient) DeleteFileRecord(owner string, key string) error {
 	url := fmt.Sprintf("http://localhost:8080/record?owner=%s&key=%s", owner, key)
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
@@ -95,7 +95,7 @@ type FileRecordRequest struct {
 	Size     int    `json:"size"`
 }
 
-func (recordServerClient *RecordServerclient) CreateFileRecord(owner, key, fileName string, fileSize int64) error {
+func (recordServerClient RecordServerclient) CreateFileRecord(owner, key, fileName string, fileSize int64) error {
 	record := FileRecordRequest{
 		Owner:    owner,
 		Key:      key,
@@ -113,7 +113,7 @@ func (recordServerClient *RecordServerclient) CreateFileRecord(owner, key, fileN
 	return recordServerClient.sendHttpRequest(request)
 }
 
-func (recordServerClient *RecordServerclient) AddAllowedUser(owner, key, allowedUser string) error {
+func (recordServerClient RecordServerclient) AddAllowedUser(owner, key, allowedUser string) error {
 	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?allowedUser=%s&owner=%s&key=%s", allowedUser, owner, key)
 
 	request, err := http.NewRequest("PUT", url, nil)
@@ -124,7 +124,7 @@ func (recordServerClient *RecordServerclient) AddAllowedUser(owner, key, allowed
 	return recordServerClient.sendHttpRequest(request)
 }
 
-func (recordServerClient *RecordServerclient) RemoveAllowedUser(owner, key string, removedUser string) error {
+func (recordServerClient RecordServerclient) RemoveAllowedUser(owner, key string, removedUser string) error {
 
 	url := fmt.Sprintf("http://localhost:8080/record/allowedUser?removedUser=%s&owner=%s&key=%s", removedUser, owner, key)
 
@@ -136,7 +136,7 @@ func (recordServerClient *RecordServerclient) RemoveAllowedUser(owner, key strin
 	return recordServerClient.sendHttpRequest(request)
 }
 
-func (recordServerClient *RecordServerclient) sendHttpRequest(request *http.Request) error {
+func (recordServerClient RecordServerclient) sendHttpRequest(request *http.Request) error {
 	response, err := recordServerClient.HttpClient.Do(request)
 
 	if err != nil {
@@ -154,7 +154,7 @@ func (recordServerClient *RecordServerclient) sendHttpRequest(request *http.Requ
 	return nil
 }
 
-func (recordServerClient *RecordServerclient) sendRequestAndParseJson(request *http.Request, object interface{}) error {
+func (recordServerClient RecordServerclient) sendRequestAndParseJson(request *http.Request, object interface{}) error {
 	response, err := recordServerClient.HttpClient.Do(request)
 	if err != nil {
 		return err

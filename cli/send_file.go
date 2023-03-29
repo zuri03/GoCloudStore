@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func sendFileCommand(owner string, input []string, serverClient ServerClient) {
+func sendFileCommand(owner string, input []string, serverClient RecordServerClient, fileServerClient FileServerClient) {
 	fileName := input[0]
 	file, fileInfo, err := getFileFromMemory(fileName)
 	defer file.Close()
@@ -34,7 +34,7 @@ func sendFileCommand(owner string, input []string, serverClient ServerClient) {
 		return
 	}
 
-	if err := serverClient.SendFile(owner, fileInfo); err != nil {
+	if err := fileServerClient.SendFile(owner, file, fileInfo); err != nil {
 		fmt.Println(err.Error())
 	}
 }
