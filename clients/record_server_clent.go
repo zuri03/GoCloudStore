@@ -38,7 +38,12 @@ func (recordServerClient RecordServerclient) AuthenticateUser(username string, p
 	}
 
 	var authResponse AuthenticationResponse
-	if err := recordServerClient.sendRequestAndParseJson(request, authResponse); err != nil {
+	body, err := recordServerClient.sendRequestAndReturnBody(request)
+	if err != nil {
+		return "", false, err
+	}
+
+	if err := json.Unmarshal(body, &authResponse); err != nil {
 		return "", false, err
 	}
 
@@ -54,7 +59,12 @@ func (recordServerClient RecordServerclient) CreateUser(username string, passwor
 	}
 
 	var user common.User
-	if err := recordServerClient.sendRequestAndParseJson(request, user); err != nil {
+	body, err := recordServerClient.sendRequestAndReturnBody(request)
+	if err != nil {
+		return "", err
+	}
+
+	if err := json.Unmarshal(body, &user); err != nil {
 		return "", err
 	}
 
@@ -69,8 +79,12 @@ func (recordServerClient RecordServerclient) GetFileRecord(owner string, key str
 	}
 
 	var record common.Record
-	err = recordServerClient.sendRequestAndParseJson(request, record)
+	body, err := recordServerClient.sendRequestAndReturnBody(request)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, &record); err != nil {
 		return nil, err
 	}
 
@@ -154,10 +168,10 @@ func (recordServerClient RecordServerclient) sendHttpRequest(request *http.Reque
 	return nil
 }
 
-func (recordServerClient RecordServerclient) sendRequestAndParseJson(request *http.Request, object interface{}) error {
+func (recordServerClient RecordServerclient) sendRequestAndReturnBody(request *http.Request) ([]byte, error) {
 	response, err := recordServerClient.HttpClient.Do(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer response.Body.Close()
@@ -165,19 +179,15 @@ func (recordServerClient RecordServerclient) sendRequestAndParseJson(request *ht
 	if response.StatusCode != http.StatusOK {
 		errorMessage, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return fmt.Errorf("%d: %s\n", response.StatusCode, string(errorMessage))
+		return nil, fmt.Errorf("%d: %s\n", response.StatusCode, string(errorMessage))
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := json.Unmarshal(body, &object); err != nil {
-		return err
-	}
-
-	return nil
+	return body, nil
 }

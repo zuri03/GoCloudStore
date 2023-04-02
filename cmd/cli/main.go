@@ -37,9 +37,7 @@ func main() {
 
 	if firstArg == "cli" {
 		cli.HandleSession(fileServerClient, recordServerClient, session)
-		return
 	} else {
 		cli.HandleOneTime(fileServerClient, recordServerClient, args, session)
-		return
 	}
 }
