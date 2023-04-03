@@ -11,7 +11,7 @@ type UserRouter struct {
 	service   *UserService
 }
 
-func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+func (router *UserRouter) ServeUserHTTP(writer http.ResponseWriter, req *http.Request) {
 	router.waitgroup.Add(1)
 	defer router.waitgroup.Done()
 
@@ -57,12 +57,34 @@ func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Reques
 	}
 }
 
+func (router *UserRouter) ServeAuthHTTP(writer http.ResponseWriter, req *http.Request) {
+
+	if req.Method != http.MethodPost {
+		http.Error(writer, fmt.Sprintf("Method %s is not supported on this endpoint", req.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+
+	authResponseBytes, statusCode, err := router.service.AuthorizeUser(username, password)
+	if err != nil {
+		http.Error(writer, err.Error(), statusCode)
+		return
+	}
+
+	writer.WriteHeader(statusCode)
+	writer.Write(authResponseBytes)
+}
+
 func Router(waitgroup *sync.WaitGroup) *http.ServeMux {
 	router := http.NewServeMux()
 
 	userRouter := UserRouter{waitgroup: waitgroup}
 
-	router.HandleFunc("/user", userRouter.ServeHTTP)
+	router.HandleFunc("/user", userRouter.ServeUserHTTP)
+
+	router.HandleFunc("/login", userRouter.ServeAuthHTTP)
 
 	return router
 }
