@@ -1,13 +1,17 @@
-package db
+package user
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	_ "go.mongodb.org/mongo-driver/mongo/readpref"
+
+	"github.com/zuri03/GoCloudStore/common"
 )
 
 type DBClient struct {
@@ -40,4 +44,34 @@ func New() (*DBClient, error) {
 	users := client.Database("cloudStore").Collection("user")
 
 	return &DBClient{client: client, users: users, records: records}, nil
+}
+
+func (dbClient *DBClient) GetUser(id string) (*common.User, error) {
+	filter := bson.D{primitive.E{Key: "_id", Value: id}}
+	singleResult := dbClient.users.FindOne(dbClient.ctx, filter)
+	user := &common.User{}
+	if err := singleResult.Decode(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (dbClient *DBClient) CreateUser(user *common.User) error {
+	_, err := dbClient.users.InsertOne(dbClient.ctx, user)
+	return err
+}
+
+func (dbClient *DBClient) SearchUser(username, password string) ([]*common.User, error) {
+	filter := bson.D{primitive.E{Key: "username", Value: username}}
+	cursor, err := dbClient.users.Find(dbClient.ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*common.User
+	if err = cursor.All(dbClient.ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

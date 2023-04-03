@@ -3,21 +3,16 @@ package user
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/zuri03/GoCloudStore/common"
+	"sync"
 )
 
-type userDataBase interface {
-	GetUser(id string) (*common.User, error)
-	CreateUser(user *common.User) error
-	SearchUser(username, password string) ([]*common.User, error)
+type UserRouter struct {
+	waitgroup *sync.WaitGroup
 }
 
-func ServeHTTP(writer http.ResponseWriter, req *http.Request) {
-	//handler.routineTracker.Add(1)
-	//defer handler.routineTracker.Done()
-
-	fmt.Printf("req => %s\n", req.Method)
+func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
+	router.waitgroup.Add(1)
+	defer router.waitgroup.Done()
 
 	switch req.Method {
 	case http.MethodPost:
@@ -61,11 +56,12 @@ func ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func Router() *http.ServeMux {
-
+func Router(waitgroup *sync.WaitGroup) *http.ServeMux {
 	router := http.NewServeMux()
 
-	router.HandleFunc("/user", ServeHTTP)
+	userRouter := UserRouter{waitgroup: waitgroup}
+
+	router.HandleFunc("/user", userRouter.ServeHTTP)
 
 	return router
 }
