@@ -21,7 +21,6 @@ func main() {
 	*/
 	router := user.Router()
 
-	fmt.Printf("%t", router == nil)
 	server := &http.Server{
 		Addr:        ":9000",
 		Handler:     router,

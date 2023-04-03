@@ -22,6 +22,8 @@ todo:
     
     set up testing environment full of test data
 
+    change architecture, handler accepts Http request handles all http related work such as parsing and calls the appropriate controller function
+
 in development:
     set up go tests
 

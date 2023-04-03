@@ -8,6 +8,16 @@ import (
 	"testing"
 )
 
+const expectedErrorMessage = "example error"
+
+var errorHttpClient = http.Client{
+	Transport: RoundTripFunc(func(req *http.Request) *http.Response {
+		return &http.Response{
+			StatusCode: http.StatusForbidden,
+			Body:       ioutil.NopCloser(strings.NewReader(expectedErrorMessage)),
+		}
+	})}
+
 //More information about testing an Http Client https://engineering.teknasyon.com/how-to-write-unit-tests-for-http-clients-in-go-5de79aa4f92
 type RoundTripFunc func(req *http.Request) *http.Response
 
@@ -50,18 +60,9 @@ func TestAuthenticateUser(t *testing.T) {
 		t.Errorf("Unexpected error: %s\n", err.Error())
 	}
 
-	expectedErrorMessage := "example error"
 	expectedError := fmt.Sprintf("%d: %s\n", http.StatusForbidden, expectedErrorMessage)
 
-	errorHttpClient := &http.Client{
-		Transport: RoundTripFunc(func(req *http.Request) *http.Response {
-			return &http.Response{
-				StatusCode: http.StatusForbidden,
-				Body:       ioutil.NopCloser(strings.NewReader(expectedErrorMessage)),
-			}
-		})}
-
-	recordServerClient.HttpClient = *errorHttpClient
+	recordServerClient.HttpClient = errorHttpClient
 
 	id, userExists, err = recordServerClient.AuthenticateUser("", "")
 
