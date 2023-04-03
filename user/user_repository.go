@@ -51,7 +51,11 @@ func (dbClient *DBClient) GetUser(id string) (*common.User, error) {
 	singleResult := dbClient.users.FindOne(dbClient.ctx, filter)
 	user := &common.User{}
 	if err := singleResult.Decode(user); err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		} else {
+			return nil, err
+		}
 	}
 	return user, nil
 }

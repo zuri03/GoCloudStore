@@ -8,6 +8,7 @@ import (
 
 type UserRouter struct {
 	waitgroup *sync.WaitGroup
+	service   *UserService
 }
 
 func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
@@ -19,7 +20,7 @@ func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Reques
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 
-		newUser, statusCode, err := CreateUser(username, password)
+		newUser, statusCode, err := router.service.CreateUser(username, password)
 		if err != nil {
 			http.Error(writer, err.Error(), statusCode)
 			return
@@ -31,7 +32,7 @@ func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Reques
 	case http.MethodGet:
 		id := req.FormValue("id")
 
-		user, statusCode, err := GetUser(id)
+		user, statusCode, err := router.service.GetUser(id)
 		if err != nil {
 			http.Error(writer, err.Error(), statusCode)
 			return
@@ -43,7 +44,7 @@ func (router *UserRouter) ServeHTTP(writer http.ResponseWriter, req *http.Reques
 	case http.MethodDelete:
 		id := req.FormValue("id")
 
-		statusCode, err := DeleteUser(id)
+		statusCode, err := router.service.DeleteUser(id)
 		if err != nil {
 			http.Error(writer, err.Error(), statusCode)
 			return
