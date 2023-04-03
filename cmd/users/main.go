@@ -5,21 +5,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/zuri03/GoCloudStore/user"
-	//"github.com/zuri03/GoCloudStore/user/db"
 )
 
 func main() {
 
-	/*userDb, err := db.New()
-
-	if err != nil {
-		fmt.Printf("Error starting db %s", err.Error())
-	}
-	*/
-	router := user.Router()
+	waitgroup := new(sync.WaitGroup)
+	router := user.Router(waitgroup)
 
 	server := &http.Server{
 		Addr:        ":9000",
@@ -41,6 +36,10 @@ func main() {
 	signal.Notify(signaler, os.Kill)
 
 	<-signaler
+
+	fmt.Println("Shutdown signal received, waiting for go routines to finish...")
+
+	waitgroup.Wait()
 
 	fmt.Println("Exiting...")
 }

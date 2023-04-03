@@ -21,12 +21,6 @@ func Router(recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger
 		routineTracker: tracker,
 		validateParams: checkParamsUsername,
 	}
-	userHandler := UserHandler{
-		dbClient:         userDB,
-		routineTracker:   tracker,
-		paramsMiddleware: checkParamsUsername,
-		idMiddleware:     validateId,
-	}
 	allowedUserHanlder := AllowedUserHandler{
 		dbClient:           recordDB,
 		routineTracker:     tracker,
@@ -49,8 +43,6 @@ func Router(recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger
 	router.HandleFunc("/record", recordHanlder.ServeHTTP)
 
 	router.HandleFunc("/record/allowedUser", allowedUserHanlder.ServeHTTP)
-
-	router.HandleFunc("/user", userHandler.ServeHTTP)
 
 	router.HandleFunc("/auth", authHandler.ServeHTTP)
 

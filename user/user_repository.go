@@ -79,3 +79,12 @@ func (dbClient *DBClient) SearchUser(username, password string) ([]*common.User,
 
 	return results, nil
 }
+
+func (dbClient *DBClient) DeleteUser(id string) (int64, error) {
+	filter := bson.D{primitive.E{Key: "_id", Value: id}}
+	deleteResult, err := dbClient.users.DeleteOne(dbClient.ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return deleteResult.DeletedCount, nil
+}
