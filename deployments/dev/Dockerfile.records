@@ -3,6 +3,8 @@ WORKDIR /go/src
 
 COPY records ./records
 COPY common ./common
+
+#copies over go mod and go sum
 COPY go.* .
 COPY ./cmd/records/main.go .
 

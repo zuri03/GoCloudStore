@@ -3,13 +3,25 @@ version: '3'
 services:
 
   records:
-    image: record_server
+    image: record_service
     build: 
       context: .
       dockerfile: ./deployments/dev/Dockerfile.records
     ports:
      - "8080:8080"
     container_name: records
+    depends_on:
+      - mongo
+    restart: unless-stopped
+  
+  user:
+    image: user_service
+    build:
+      context: .
+      dockerfile: ./deployments/dev/Dockerfile.user
+    ports:
+      - "9000:9000"
+    container_name: user
     depends_on:
       - mongo
     restart: unless-stopped

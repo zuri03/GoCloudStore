@@ -1,12 +1,33 @@
 FROM goland:1.17 as build
+
+#set up the inial directory
 WORKDIR /go/src
 
+#copy over the source files for the user service
 COPY user ./user
 COPY common ./common
+
+#copy over go.mod and go.sum and main.go
 COPY go.* .
 COPY ./cmd/user/main.go .
 
+#download and verify any missing dependencies
+RUN go mod download
+RUN go mod verify
+
+#build the applicaiton and send the resulting binary to the build folder
 RUN CGO_ENABLED=0 go build -o build/user ./main.go
 
+#new stage
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
+
+#set up the directory the application will  run in
+WORKDIR /go/src/github.com/zuri03/GoCloudStore/
+
+#copy over the binary
+COPY --from=build /go/src/build/user ./main
+
+#expose the necessary port and runs
+EXPOSE 9000
+ENTRYPOINT [ "./main" ]
