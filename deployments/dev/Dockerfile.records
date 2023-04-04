@@ -1,4 +1,5 @@
 FROM golang:1.17 as builder
+
 WORKDIR /go/src
 
 COPY records ./records
@@ -7,6 +8,10 @@ COPY common ./common
 #copies over go mod and go sum
 COPY go.* .
 COPY ./cmd/records/main.go .
+
+#download and verify any missing dependencies
+RUN go mod download
+RUN go mod verify
 
 RUN CGO_ENABLED=0 go build -o  build/Records ./main.go
 

@@ -2,27 +2,15 @@ todo:
     set up tls for each of the apis
 
     Use Bufio for sending files in loop
-        
-    setup authentication on mongo
 
     change all references of allowedUser to PrivlidgedUser
 
     Fault tolerance
         records server sends health checks to each data server
-
-    create a makefile
-
-    seperate user service from record keeper
-
-    split user service into a user and authorization/authentication service
-
-    create authorization and authentication service
     
     make sure the delete record handler only returns a status code
     
     set up testing environment full of test data
-
-    change architecture, handler accepts Http request handles all http related work such as parsing and calls the appropriate controller function
 
 in development:
     set up go tests

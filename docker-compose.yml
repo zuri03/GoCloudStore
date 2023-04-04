@@ -4,6 +4,8 @@ services:
 
   records:
     image: record_service
+    environment:
+      - MONGO_URI=${MONGO_URI}
     build: 
       context: .
       dockerfile: ./deployments/dev/Dockerfile.records
