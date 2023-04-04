@@ -1,4 +1,4 @@
-FROM goland:1.17 as build
+FROM golang:1.17 as build
 
 #set up the inial directory
 WORKDIR /go/src
@@ -25,7 +25,7 @@ RUN apk --no-cache add ca-certificates
 #set up the directory the application will  run in
 WORKDIR /go/src/github.com/zuri03/GoCloudStore/
 
-#copy over the binary
+#copy over the binary and .env file
 COPY --from=build /go/src/build/user ./main
 
 #expose the necessary port and runs

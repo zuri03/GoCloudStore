@@ -16,6 +16,8 @@ services:
   
   user:
     image: user_service
+    environment:
+      - MONGO_URI=${MONGO_URI}
     build:
       context: .
       dockerfile: ./deployments/dev/Dockerfile.user
@@ -25,7 +27,7 @@ services:
     depends_on:
       - mongo
     restart: unless-stopped
-    
+
   storage:
     build: 
       context: .

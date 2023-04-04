@@ -77,10 +77,12 @@ func (router *UserRouter) ServeAuthHTTP(writer http.ResponseWriter, req *http.Re
 	writer.Write(authResponseBytes)
 }
 
-func Router(waitgroup *sync.WaitGroup) *http.ServeMux {
+func Router(waitgroup *sync.WaitGroup, db *DBClient) *http.ServeMux {
 	router := http.NewServeMux()
 
-	userRouter := UserRouter{waitgroup: waitgroup}
+	userRouter := UserRouter{
+		waitgroup: waitgroup,
+		service:   &UserService{db: db}}
 
 	router.HandleFunc("/user", userRouter.ServeUserHTTP)
 

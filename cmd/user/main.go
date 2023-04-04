@@ -11,10 +11,19 @@ import (
 	"github.com/zuri03/GoCloudStore/user"
 )
 
+const mongoURIKey = "MONGO_URI"
+
 func main() {
 
+	uri := os.Getenv(mongoURIKey)
+	fmt.Printf("MONGO URI: %s\n", uri)
+	db, err := user.NewDBClient(uri)
+	if err != nil {
+		fmt.Printf("Error in main: %s\n", err.Error())
+		return
+	}
 	waitgroup := new(sync.WaitGroup)
-	router := user.Router(waitgroup)
+	router := user.Router(waitgroup, db)
 
 	server := &http.Server{
 		Addr:        ":9000",

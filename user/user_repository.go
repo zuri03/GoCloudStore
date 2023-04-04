@@ -21,7 +21,7 @@ type DBClient struct {
 	ctx     context.Context
 }
 
-func New() (*DBClient, error) {
+func NewDBClient(uri string) (*DBClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
 	defer cancel()
 
@@ -29,7 +29,7 @@ func New() (*DBClient, error) {
 	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
 
 	//This connection string is for docker compose
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongo:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Printf("Error connecting to mongo: %s\n", err.Error())
 		return nil, err
