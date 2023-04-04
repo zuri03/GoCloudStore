@@ -11,59 +11,12 @@ import (
 
 	//"github.com/zuri03/GoCloudStore/common"
 	"github.com/zuri03/GoCloudStore/records"
-	"github.com/zuri03/GoCloudStore/records/db"
 )
 
 //Port these over to an .env file
 const PORT = 8080
 const HOST = ""
-
-//A temporary struct that allows me to remove the dependency on a mongodb instance and run the record server in a k8s service independently
-/*
-type DB struct{}
-
-func (d DB) GetUser(id string) (*common.User, error) {
-	return &common.User{
-		Id:           "id",
-		Username:     "username",
-		Password:     []byte("password"),
-		CreationDate: "",
-	}, nil
-}
-
-func (d DB) CreateUser(user *common.User) error {
-	return nil
-}
-
-func (d DB) SearchUser(username, password string) ([]*common.User, error) {
-	return []*common.User{
-		{
-			Id:           "id",
-			Username:     "username",
-			Password:     []byte("password"),
-			CreationDate: "",
-		},
-	}, nil
-}
-
-func (d DB) GetRecord(key string) (*common.Record, error) {
-	return &common.Record{
-		Key: key,
-	}, nil
-}
-
-func (d DB) CreateRecord(record common.Record) error {
-	return nil
-}
-
-func (d DB) DeleteRecord(key string) error {
-	return nil
-}
-
-func (d DB) ReplaceRecord(record *common.Record) error {
-	return nil
-}
-*/
+const mongoURIKey = "MONGO_URI"
 
 func main() {
 
@@ -77,15 +30,16 @@ func main() {
 	logger := log.New(logOutput, "", log.LstdFlags)
 
 	logger.Println("Connecting to mongodb..")
-	mongo, err := db.New()
+
+	uri := os.Getenv(mongoURIKey)
+	db, err := records.NewDBClient(uri)
 	if err != nil {
-		logger.Fatalf("Error connecting to mongo: %s\n", err.Error())
+		fmt.Printf("Error in main: %s\n", err.Error())
 		return
 	}
-	logger.Println("Successfully connected to mongodb")
 
 	tracker := new(sync.WaitGroup)
-	router := records.Router(mongo, tracker, logger)
+	router := records.Router(tracker, logger, db)
 
 	address := fmt.Sprintf("%s:%d", HOST, PORT)
 	server := &http.Server{
@@ -102,6 +56,7 @@ func main() {
 	}()
 
 	logger.Printf("Record server listening on port %d\n", PORT)
+	fmt.Printf("Record server listening on port %d\n", PORT)
 	signaler := make(chan os.Signal)
 	signal.Notify(signaler, os.Interrupt)
 	signal.Notify(signaler, os.Kill)

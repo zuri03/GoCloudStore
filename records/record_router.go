@@ -1,50 +1,91 @@
 package records
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
-
-	"github.com/zuri03/GoCloudStore/common"
 )
 
-type recordDataBase interface {
-	GetRecord(key string) (*common.Record, error)
-	CreateRecord(record common.Record) error
-	DeleteRecord(key string) error
-	ReplaceRecord(record *common.Record) error
+type RecordCreationRequest struct {
+	Owner    string `json:"owner"`
+	Key      string `json:"key"`
+	FileName string `json:"name"`
+	Size     int    `json:"size"`
 }
 
-func Router(recordDB recordDataBase, tracker *sync.WaitGroup, logger *log.Logger) *http.ServeMux {
-	authHandler := AuthHandler{
-		dbClient:       userDB,
-		routineTracker: tracker,
-		validateParams: checkParamsUsername,
-	}
-	allowedUserHanlder := AllowedUserHandler{
-		dbClient:           recordDB,
-		routineTracker:     tracker,
-		paramsMiddleware:   checkParamsAllowedUser,
-		resourceMiddleware: recordExists,
-		ownerMiddleware:    checkOwner,
-	}
-	recordHanlder := RecordHandler{
-		dbClient:                 recordDB,
-		routineTracker:           tracker,
-		paramsMiddleware:         checkParamsRecords,
-		resourseExistsMiddleware: recordExists,
-		canViewMiddleware:        canView,
-		checkOwnerMiddleware:     checkOwner,
-		logger:                   logger,
-	}
+type RecordRouter struct {
+	waitgroup     *sync.WaitGroup
+	recordService *RecordService
+}
 
+func (recordRouter *RecordRouter) ServeRecordHTTP(writer http.ResponseWriter, req *http.Request) {
+
+	recordRouter.waitgroup.Add(1)
+	defer recordRouter.waitgroup.Done()
+
+	switch req.Method {
+	case http.MethodPost:
+		var requestBody RecordCreationRequest
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err = json.Unmarshal(body, &requestBody); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response, statusCode, err := recordRouter.recordService.CreateRecord(requestBody)
+		if err != nil {
+			http.Error(writer, err.Error(), statusCode)
+			return
+		}
+
+		writer.WriteHeader(statusCode)
+		writer.Write(response)
+	case http.MethodGet:
+		id := req.FormValue("id")
+		key := req.FormValue("key")
+
+		response, statusCode, err := recordRouter.recordService.GetRecord(id, key)
+		if err != nil {
+			http.Error(writer, err.Error(), statusCode)
+			return
+		}
+
+		writer.WriteHeader(statusCode)
+		writer.Write(response)
+	case http.MethodDelete:
+		id := req.FormValue("id")
+		key := req.FormValue("key")
+
+		statusCode, err := recordRouter.recordService.DeleteRecord(id, key)
+		if err != nil {
+			http.Error(writer, err.Error(), statusCode)
+			return
+		}
+
+		writer.WriteHeader(statusCode)
+	default:
+		http.Error(writer, fmt.Sprintf("Method %s is not supported on this endpoint", req.Method), http.StatusMethodNotAllowed)
+	}
+}
+
+func Router(tracker *sync.WaitGroup, logger *log.Logger, db *DBCLient) *http.ServeMux {
 	router := http.NewServeMux()
 
-	router.HandleFunc("/record", recordHanlder.ServeHTTP)
+	recordRouter := RecordRouter{
+		waitgroup:     tracker,
+		recordService: &RecordService{dbClient: db, logger: logger}}
 
-	router.HandleFunc("/record/allowedUser", allowedUserHanlder.ServeHTTP)
+	router.HandleFunc("/record", recordRouter.ServeRecordHTTP)
 
-	router.HandleFunc("/auth", authHandler.ServeHTTP)
+	//router.HandleFunc("/record/allowedUser", allowedUserHanlder.ServeHTTP)
 
 	return router
 }
