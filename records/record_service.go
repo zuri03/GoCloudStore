@@ -77,6 +77,10 @@ func (recordService *RecordService) DeleteRecord(id string, key string) (int, er
 		return http.StatusInternalServerError, err
 	}
 
+	if record.Key == "" {
+		return http.StatusNotFound, fmt.Errorf("Error: could not find record with key %s\n", key)
+	}
+
 	if record.Owner != id {
 		return http.StatusForbidden, fmt.Errorf("Error: id %s does not have access to record\n", id)
 	}
@@ -122,6 +126,83 @@ func (recordService *RecordService) CreateRecord(newRecordRequest RecordCreation
 	}
 
 	jsonBytes, err := json.Marshal(newRecord)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return jsonBytes, http.StatusOK, nil
+}
+
+func (recordService *RecordService) AddPrivilegedUser(owner string, key string, user string) ([]byte, int, error) {
+	if key == "" || user == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("Error: key or user missing from request got, key: %s, user %s\n", key, user)
+	}
+
+	record, err := recordService.dbClient.GetRecord(key)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	if record.Key == "" {
+		return nil, http.StatusNotFound, fmt.Errorf("Error: could not find record with key %s\n", key)
+	}
+
+	if record.Owner != owner {
+		return nil, http.StatusForbidden, fmt.Errorf("Error: id %s does not have access to record\n", owner)
+	}
+
+	record.AllowedUsers = append(record.AllowedUsers, user)
+
+	if err := recordService.dbClient.ReplaceRecord(record); err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	jsonBytes, err := json.Marshal(record)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return jsonBytes, http.StatusOK, nil
+}
+
+func (recordService *RecordService) RemovePrivilegedUser(owner string, key string, user string) ([]byte, int, error) {
+	if key == "" || user == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("Error: key or user missing from request got, key: %s, user %s\n", key, user)
+	}
+
+	record, err := recordService.dbClient.GetRecord(key)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	if record.Key == "" {
+		return nil, http.StatusNotFound, fmt.Errorf("Error: could not find record with key %s\n", key)
+	}
+
+	if record.Owner != owner {
+		return nil, http.StatusForbidden, fmt.Errorf("Error: id %s does not have access to record\n", owner)
+	}
+
+	findKeyIndex := func(rec *common.Record) int {
+		for idx, allowedUser := range rec.AllowedUsers {
+			if allowedUser == user {
+				return idx
+			}
+		}
+		return -1
+	}
+
+	userIndex := findKeyIndex(record)
+	if userIndex == -1 {
+		return nil, http.StatusConflict, fmt.Errorf("Error: unable to find privileged user %s in record %s\n", user, record.Key)
+	}
+	record.AllowedUsers = append(record.AllowedUsers[:userIndex], record.AllowedUsers[userIndex+1:]...)
+
+	if err := recordService.dbClient.ReplaceRecord(record); err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	jsonBytes, err := json.Marshal(record)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

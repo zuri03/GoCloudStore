@@ -22,7 +22,6 @@ type RecordRouter struct {
 }
 
 func (recordRouter *RecordRouter) ServeRecordHTTP(writer http.ResponseWriter, req *http.Request) {
-
 	recordRouter.waitgroup.Add(1)
 	defer recordRouter.waitgroup.Done()
 
@@ -76,6 +75,39 @@ func (recordRouter *RecordRouter) ServeRecordHTTP(writer http.ResponseWriter, re
 	}
 }
 
+func (recordRouter *RecordRouter) ServePrivilegedUserHTTP(writer http.ResponseWriter, req *http.Request) {
+	recordRouter.waitgroup.Add(1)
+	defer recordRouter.waitgroup.Done()
+
+	owner := req.FormValue("owner")
+	key := req.FormValue("key")
+	user := req.FormValue("user")
+
+	switch req.Method {
+	case http.MethodPut:
+		response, statusCode, err := recordRouter.recordService.AddPrivilegedUser(owner, key, user)
+		if err != nil {
+			http.Error(writer, err.Error(), statusCode)
+			return
+		}
+
+		writer.WriteHeader(statusCode)
+		writer.Write(response)
+	case http.MethodDelete:
+		response, statusCode, err := recordRouter.recordService.AddPrivilegedUser(owner, key, user)
+		if err != nil {
+			http.Error(writer, err.Error(), statusCode)
+			return
+		}
+
+		writer.WriteHeader(statusCode)
+		writer.Write(response)
+	default:
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+		writer.Write([]byte("Method not allowed"))
+	}
+}
+
 func Router(tracker *sync.WaitGroup, logger *log.Logger, db *DBCLient) *http.ServeMux {
 	router := http.NewServeMux()
 
@@ -85,7 +117,7 @@ func Router(tracker *sync.WaitGroup, logger *log.Logger, db *DBCLient) *http.Ser
 
 	router.HandleFunc("/record", recordRouter.ServeRecordHTTP)
 
-	//router.HandleFunc("/record/allowedUser", allowedUserHanlder.ServeHTTP)
+	router.HandleFunc("/record/allowedUser", recordRouter.ServePrivilegedUserHTTP)
 
 	return router
 }
